@@ -1,0 +1,298 @@
+CHANGES IN VERSION 0.2.14
+------------------------------
+
+NEW FEATURE
+
+    o filtering: now applied on features first
+
+
+CHANGES IN VERSION 0.2.12
+------------------------------
+
+MODIFICATION
+
+    o correcting: the median of the feature intensities is now displayed on the graphics instead of the sum
+
+CHANGES IN VERSION 0.2.10
+------------------------------
+
+NEW FEATURE
+
+    o filtering: filtering out variables with a proportion of max_na_prop.n of missing values or 0 variance (no more filtering in the 'inspecting' method)
+
+CHANGES IN VERSION 0.2.8
+------------------------------
+
+NEW FEATURE
+
+    o inspecting: filtering out variables with a proportion of max_na_prop.n of missing values or 0 variance
+
+CHANGES IN VERSION 0.2.6
+------------------------------
+
+MINOR MODIFICATION
+
+    o search_code (for developers): updating example
+
+CHANGES IN VERSION 0.2.4
+------------------------------
+
+NEW FEATURE
+
+    o search_code (for developers): to facilitate code development
+
+CHANGES IN VERSION 0.2.2
+------------------------------
+
+INTERNAL MODIFICATION
+
+    o additional check included in 'reading': in case of multiple column with the same
+    name in sampleMetadata or variableMetadata
+
+CHANGES IN VERSION 0.2.0
+------------------------------
+
+MAJOR CHANGES
+
+    o renaming of arguments using the 'snake' notations
+
+CHANGES IN VERSION 0.1.66
+------------------------------
+
+MINOR MODIFICATIONS
+
+    o gg_plots: filename.c argument renamed to file.c
+
+CHANGES IN VERSION 0.1.64
+------------------------------
+
+NEW FEATURE
+
+    o gg_pie wrapper for pie charts
+
+CHANGES IN VERSION 0.1.62
+------------------------------
+
+MINOR MODIFICATION
+
+    o vennplot: minor modification of arguments
+
+CHANGES IN VERSION 0.1.60
+------------------------------
+
+NEW FEATURE
+
+    o vennplot: wrapper from the VennDiagram::venn.diagram functions
+
+CHANGES IN VERSION 0.1.58
+------------------------------
+
+MINOR MODIFICATION
+
+    o readme: update (annotating method)
+
+CHANGES IN VERSION 0.1.56
+------------------------------
+
+MINOR MODIFICATION
+
+    o gg_barplot: order of legend elements in case of flipping
+
+CHANGES IN VERSION 0.1.54
+------------------------------
+
+MINOR MODIFICATION
+
+    o reading: handling messages and warnings
+
+CHANGES IN VERSION 0.1.52
+------------------------------
+
+MINOR MODIFICATION
+
+    o transforming: handling of zero and missing values
+
+CHANGES IN VERSION 0.1.50
+------------------------------
+
+MINOR MODIFICATION
+
+    o gg plots: harmonization of the names of the color argument
+
+CHANGES IN VERSION 0.1.48
+------------------------------
+
+MINOR MODIFICATION
+
+    o reading/writing: handling of messages
+
+CHANGES IN VERSION 0.1.46
+------------------------------
+
+NEW FEATURE
+
+    o gg_boxplot
+
+CHANGES IN VERSION 0.1.44
+------------------------------
+
+INTERNAL MODIFICATION
+
+    o dplyr and tidyr packages now imported
+
+CHANGES IN VERSION 0.1.42
+------------------------------
+
+NEW FEATURE
+
+    o inspecting: overview plot with ggplot2
+
+CHANGES IN VERSION 0.1.40
+------------------------------
+
+NEW FEATURE
+
+    o gg_barplot
+
+CHANGES IN VERSION 0.1.38
+------------------------------
+
+NEW FEATURE
+
+    o gg_volcanoplot: internal use of ggrepel for pretty labels display
+
+CHANGES IN VERSION 0.1.36
+------------------------------
+
+NEW FEATURE
+
+    o gg_volcanoplot function
+
+CHANGES IN VERSION 0.1.34
+------------------------------
+
+NEW FEATURE
+
+    o transforming: log transformations on non-zero values only (instead of using log(1 + X))
+
+CHANGES IN VERSION 0.1.32
+------------------------------
+
+INTERNAL MODIFICATION
+
+    o Code cleaning to meet check standards
+
+CHANGES IN VERSION 0.1.30
+------------------------------
+
+MINOR MODIFICATION
+
+    o Methods documentation now moved to 'allGenerics'
+    
+CHANGES IN VERSION 0.1.28
+------------------------------
+
+INTERNAL MODIFICATION
+
+    o Suppression of ... in internal functions
+
+CHANGES IN VERSION 0.1.26
+------------------------------
+
+MINOR MODIFICATION
+
+    o Suppression of ... as methods arguments
+
+CHANGES IN VERSION 0.1.24
+------------------------------
+
+MINOR MODIFICATION
+
+    o Modification of hypotesting doc to pass biocCheck
+
+CHANGES IN VERSION 0.1.22
+------------------------------
+
+NEW FEATURE
+
+    o Continuous testing with Travis
+
+CHANGES IN VERSION 0.1.20
+------------------------------
+
+NEW FEATURE
+
+    o Hypotesting: new 'prefixC' argument to prevent overwriting of existing
+    "variableMetadata.tsv" columns
+
+CHANGES IN VERSION 0.1.18
+------------------------------
+
+NEW FEATURE
+
+    o Reading: greping of "dataMatrix.tsv", "sampleMetadata.tsv" and "variableMetadata.tsv"
+    suffixes at the end of the file names instead of expecting filenames identical to these
+    three strings.
+
+CHANGES IN VERSION 0.1.16
+------------------------------
+
+NEW FEATURE
+
+    o Hypotesting: renaming of the signifPrintMaxI parameter
+
+CHANGES IN VERSION 0.1.14
+------------------------------
+
+BUG FIXED
+
+    o Hypotesting: anova in case some features with only missing values in one or more levels
+
+CHANGES IN VERSION 0.1.12
+------------------------------
+
+NEW FEATURE
+
+    o Hypotesting: volcano plot with ggplot2 (and plotly)
+
+CHANGES IN VERSION 0.1.10
+------------------------------
+
+NEW FEATURE
+
+    o Chemical annotation with ChEBI identifiers
+
+CHANGES IN VERSION 0.1.8
+------------------------------
+
+NEW FEATURE
+
+    o 'annotatingParam' function to display the parameters and their default values
+
+CHANGES IN VERSION 0.1.6
+------------------------------
+
+NEW FEATURE
+
+    o MS chemical annotation with local database
+
+CHANGES IN VERSION 0.1.4
+------------------------------
+
+NEW FEATURE
+
+    o MS chemical annotation with ChEBI
+
+CHANGES IN VERSION 0.1.2
+------------------------------
+
+MINOR MODIFICATION
+
+    o update of the new argument names in 'hypotesting' and 'clustering' in the figure from 'README'
+    
+CHANGES IN VERSION 0.1.0
+------------------------------
+
+NEW FEATURE
+
+    o package creation

@@ -1,0 +1,13 @@
+parameter	mode	available	default	chebi	local.ms	kegg
+query.type	character	c('mz', 'chebi.id', 'kegg.id')	mz	x	x	x
+query.col	character		mz	x	x	x
+ms.mode	character	c('pos', 'neg')	pos	x	x	
+mz.tol	numeric		10	x	x	
+mz.tol.unit	character	c('plain', 'ppm')	ppm	x	x	
+fields	character	chebi = c('accession', 'charge', 'chebi.id', 'formula', 'inchi', 'inchikey', 'kegg.compound.id', 'molecular.mass', 'monoisotopic.mass', 'name', 'smiles')|kegg = c('accession', 'cas.id', 'chebi.id', 'formula', 'kegg.compound.id', 'kegg.enzyme.id', 'kegg.pathway.id', 'kegg.reaction.id', 'molecular.mass', 'monoisotopic.mass', 'name', 'ncbi.pubchem.comp.id')	chebi = c('chebi.id', 'name', 'formula',  'monoisotopic.mass', 'kegg.compound.id')|kegg = c('')	x		x
+fieldsLimit	numeric		1	x		x
+max.results	numeric		3	x		x
+local.ms.db	data.frame		data.frame()		x	
+organism	character		hsa			x
+prefix	character		paste0(database.c, '.')	x	x	x
+sep	character		|	x	x	x
