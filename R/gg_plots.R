@@ -17,8 +17,8 @@
 #' @param bar_just.n Numeric: adjustment of bar value text (default : 0.9)
 #' @param geom_text.ls List of sizes for axis and legend text (default: 18), bar text
 #' (default 10) and adjustment (default 1.5) and title (default: 28)
-#' @param figure.c Character: either 'interactive' for interactive display or
-#' 'my_barplot.pdf' for figure saving (only the extension matters)
+#' @param figure.c Character: either 'interactive' for interactive display,
+#' 'my_barplot.pdf' for figure saving (only the extension matters), or 'none' to prevent plotting
 #' @return invisible ggplot2 object
 #' @export
 #' @examples
@@ -40,7 +40,8 @@ gg_barplot <- function(data.mn,
                        cex_title.i = 28,
                        bar_just.n = 0.9,
                        figure.c = c("interactive",
-                                    "my_barplot.pdf")[1]) {
+                                    "my_barplot.pdf",
+                                    "none")[1]) {
   
   data.df <- as.data.frame(data.mn)
   data.df[, "rownames"] <- rownames(data.df)
@@ -69,39 +70,7 @@ gg_barplot <- function(data.mn,
   
 }
 
-#' Barplot with ggplot2
-#'
-#' Barplot with ggplot2
-#' 
-#' @param data.tb Tibble (or data frame) containing the information
-#' @param x.c Character: name of the column with qualitative levels
-#' @param y.c Character: name of the column with quantitative values
-#' @param color.c Character: optional name of the column for color information
-#' @param title.c Character: plot title
-#' @param xlab.c Character: x label
-#' @param ylab.c Character: y label
-#' @param palette.vc Character: either the name of an RColorBrewer palette
-#' (default: 'Set1'; 'Paired' can be useful for parallel plotting) or a vector
-#' manually defining the colors
-#' @param legend_position.c Character: either 'none', 'bottom', top' (default),
-#' 'left', or 'right'
-#' @param geom_text.ls List of sizes for axis and legend text (default: 18), bar text
-#' (default 10) and adjustment (default 1.5) and title (default: 28)
-#' @param flip.l Logigal: should the barplot be flipped horizontally (default: TRUE)
-#' @param position_dodge.l Logical: should the paired bars be displayed side by side
-#' (default: TRUE)
-#' @param figure.c Character: either 'interactive' for interactive display or
-#' 'my_barplot.pdf' for figure saving (only the extension matters)
-#' @return invisible ggplot2 object
-#' @examples
-#' prometis.mset <- phenomis::reading(system.file("extdata/prometis", package = "phenomis"))
-#' prometis_dims.ls <- Biobase::dims(prometis.mset)
-#' prometis_dims.vn <- unlist(prometis_dims.ls)
-#' prometis_dims.df <- data.frame(omic = rep(names(prometis_dims.ls), each = 2),
-#' dimname = rep(names(prometis_dims.ls[[1]]), times = 2),
-#' count = prometis_dims.vn, stringsAsFactors = FALSE)
-#' phenomis:::.gg_barplot(prometis_dims.df, x.c = "omic", y.c = "count", color.c = "dimname",
-#' title.c = "Prometis", palette.vc = "Paired")
+
 .gg_barplot <- function(data.tb,
                        x.c = "",
                        y.c = "",
@@ -116,7 +85,8 @@ gg_barplot <- function(data.mn,
                        flip.l = TRUE,
                        position_dodge.l = TRUE,
                        figure.c = c("interactive",
-                                  "my_barplot.pdf")[1]) {
+                                    "my_barplot.pdf",
+                                    "none")[1]) {
   # http://www.sthda.com/french/wiki/ggplot2-barplots-guide-de-demarrage-rapide-logiciel-r-et-visualisation-de-donnees
   
   if (!tibble::is_tibble(data.tb))
@@ -196,13 +166,17 @@ gg_barplot <- function(data.mn,
       p <- p + ggplot2::guides(fill = ggplot2::guide_legend(reverse = TRUE))
   }
   
-  if (filename_ext.c == "pdf")
-    grDevices::pdf(figure.c)
-  
-  print(p)
-  
-  if (filename_ext.c == "pdf")
-    grDevices::dev.off()
+  if (filename_ext.c != "none") {
+    
+    if (filename_ext.c == "pdf")
+      grDevices::pdf(figure.c)
+    
+    print(p)
+    
+    if (filename_ext.c == "pdf")
+      grDevices::dev.off()
+    
+  }
   
   return(invisible(p))
   
@@ -219,6 +193,9 @@ gg_barplot <- function(data.mn,
 #' @param title.c Character: plot title
 #' @param xlab.c Character: x label
 #' @param ylab.c Character: y label
+#' @param label.vc Character (vector): either the name of a character column
+#' from the data or a character vector of the same length as the rown number of
+#' the data, containing the feature labeling for outlier display
 #' @param palette.vc Character: either the name of an RColorBrewer palette
 #' (default: 'Set1'; 'Paired' can be useful for parallel plotting) or a vector
 #' manually defining the colors
@@ -232,23 +209,27 @@ gg_barplot <- function(data.mn,
 #' sacurine.eset <- phenomis::reading(system.file("extdata/sacurine", package = "phenomis"))
 #' sacurine_pda.df <- Biobase::pData(sacurine.eset)
 #' sacurine_pda.df <- sacurine_pda.df[!grepl("QC", rownames(sacurine_pda.df)), ]
-#' gg_boxplot(sacurine_pda.df, y.c = "age")
-#' gg_boxplot(sacurine_pda.df, x.c = "gender", y.c = "bmi", color.c = "gender")
+#' phenomis::gg_boxplot(sacurine_pda.df, y.c = "age")
+#' phenomis::gg_boxplot(sacurine_pda.df, x.c = "gender", y.c = "bmi", color.c = "gender")
+#' phenomis::gg_boxplot(sacurine_pda.df, x.c = "gender", y.c = "bmi", color.c = "gender", label.vc = rownames(sacurine_pda.df))
 gg_boxplot <- function(data.tb,
-                       x.c = "''",
+                       x.c = "",
                        y.c = "",
                        color.c = "",
                        title.c = NA,
                        xlab.c = NA,
                        ylab.c = "",
+                       label.vc = "",
                        palette.vc = "Set1",
                        size.ls = list(dot.n = 0.7,
                                       lab.i = 20,
                                       tick.i = 20,
                                       title.i = 20),
                        figure.c = c("interactive",
-                                  "my_boxplot.pdf")[1]) {
+                                    "my_boxplot.pdf")[1]) {
   # http://www.sthda.com/french/wiki/ggplot2-box-plot-guide-de-demarrage-rapide-logiciel-r-et-visualisation-de-donnees
+  
+  stopifnot(is.numeric(data.tb[[y.c]]))
   
   size_default.vi <- c(class.i = 5, dot.n = 0.7, lab.i = 16, point.i = 3,
                        tick.i = 14, title.i = 20)
@@ -261,29 +242,70 @@ gg_boxplot <- function(data.tb,
   filename_ext.c <-  utils::tail(unlist(strsplit(basename(figure.c), ".", fixed = TRUE)), 1)
   
   if (is.na(xlab.c))
-    xlab.c <- ifelse(x.c == "''", y.c, "")
+    xlab.c <- ifelse(x.c == "", y.c, "")
   
   if (is.na(title.c))
-    title.c <- ifelse(x.c == "''", "", y.c)
+    title.c <- ifelse(x.c == "", "", y.c)
+  
+  # labels (for outliers)
+  
+  if (length(label.vc) == 1) {
+    if (label.vc != "") {
+      stopifnot(label.c %in% colnames(data.tb))
+      label.vc <- data.tb[[label.vc]]
+    } else
+      label.vc <- as.character(data.tb[[y.c]])
+  } else {
+    stopifnot(length(label.vc) == nrow(data.tb))
+  }
   
   # color palette
   if (color.c != "")
     aes.c <- paste0("ggplot2::ggplot(data.tb, ggplot2::aes(x = ",
-                    x.c, ", y = ", y.c, ", color = ", color.c, "))")
+                    ifelse(x.c == "", "''", x.c), ", y = ", y.c, ", color = ", color.c, "))")
   else
     aes.c <- paste0("ggplot2::ggplot(data.tb, ggplot2::aes(x = ",
-                    x.c, ", y = ", y.c, "))")
+                    ifelse(x.c == "", "''", x.c), ", y = ", y.c, "))")
   
   p <- eval(parse(text = aes.c))
   
   p <- p +
     ggplot2::geom_boxplot(lwd = 2)
   
+
+  is_outlier <- function(values.vn, index.vc) {
+    out.vl <- values.vn < quantile(values.vn, 0.25, na.rm = TRUE) - 1.5 * IQR(values.vn, na.rm = TRUE) |
+      values.vn > quantile(values.vn, 0.75, na.rm = TRUE) + 1.5 * IQR(values.vn, na.rm = TRUE)
+    out.vi <- as.numeric(index.vc[out.vl])
+    out.vi[!is.na(out.vi)]
+  }
+
+  if (x.c == "") {
+    outlier.vi <- is_outlier(data.tb[[y.c]], as.character(1:nrow(data.tb)))
+  } else {
+    outlier.vi <- integer()
+    x.vc <- as.character(data.tb[[x.c]])
+    x.vuc <- unique(x.vc)
+    for (x.uc in x.vuc) {
+      index.vi <- which(x.vc == x.uc)
+      outlier.vi <- c(outlier.vi, is_outlier(data.tb[[y.c]][index.vi], as.character(index.vi)))
+    }
+  }
+
+  outlier.vc <- character(nrow(data.tb))
+  outlier.vc[outlier.vi] <- label.vc[outlier.vi]
+
+  p <- p + eval(parse(text = paste0("ggrepel::geom_text_repel(ggplot2::aes(x = ",
+                                    ifelse(x.c == "", "''", x.c), ", y = ", y.c, ", label = outlier.vc))")))
+
   if (length(palette.vc) == 1 &&
       palette.vc %in% rownames(RColorBrewer::brewer.pal.info))
     p <- p + ggplot2::scale_colour_brewer(palette = palette.vc)
-  else
+  else {
+    if (is.factor(data.tb[[color.c]]))
+      names(palette.vc) <- levels(data.tb[[color.c]])
     p <- p + ggplot2::scale_color_manual(values = palette.vc)
+  }
   
   p <- p +
     ggplot2::labs(title = title.c,
@@ -327,8 +349,8 @@ gg_boxplot <- function(data.tb,
 #' 'none' (default), 'value' or 'percent'
 #' @param geom_text.ls List of sizes for lab.i (default 7), legend_title.i (16),
 #' legend_text.i (14), and title.i (16)
-#' @param figure.c Character: either 'interactive' for interactive display or
-#' 'my_pie.pdf' for figure saving (only the extension matters)
+#' @param figure.c Character: either 'interactive' for interactive display,
+#' 'my_pie.pdf' for figure saving (only the extension matters), or 'none' to prevent plotting
 #' @return invisible ggplot2 object
 #' @export
 #' @examples
@@ -344,7 +366,8 @@ gg_pie <- function(data.tb,
                    label.c = c("none", "value", "percent")[1],
                    geom_text.ls = list(lab.i = 7, legend_title.i = 16, legend_text.i = 14, title.i = 16),
                    figure.c = c("interactive",
-                              "my_pie.pdf")[1]) {
+                                "my_pie.pdf",
+                                "none")[1]) {
   
   if (!tibble::is_tibble(data.tb))
     data.tb <- tibble::as_tibble(data.tb)
@@ -432,13 +455,17 @@ gg_pie <- function(data.tb,
       stop("'label.c' must be either 'none', 'value', or 'percent'", call. = FALSE)
   } 
   
-  if (filename_ext.c == "pdf")
-    grDevices::pdf(figure.c)
-  
-  print(p)
-  
-  if (filename_ext.c == "pdf")
-    grDevices::dev.off()
+  if (filename_ext.c != "none") {
+    
+    if (filename_ext.c == "pdf")
+      grDevices::pdf(figure.c)
+    
+    print(p)
+    
+    if (filename_ext.c == "pdf")
+      grDevices::dev.off()
+    
+  }
   
   return(invisible(p))
   
@@ -452,7 +479,9 @@ gg_pie <- function(data.tb,
 #' @param adjusted_pvalue.vn Numeric vector: (adjusted) p-values
 #' @param adjust_method.c Character: method for multiple testing correction
 #' @param adjust_thresh.n Numeric: significance threshold
-#' @param label.vc Character vector: feature labeling to display
+#' @param label.vc Character (vector): either the name of a character column
+#' from the data or a character vector of the same length as the rown number of
+#' the data, containing the feature labeling
 #' @param title.c Character: plot title
 #' @param xlab.c Character: x label (default: "Fold Change")
 #' @param signif_palette.vc Character vector: color palette (default 'green4' for
@@ -481,18 +510,18 @@ gg_pie <- function(data.tb,
 #' fold.vn <- Biobase::fData(sacurine.eset)[, "wilcoxon_gender_Female.Male_diff"]
 #' fdr.vn <- Biobase::fData(sacurine.eset)[, "wilcoxon_gender_Female.Male_BH"]
 #' feat.vc <- Biobase::featureNames(sacurine.eset)
-#' gg_volcanoplot(fold.vn,
-#'                fdr.vn,
-#'                label.vc = feat.vc,
-#'                adjust_method.c = "BH")
+#' phenomis::gg_volcanoplot(fold.vn,
+#'                          fdr.vn,
+#'                          label.vc = feat.vc,
+#'                          adjust_method.c = "BH")
 #' feat_signif.vc <-  sapply(seq_along(feat.vc),
 #'                           function(feat.i)
 #'                            ifelse(fdr.vn[feat.i] <= 0.05, feat.vc[feat.i], ""))
-#' gg_volcanoplot(fold.vn,
-#'                fdr.vn,
-#'                label.vc = feat_signif.vc,
-#'                adjust_method.c = "BH",
-#'                figure.c = "interactive")
+#' phenomis::gg_volcanoplot(fold.vn,
+#'                          fdr.vn,
+#'                          label.vc = feat_signif.vc,
+#'                          adjust_method.c = "BH",
+#'                          figure.c = "interactive")
 gg_volcanoplot <- function(fold_change.vn,
                            adjusted_pvalue.vn,
                            adjust_method.c = "",
@@ -531,11 +560,21 @@ gg_volcanoplot <- function(fold_change.vn,
   volcano.df <- data.frame(fold_change = fold_change.vn,
                            log_pval = -log10(adjusted_pvalue.vn))
   
-  if (length(label.vc) > 1 || label.vc != "") {
-    stopifnot(identical(length(label.vc), nrow(volcano.df)))
-    volcano.df[, "label"] <- label.vc
-  } else
-    volcano.df[, "label"] <- rep("", nrow(volcano.df))
+  if (length(label.vc) == 1) {
+    if (label.vc != "") {
+      stopifnot(label.c %in% colnames(volcano.df))
+      label.vc <- volcano.df[[label.vc]]
+    } else
+      label.vc <- rep("", nrow(volcano.df))
+  } else {
+    stopifnot(length(label.vc) == nrow(volcano.df))
+  }
+  
+  # if (length(label.vc) > 1 || label.vc != "") {
+  #   stopifnot(identical(length(label.vc), nrow(volcano.df)))
+  #   volcano.df[, "label"] <- label.vc
+  # } else
+  #   volcano.df[, "label"] <- rep("", nrow(volcano.df))
   
   stopifnot(length(signif_palette.vc) == 2)
   stopifnot(length(signif_shape.vi) == 2)
@@ -548,7 +587,7 @@ gg_volcanoplot <- function(fold_change.vn,
                                     y = log_pval,
                                     color = color,
                                     shape = shape,
-                                    text = label))
+                                    text = label.vc))
   
   if (figure.c == "interactive" || filename_ext.c == "pdf")
     p <- p + ggrepel::geom_text_repel(ggplot2::aes(x = fold_change,

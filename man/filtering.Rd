@@ -8,41 +8,50 @@
 \usage{
 filtering(
   x,
+  class.c = "",
   max_na_prop.n = 0.2,
   min_variance.n = .Machine$double.eps,
-  dims.vc = c("samples", "features"),
+  dims.vc = c("features", "samples"),
   report.c = c("none", "interactive", "myfile.txt")[2]
 )
 
 \S4method{filtering}{MultiDataSet}(
   x,
+  class.c = "",
   max_na_prop.n = 0.2,
   min_variance.n = .Machine$double.eps,
-  dims.vc = c("samples", "features"),
+  dims.vc = c("features", "samples"),
   report.c = c("none", "interactive", "myfile.txt")[2]
 )
 
 \S4method{filtering}{ExpressionSet}(
   x,
+  class.c = "",
   max_na_prop.n = 0.2,
   min_variance.n = .Machine$double.eps,
-  dims.vc = c("samples", "features"),
+  dims.vc = c("features", "samples"),
   report.c = c("none", "interactive", "myfile.txt")[2]
 )
 }
 \arguments{
 \item{x}{An S4 object of class \code{ExpressionSet} or \code{MultiDataSet}}
 
-\item{max_na_prop.n}{Numeric: maximum proportion of NAs for a sample (or feature)
-to be kept [default: 0.2]}
+\item{class.c}{character(1): name of the column of the sample metadata giving
+the classification groups: the filtering will be applied on each class
+(default: "" meaning that there are no specific classes to consider)}
 
-\item{min_variance.n}{Numeric: minimum variance for a sample (or feature) to be kept
-[default: .Machine$double.eps]}
+\item{max_na_prop.n}{numeric(1): maximum proportion of NAs for a feature (or
+sample) to be kept [default: 0.2] (in case 'class.c' is provided, the maximum
+proportion of NAs for a feature must be achieved in at least one sample class)}
+
+\item{min_variance.n}{numeric(1): minimum variance for a feature (or sample) to be kept
+[default: .Machine$double.eps] (in case 'class.c' is provided, the minimum variance
+for a feature must be achieved in all sample classes)}
 
 \item{dims.vc}{Vector of one or two characters: dimension(s) to which the
-filtering should be applied; either 'samples', 'features', or c('samples', 'features')}
+filtering should be applied; either 'features', 'samples', or c('features', 'samples')}
 
-\item{report.c}{Character: File name with '.txt' extension for the printed
+\item{report.c}{character(1): File name with '.txt' extension for the printed
 results (call to sink()'); if 'interactive' (default), messages will be
 printed on the screen; if 'none', no verbose will be generated}
 }
@@ -62,6 +71,8 @@ exprs.mn[exprs.mn < 1e5] <- NA
 ropls::view(exprs.mn)
 Biobase::exprs(sacurine.eset) <- exprs.mn
 phenomis::filtering(sacurine.eset)
+phenomis::filtering(sacurine.eset, class.c = "gender")
+phenomis::filtering(sacurine.eset, class.c = "sampleType")
 # MultiDataSet
 prometis.mset <- phenomis::reading(system.file("extdata/prometis", package="phenomis"))
 phenomis::filtering(prometis.mset)

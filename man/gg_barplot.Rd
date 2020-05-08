@@ -16,7 +16,7 @@ gg_barplot(
   cex_bar.i = 10,
   cex_title.i = 28,
   bar_just.n = 0.9,
-  figure.c = c("interactive", "my_barplot.pdf")[1]
+  figure.c = c("interactive", "my_barplot.pdf", "none")[1]
 )
 }
 \arguments{
@@ -44,8 +44,8 @@ manually defining the colors}
 
 \item{bar_just.n}{Numeric: adjustment of bar value text (default : 0.9)}
 
-\item{figure.c}{Character: either 'interactive' for interactive display or
-'my_barplot.pdf' for figure saving (only the extension matters)}
+\item{figure.c}{Character: either 'interactive' for interactive display,
+'my_barplot.pdf' for figure saving (only the extension matters), or 'none' to prevent plotting}
 
 \item{geom_text.ls}{List of sizes for axis and legend text (default: 18), bar text
 (default 10) and adjustment (default 1.5) and title (default: 28)}

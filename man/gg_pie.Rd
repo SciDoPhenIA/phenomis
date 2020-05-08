@@ -12,7 +12,7 @@ gg_pie(
   palette.vc = "Set1",
   label.c = c("none", "value", "percent")[1],
   geom_text.ls = list(lab.i = 7, legend_title.i = 16, legend_text.i = 14, title.i = 16),
-  figure.c = c("interactive", "my_pie.pdf")[1]
+  figure.c = c("interactive", "my_pie.pdf", "none")[1]
 )
 }
 \arguments{
@@ -36,8 +36,8 @@ manually defining the colors}
 \item{geom_text.ls}{List of sizes for lab.i (default 7), legend_title.i (16),
 legend_text.i (14), and title.i (16)}
 
-\item{figure.c}{Character: either 'interactive' for interactive display or
-'my_pie.pdf' for figure saving (only the extension matters)}
+\item{figure.c}{Character: either 'interactive' for interactive display,
+'my_pie.pdf' for figure saving (only the extension matters), or 'none' to prevent plotting}
 }
 \value{
 invisible ggplot2 object

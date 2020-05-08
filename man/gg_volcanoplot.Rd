@@ -31,7 +31,9 @@ gg_volcanoplot(
 
 \item{adjust_thresh.n}{Numeric: significance threshold}
 
-\item{label.vc}{Character vector: feature labeling to display}
+\item{label.vc}{Character (vector): either the name of a character column
+from the data or a character vector of the same length as the rown number of
+the data, containing the feature labeling}
 
 \item{title.c}{Character: plot title}
 
@@ -73,16 +75,16 @@ sacurine.eset <- phenomis::hypotesting(sacurine.eset, test.c = "wilcoxon",
 fold.vn <- Biobase::fData(sacurine.eset)[, "wilcoxon_gender_Female.Male_diff"]
 fdr.vn <- Biobase::fData(sacurine.eset)[, "wilcoxon_gender_Female.Male_BH"]
 feat.vc <- Biobase::featureNames(sacurine.eset)
-gg_volcanoplot(fold.vn,
-               fdr.vn,
-               label.vc = feat.vc,
-               adjust_method.c = "BH")
+phenomis::gg_volcanoplot(fold.vn,
+                         fdr.vn,
+                         label.vc = feat.vc,
+                         adjust_method.c = "BH")
 feat_signif.vc <-  sapply(seq_along(feat.vc),
                           function(feat.i)
                            ifelse(fdr.vn[feat.i] <= 0.05, feat.vc[feat.i], ""))
-gg_volcanoplot(fold.vn,
-               fdr.vn,
-               label.vc = feat_signif.vc,
-               adjust_method.c = "BH",
-               figure.c = "interactive")
+phenomis::gg_volcanoplot(fold.vn,
+                         fdr.vn,
+                         label.vc = feat_signif.vc,
+                         adjust_method.c = "BH",
+                         figure.c = "interactive")
 }

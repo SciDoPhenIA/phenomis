@@ -6,12 +6,13 @@
 \usage{
 gg_boxplot(
   data.tb,
-  x.c = "''",
+  x.c = "",
   y.c = "",
   color.c = "",
   title.c = NA,
   xlab.c = NA,
   ylab.c = "",
+  label.vc = "",
   palette.vc = "Set1",
   size.ls = list(dot.n = 0.7, lab.i = 20, tick.i = 20, title.i = 20),
   figure.c = c("interactive", "my_boxplot.pdf")[1]
@@ -31,6 +32,10 @@ gg_boxplot(
 \item{xlab.c}{Character: x label}
 
 \item{ylab.c}{Character: y label}
+
+\item{label.vc}{Character (vector): either the name of a character column
+from the data or a character vector of the same length as the rown number of
+the data, containing the feature labeling for outlier display}
 
 \item{palette.vc}{Character: either the name of an RColorBrewer palette
 (default: 'Set1'; 'Paired' can be useful for parallel plotting) or a vector
@@ -52,6 +57,7 @@ Boxplot with ggplot2
 sacurine.eset <- phenomis::reading(system.file("extdata/sacurine", package = "phenomis"))
 sacurine_pda.df <- Biobase::pData(sacurine.eset)
 sacurine_pda.df <- sacurine_pda.df[!grepl("QC", rownames(sacurine_pda.df)), ]
-gg_boxplot(sacurine_pda.df, y.c = "age")
-gg_boxplot(sacurine_pda.df, x.c = "gender", y.c = "bmi", color.c = "gender")
+phenomis::gg_boxplot(sacurine_pda.df, y.c = "age")
+phenomis::gg_boxplot(sacurine_pda.df, x.c = "gender", y.c = "bmi", color.c = "gender")
+phenomis::gg_boxplot(sacurine_pda.df, x.c = "gender", y.c = "bmi", color.c = "gender", label.vc = rownames(sacurine_pda.df))
 }

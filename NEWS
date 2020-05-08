@@ -1,3 +1,10 @@
+CHANGES IN VERSION 0.2.16
+------------------------------
+
+NEW FEATURE
+
+    o filtering: can now take into account sample classes
+
 CHANGES IN VERSION 0.2.14
 ------------------------------
 
