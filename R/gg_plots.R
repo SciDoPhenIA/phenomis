@@ -251,7 +251,7 @@ gg_boxplot <- function(data.tb,
   
   if (length(label.vc) == 1) {
     if (label.vc != "") {
-      stopifnot(label.c %in% colnames(data.tb))
+      stopifnot(label.vc %in% colnames(data.tb))
       label.vc <- data.tb[[label.vc]]
     } else
       label.vc <- as.character(data.tb[[y.c]])
@@ -562,7 +562,7 @@ gg_volcanoplot <- function(fold_change.vn,
   
   if (length(label.vc) == 1) {
     if (label.vc != "") {
-      stopifnot(label.c %in% colnames(volcano.df))
+      stopifnot(label.vc %in% colnames(volcano.df))
       label.vc <- volcano.df[[label.vc]]
     } else
       label.vc <- rep("", nrow(volcano.df))

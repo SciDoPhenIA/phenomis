@@ -1,3 +1,10 @@
+CHANGES IN VERSION 0.2.18
+------------------------------
+
+NEW FEATURE
+
+    o gg_boxplot: label.vc argument to enable outlier labeling
+
 CHANGES IN VERSION 0.2.16
 ------------------------------
 
