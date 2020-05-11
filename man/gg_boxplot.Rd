@@ -48,7 +48,7 @@ ticks (14) and title (20)}
 'my_barplot.pdf' for figure saving (only the extension matters)}
 }
 \value{
-invisible ggplot2 object
+character vector of outlier labels (same dimension as the number of rows from data.tb)
 }
 \description{
 Boxplot with ggplot2

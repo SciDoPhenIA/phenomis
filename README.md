@@ -8,7 +8,7 @@ This package provides methods to perform the statistical analysis of phenomics d
 
 ## Main contributors (SciDoPhenIA team)
 
-Alyssa Imbert, Camille Roquencourt, Camilo Broc, Alexis Delabrière, Philippe Rinaudo, Krystyna Biletska, Natacha Lenuzza, Pierrick Roger and Etienne Thévenot.
+Alyssa Imbert, Camille Roquencourt, Camilo Broc, Alexis Delabrière, Philippe Rinaudo, Krystyna Biletska, Natacha Lenuzza, Eric Venot, Pierrick Roger and Etienne Thévenot.
 
 ## Maintainer
 

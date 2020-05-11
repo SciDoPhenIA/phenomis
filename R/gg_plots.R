@@ -203,7 +203,7 @@ gg_barplot <- function(data.mn,
 #' ticks (14) and title (20)
 #' @param figure.c Character: either 'interactive' for interactive display or
 #' 'my_barplot.pdf' for figure saving (only the extension matters)
-#' @return invisible ggplot2 object
+#' @return character vector of outlier labels (same dimension as the number of rows from data.tb)
 #' @export
 #' @examples
 #' sacurine.eset <- phenomis::reading(system.file("extdata/sacurine", package = "phenomis"))
@@ -327,7 +327,7 @@ gg_boxplot <- function(data.tb,
   if (filename_ext.c == "pdf")
     grDevices::dev.off()
   
-  return(invisible(p))
+  return(invisible(outlier.vc))
   
 }
 

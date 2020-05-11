@@ -1,3 +1,10 @@
+CHANGES IN VERSION 0.2.22
+------------------------------
+
+NEW FEATURE
+
+    o gg_boxplot: now returning the vector of outliers
+
 CHANGES IN VERSION 0.2.20
 ------------------------------
 
