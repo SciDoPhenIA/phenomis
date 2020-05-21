@@ -404,7 +404,7 @@ setMethod("hypotesting", signature(x = "ExpressionSet"),
     if (test.c == "ttest") {
       hypotest <- function(y) stats::t.test(y ~ factorFc)[["p.value"]]
     } else if (test.c == "wilcoxon") {
-      hypotest <- function(y) stats::wilcox.test(y ~ factorFc)[["p.value"]]
+      hypotest <- function(y) stats::wilcox.test(y ~ factorFc, exact = FALSE)[["p.value"]]
     } else if (test.c %in% c("pearson", "spearman")) {
       hypotest <- function(y) stats::cor.test(factorVn, y, method = test.c,
                                               use = "pairwise.complete.obs")[["p.value"]]
@@ -435,8 +435,8 @@ setMethod("hypotesting", signature(x = "ExpressionSet"),
   prefix.c <- paste0(prefix.c, test.c, "_", make.names(factorNameC), "_")
   
   if (test.c %in% c("ttest", "limma", "wilcoxon",
-                   "limma2ways", "limma2waysInter",
-                   "anova2ways", "anova2waysInter")) {
+                    "limma2ways", "limma2waysInter",
+                    "anova2ways", "anova2waysInter")) {
     
     prefix.c <- paste0(prefix.c,
                       paste(levels(factorFc), collapse = "."), "_")
@@ -901,11 +901,11 @@ setMethod("hypotesting", signature(x = "ExpressionSet"),
   
   rownames(metric.mn) <- Biobase::featureNames(x)
   colnames(metric.mn) <- .anovas2waysNames(test.c = test.c,
-                                          factor_names.vc = factor_names.vc,
-                                          factor1.fc = factor1.fc,
-                                          factor2.fc = factor2.fc,
-                                          adjust.c = adjust.c,
-                                          prefix.c = prefix.c)
+                                           factor_names.vc = factor_names.vc,
+                                           factor1.fc = factor1.fc,
+                                           factor2.fc = factor2.fc,
+                                           adjust.c = adjust.c,
+                                           prefix.c = prefix.c)
   
   for (colC in colnames(metric.mn))
     Biobase::fData(x)[, colC] <- metric.mn[, colC]
@@ -1163,25 +1163,3 @@ setMethod("hypotesting", signature(x = "ExpressionSet"),
   
 }
 
-
-# .boxPlot <- function(factorFc,
-#                      responseVn,
-#                      mainC = "",
-#                      xLabC = "") {
-#   
-#   boxplotLs <- graphics::boxplot(responseVn ~  factorFc,
-#                                  main = mainC,
-#                                  xlab = xLabC,
-#                                  ylab = "")
-#   
-#   outlierVn <- boxplotLs[["out"]]
-#   outlierNamesVc <- names(outlierVn)
-#   outlierGroupVi <- boxplotLs[["group"]]
-#   
-#   if (length(outlierVn) && !is.null(outlierNamesVc))
-#     graphics::text(outlierGroupVi,
-#                    outlierVn,
-#                    labels = outlierNamesVc,
-#                    pos = ifelse(outlierGroupVi == 1, 2, 4))
-#   
-# }
