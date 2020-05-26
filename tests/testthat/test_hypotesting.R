@@ -1,0 +1,528 @@
+testthat::context("Testing 'hypotesting'")
+
+testthat::test_that("ttest", {
+  
+  sacurine.eset <- phenomis::reading(system.file("extdata/sacurine", package = "phenomis"))
+  sacurine.eset <- phenomis::correcting(sacurine.eset, figure.c = "none")
+  sacurine.eset <- sacurine.eset[, Biobase::pData(sacurine.eset)[, "sampleType"] != "pool"]
+  sacurine.eset <- phenomis::transforming(sacurine.eset)
+  sacurine.eset <- sacurine.eset[, Biobase::sampleNames(sacurine.eset) != "HU_neg_096_b2"]
+  
+  # .twoSampCorTests
+  
+  ttestLs <- phenomis:::.twoSampCorTests(x = sacurine.eset,
+                                         test.c = "ttest",
+                                         factorNameC = "gender",
+                                         factorLevelsVc = "default",
+                                         adjust.c = "BH",
+                                         adjust_thresh.n = 0.05,
+                                         prefix.c = "",
+                                         figure.c = "none")
+  testthat::expect_equal(Biobase::fData(ttestLs[["x"]])["Testosterone glucuronide", "ttest_gender_Female.Male_diff"],
+                         2.42603,
+                         tolerance = 1e-6)
+  testthat::expect_equal(Biobase::fData(ttestLs[["x"]])["Testosterone glucuronide", "ttest_gender_Female.Male_BH"],
+                         9.054552e-10,
+                         tolerance = 1e-6)
+  testthat::expect_equal(Biobase::fData(ttestLs[["x"]])["1,7-Dimethyluric acid", "ttest_gender_Female.Male_BH"],
+                         0.5868704,
+                         tolerance = 1e-6)
+  
+  
+  # eset
+  
+  sacurine.eset <- phenomis::hypotesting(sacurine.eset,
+                                         test.c = "ttest",
+                                         factor_names.vc = "gender",
+                                         figure.c = "none",
+                                         report.c = "none")
+  
+  testthat::expect_equal(Biobase::fData(sacurine.eset)["Testosterone glucuronide", "ttest_gender_Female.Male_diff"],
+                         2.42603,
+                         tolerance = 1e-6)
+  testthat::expect_equal(Biobase::fData(sacurine.eset)["Testosterone glucuronide", "ttest_gender_Female.Male_BH"],
+                         9.054552e-10,
+                         tolerance = 1e-6)
+  testthat::expect_equal(Biobase::fData(sacurine.eset)["1,7-Dimethyluric acid", "ttest_gender_Female.Male_BH"],
+                         0.5868704,
+                         tolerance = 1e-6)
+  
+  sacurine.eset <- phenomis::hypotesting(sacurine.eset,
+                                         test.c = "ttest",
+                                         factor_names.vc = "gender",
+                                         factor_levels.ls = list(factor1 = c("Male", "Female")),
+                                         figure.c = "none",
+                                         report.c = "none")
+  testthat::expect_equal(Biobase::fData(sacurine.eset)["Testosterone glucuronide", "ttest_gender_Male.Female_diff"],
+                         -2.42603,
+                         tolerance = 1e-6)
+  testthat::expect_equal(Biobase::fData(sacurine.eset)["Testosterone glucuronide", "ttest_gender_Male.Female_BH"],
+                         9.054552e-10,
+                         tolerance = 1e-6)
+  
+  sacurine.eset <- phenomis::hypotesting(sacurine.eset,
+                                         test.c = "wilcoxon",
+                                         factor_names.vc = "gender",
+                                         figure.c = "none",
+                                         report.c = "none")
+  
+  testthat::expect_equal(Biobase::fData(sacurine.eset)["Testosterone glucuronide", "wilcoxon_gender_Female.Male_diff"],
+                         1.919634,
+                         tolerance = 1e-6)
+  testthat::expect_equal(Biobase::fData(sacurine.eset)["Testosterone glucuronide", "wilcoxon_gender_Female.Male_BH"],
+                         3.957732e-12,
+                         tolerance = 1e-6)
+  testthat::expect_equal(Biobase::fData(sacurine.eset)["1-Methylxanthine", "wilcoxon_gender_Female.Male_BH"],
+                         0.03904366,
+                         tolerance = 1e-6)
+  
+  sacurine.eset <- phenomis::hypotesting(sacurine.eset,
+                                         test.c = "limma",
+                                         factor_names.vc = "gender",
+                                         figure.c = "none",
+                                         report.c = "none")
+  
+  testthat::expect_equal(Biobase::fData(sacurine.eset)["Testosterone glucuronide", "limma_gender_Female.Male_diff"],
+                         2.42603,
+                         tolerance = 1e-6)
+  testthat::expect_equal(Biobase::fData(sacurine.eset)["Testosterone glucuronide", "limma_gender_Female.Male_BH"],
+                         1.221723e-11,
+                         tolerance = 1e-6)
+  testthat::expect_equal(Biobase::fData(sacurine.eset)["1-Methylxanthine", "limma_gender_Female.Male_BH"],
+                         0.07010866,
+                         tolerance = 1e-6)
+  
+  sacurine.eset <- phenomis::hypotesting(sacurine.eset, "pearson", "age")
+  
+  # mset
+  
+  prometis.mset <- phenomis::reading(system.file("extdata/prometis", package = "phenomis"))
+  
+  prometis.mset <- phenomis::hypotesting(prometis.mset,
+                                         test.c = "ttest",
+                                         factor_names.vc = "gene",
+                                         figure.c = "none",
+                                         report.c = "none")
+  
+  testthat::expect_identical(sapply(Biobase::fData(prometis.mset),
+                                    function(fdaDF) {
+                                      sum(fdaDF[, "ttest_gene_KO.WT_signif"])
+                                    }),
+                             c(metabolomics = 2, proteomics = 7))
+  
+})
+
+testthat::test_that("anova", {
+  
+  sacurine.eset <- phenomis::reading(system.file("extdata/sacurine",
+                                                 package = "phenomis"))
+  sacurine.eset <- phenomis::correcting(sacurine.eset, figure.c = "none")
+  sacurine.eset <- sacurine.eset[, Biobase::pData(sacurine.eset)[, "sampleType"] != "pool"]
+  sacurine.eset <- phenomis::transforming(sacurine.eset)
+  sacurine.eset <- sacurine.eset[, Biobase::sampleNames(sacurine.eset) != "HU_neg_096_b2"]
+  Biobase::pData(sacurine.eset)[, "ageGroup"] <- vapply(Biobase::pData(sacurine.eset)[, "age"],
+                                                        function(x) {
+                                                          if (x < 35) {
+                                                            return("thirty")
+                                                          } else if (x < 50) {
+                                                            return("fourty")
+                                                          } else {
+                                                            return("fifty")}},
+                                                        FUN.VALUE = character(1))
+  sacurine.eset1 <- phenomis:::.anovas(x = sacurine.eset,
+                                       test.c = "anova",
+                                       factorNameC = "ageGroup",
+                                       factorLevelsVc = "default",
+                                       adjust.c = "BH",
+                                       adjust_thresh.n = 0.05,
+                                       prefix.c = "",
+                                       figure.c = "none")[["x"]]
+  testthat::expect_equal(Biobase::fData(sacurine.eset1)["1-Methylxanthine", "anova_ageGroup_BH"],
+                         0.003023911,
+                         tolerance = 1e-6)
+  testthat::expect_equal(Biobase::fData(sacurine.eset1)["1-Methylxanthine", "anova_ageGroup_fourty.thirty_diff"],
+                         -0.8841594,
+                         tolerance = 1e-6)
+  testthat::expect_equal(Biobase::fData(sacurine.eset1)["1-Methylxanthine", "anova_ageGroup_fifty.thirty_BH"],
+                         0.01544621,
+                         tolerance = 1e-6)
+  
+  sacurine.eset1b <- phenomis:::.anovas(x = sacurine.eset,
+                                        test.c = "anova",
+                                        factorNameC = "ageGroup",
+                                        factorLevelsVc = c("thirty", "fourty", "fifty"),
+                                        adjust.c = "BH",
+                                        adjust_thresh.n = 0.05,
+                                        prefix.c = "",
+                                        figure.c = "none")[["x"]]
+  testthat::expect_equal(Biobase::fData(sacurine.eset1b)["1-Methylxanthine", "anova_ageGroup_thirty.fourty_diff"],
+                         0.8841594,
+                         tolerance = 1e-6)
+  testthat::expect_equal(Biobase::fData(sacurine.eset1b)["1-Methylxanthine", "anova_ageGroup_thirty.fourty_BH"],
+                         0.01602643,
+                         tolerance = 1e-6)
+  testthat::expect_equal(Biobase::fData(sacurine.eset1b)["Testosterone glucuronide", "anova_ageGroup_thirty.fifty_diff"],
+                         -2.314257,
+                         tolerance = 1e-6)
+  testthat::expect_equal(Biobase::fData(sacurine.eset1b)["Testosterone glucuronide", "anova_ageGroup_thirty.fifty_BH"],
+                         9.217707e-05,
+                         tolerance = 1e-6)
+})
+
+testthat::test_that("kruskal", {
+  
+  sacurine.eset <- phenomis::reading(system.file("extdata/sacurine",
+                                                 package = "phenomis"))
+  
+  sacurine.eset <- phenomis::correcting(sacurine.eset, figure.c = "none")
+  sacurine.eset <- sacurine.eset[, Biobase::pData(sacurine.eset)[, "sampleType"] != "pool"]
+  sacurine.eset <- phenomis::transforming(sacurine.eset)
+  sacurine.eset <- sacurine.eset[, Biobase::sampleNames(sacurine.eset) != "HU_neg_096_b2"]
+  Biobase::pData(sacurine.eset)[, "ageGroup"] <- vapply(Biobase::pData(sacurine.eset)[, "age"],
+                                                        function(x) {
+                                                          if (x < 35) {
+                                                            return("thirty")
+                                                          } else if (x < 50) {
+                                                            return("fourty")
+                                                          } else {
+                                                            return("fifty")}},
+                                                        FUN.VALUE = character(1))
+  
+  sacurine.eset2 <- phenomis:::.anovas(x = sacurine.eset,
+                                       test.c = "kruskal",
+                                       factorNameC = "ageGroup",
+                                       factorLevelsVc = "default",
+                                       adjust.c = "BH",
+                                       adjust_thresh.n = 0.05,
+                                       prefix.c = "testthat_",
+                                       figure.c = "none")[["x"]]
+  testthat::expect_equal(Biobase::fData(sacurine.eset2)["1-Methylxanthine", "testthat_kruskal_ageGroup_fourty.thirty_BH"],
+                         0.03497385,
+                         tolerance = 1e-6)
+  
+})
+
+
+
+testthat::test_that("anova2ways", {
+  
+  metabo.eset <- phenomis::reading(system.file("extdata/prometis/metabolomics",
+                                               package = "phenomis"))
+  
+  ## .anova2ways
+  anova2ways.ls <- phenomis:::.anovas2ways(x = metabo.eset,
+                                           test.c = "anova2ways",
+                                           factor_names.vc = c("gene", "sex"),
+                                           factor_levels.ls = list(factor1Vc = c("WT", "KO"),
+                                                                   factor2Vc = c("M", "F")),
+                                           adjust.c = "BH",
+                                           adjust_thresh.n = 0.05,
+                                           prefix.c = "prefix_",
+                                           figure.c = "none")
+  
+  testthat::expect_equal(anova2ways.ls[["metric.mn"]]["v11", "prefix_anova2ways_sex_M.F_diff"],
+                         -0.03642992,
+                         tolerance = 1e-6)
+  
+  testthat::expect_equal(Biobase::fData(anova2ways.ls[["x"]])["v6", "prefix_anova2ways_gene_WT.KO_BH"],
+                         0.800139,
+                         tolerance = 1e-6)
+  
+  anova2ways.ls <- phenomis:::.anovas2ways(x = metabo.eset,
+                                           test.c = "anova2ways",
+                                           factor_names.vc = c("gene", "sex"),
+                                           factor_levels.ls = list(factor1 = "default",
+                                                                   factor2 = "default"),
+                                           adjust.c = "BH",
+                                           adjust_thresh.n = 0.05,
+                                           prefix.c = "",
+                                           figure.c = "none")
+  
+  testthat::expect_equal(anova2ways.ls[["metric.mn"]]["v11", "anova2ways_sex_F.M_diff"],
+                         0.03642992,
+                         tolerance = 1e-6)
+  
+  testthat::expect_error(phenomis:::.anovas2ways(x = metabo.eset,
+                                                 test.c = "anova2ways",
+                                                 factor_names.vc = c("gene", "sex"),
+                                                 factor_levels.ls = list(factor1 = c("WT", "OK"),
+                                                                         factor2 = c("M", "F")),
+                                                 adjust.c = "BH",
+                                                 adjust_thresh.n = 0.05,
+                                                 prefix.c = "",
+                                                 figure.c = "none"))
+  
+  metabo.eset <- phenomis::hypotesting(x = metabo.eset,
+                                       test.c = "anova2ways",
+                                       factor_names.vc = c("gene", "sex"),
+                                       figure.c = "interactive",
+                                       report.c = "none")
+  
+  testthat::expect_equal(Biobase::fData(metabo.eset)["v11", "anova2ways_sex_F.M_diff"],
+                         0.03642992,
+                         tolerance = 1e-6)
+  
+})
+
+testthat::test_that("anova2waysInter", {
+  
+  metabo.eset <- phenomis::reading(system.file("extdata/prometis/metabolomics",
+                                               package = "phenomis"))
+  
+  ## .anova2waysInter
+  anova2waysInterLs <- phenomis:::.anovas2ways(x = metabo.eset,
+                                               test.c = "anova2waysInter",
+                                               factor_names.vc = c("gene", "sex"),
+                                               factor_levels.ls = list(factor1Vc = c("WT", "KO"),
+                                                                       factor2Vc = c("M", "F")),
+                                               adjust.c = "BH",
+                                               adjust_thresh.n = 0.05,
+                                               prefix.c = "",
+                                               figure.c = "none")
+  
+  testthat::expect_equal(anova2waysInterLs[["metric.mn"]]["v11", "anova2waysInter_sex_M.F_diff"],
+                         -0.03642992,
+                         tolerance = 1e-6)
+  
+  testthat::expect_equal(Biobase::fData(anova2waysInterLs[["x"]])["v6", "anova2waysInter_gene_WT.KO_BH"],
+                         0.8032291,
+                         tolerance = 1e-6)
+  
+  testthat::expect_equal(Biobase::fData(anova2waysInterLs[["x"]])["v6", "anova2waysInter_gene:sex_BH"],
+                         0.9967691,
+                         tolerance = 1e-6)
+  
+  anova2waysInterLs <- phenomis:::.anovas2ways(x = metabo.eset,
+                                               test.c = "anova2waysInter",
+                                               factor_names.vc = c("gene", "sex"),
+                                               factor_levels.ls = list(factor1 = "default",
+                                                                       factor2 = "default"),
+                                               adjust.c = "BH",
+                                               adjust_thresh.n = 0.05,
+                                               prefix.c = "",
+                                               figure.c = "none")
+  
+  testthat::expect_equal(anova2waysInterLs[["metric.mn"]]["v11", "anova2waysInter_sex_F.M_diff"],
+                         0.03642992,
+                         tolerance = 1e-6)
+  
+  testthat::expect_error(phenomis:::.anovas2ways(x = metabo.eset,
+                                                 test.c = "anova2waysInter",
+                                                 factor_names.vc = c("gene", "sex"),
+                                                 factor_levels.ls = list(factor1 = c("WT", "OK"),
+                                                                         factor2 = c("M", "F")),
+                                                 adjust.c = "BH",
+                                                 adjust_thresh.n = 0.05,
+                                                 prefix.c = "",
+                                                 figure.c = "none"))
+  
+  metabo.eset <- phenomis::hypotesting(x = metabo.eset,
+                                       test.c = "anova2waysInter",
+                                       factor_names.vc = c("gene", "sex"),
+                                       figure.c = "interactive",
+                                       report.c = "none")
+  
+  testthat::expect_equal(Biobase::fData(metabo.eset)["v11", "anova2waysInter_sex_F.M_diff"],
+                         0.03642992,
+                         tolerance = 1e-6)
+  
+})
+
+testthat::test_that("anova2waysInter", {
+  
+  metabo.eset <- phenomis::reading(system.file("extdata/prometis/metabolomics",
+                                               package = "phenomis"))
+  
+  ## .anova2waysInter
+  anova2waysInterLs <- phenomis:::.anovas2ways(x = metabo.eset,
+                                               test.c = "anova2waysInter",
+                                               factor_names.vc = c("gene", "sex"),
+                                               factor_levels.ls = list(factor1Vc = c("WT", "KO"),
+                                                                       factor2Vc = c("M", "F")),
+                                               adjust.c = "BH",
+                                               adjust_thresh.n = 0.05,
+                                               prefix.c = "",
+                                               figure.c = "none")
+  
+  testthat::expect_equal(anova2waysInterLs[["metric.mn"]]["v11", "anova2waysInter_sex_M.F_diff"],
+                         -0.03642992,
+                         tolerance = 1e-6)
+  
+  testthat::expect_equal(Biobase::fData(anova2waysInterLs[["x"]])["v6", "anova2waysInter_gene_WT.KO_BH"],
+                         0.8032291,
+                         tolerance = 1e-6)
+  
+  testthat::expect_equal(Biobase::fData(anova2waysInterLs[["x"]])["v6", "anova2waysInter_gene:sex_BH"],
+                         0.9967691,
+                         tolerance = 1e-6)
+  
+  anova2waysInterLs <- phenomis:::.anovas2ways(x = metabo.eset,
+                                               test.c = "anova2waysInter",
+                                               factor_names.vc = c("gene", "sex"),
+                                               factor_levels.ls = list(factor1 = "default",
+                                                                       factor2 = "default"),
+                                               adjust.c = "BH",
+                                               adjust_thresh.n = 0.05,
+                                               prefix.c = "",
+                                               figure.c = "none")
+  
+  testthat::expect_equal(anova2waysInterLs[["metric.mn"]]["v11", "anova2waysInter_sex_F.M_diff"],
+                         0.03642992,
+                         tolerance = 1e-6)
+  
+  testthat::expect_error(phenomis:::.anovas2ways(x = metabo.eset,
+                                                 test.c = "anova2waysInter",
+                                                 factor_names.vc = c("gene", "sex"),
+                                                 factor_levels.ls = list(factor1 = c("WT", "OK"),
+                                                                         factor2 = c("M", "F")),
+                                                 adjust.c = "BH",
+                                                 adjust_thresh.n = 0.05,
+                                                 prefix.c = "",
+                                                 figure.c = "none"))
+  
+  metabo.eset <- phenomis::hypotesting(x = metabo.eset,
+                                       test.c = "anova2waysInter",
+                                       factor_names.vc = c("gene", "sex"),
+                                       figure.c = "interactive",
+                                       report.c = "none")
+  
+  testthat::expect_equal(Biobase::fData(metabo.eset)["v11", "anova2waysInter_sex_F.M_diff"],
+                         0.03642992,
+                         tolerance = 1e-6)
+  testthat::expect_equal(Biobase::fData(metabo.eset)["v11", "anova2waysInter_sex_F.M_BH"],
+                         0.9069173,
+                         tolerance = 1e-6)
+  
+})
+
+
+testthat::test_that("limma2ways", {
+  
+  metabo.eset <- phenomis::reading(system.file("extdata/prometis/metabolomics",
+                                               package = "phenomis"))
+  
+  ## .limma2ways
+  limma2waysLs <- phenomis:::.anovas2ways(x = metabo.eset,
+                                          test.c = "limma2ways",
+                                          factor_names.vc = c("gene", "sex"),
+                                          factor_levels.ls = list(factor1Vc = c("WT", "KO"),
+                                                                  factor2Vc = c("M", "F")),
+                                          adjust.c = "BH",
+                                          adjust_thresh.n = 0.05,
+                                          prefix.c = "",
+                                          figure.c = "none")
+  
+  testthat::expect_equal(limma2waysLs[["metric.mn"]]["v11", "limma2ways_sex_M.F_diff"],
+                         -0.03642992,
+                         tolerance = 1e-6)
+  
+  testthat::expect_equal(Biobase::fData(limma2waysLs[["x"]])["v6", "limma2ways_gene_WT.KO_BH"],
+                         0.9296763,
+                         tolerance = 1e-6)
+  
+  limma2waysLs <- phenomis:::.anovas2ways(x = metabo.eset,
+                                          test.c = "limma2ways",
+                                          factor_names.vc = c("gene", "sex"),
+                                          factor_levels.ls = list(factor1 = "default",
+                                                                  factor2 = "default"),
+                                          adjust.c = "BH",
+                                          adjust_thresh.n = 0.05,
+                                          prefix.c = "testing_",
+                                          figure.c = "none")
+  
+  testthat::expect_equal(limma2waysLs[["metric.mn"]]["v11", "testing_limma2ways_sex_F.M_diff"],
+                         0.03642992,
+                         tolerance = 1e-6)
+  
+  testthat::expect_error(phenomis:::.anovas2ways(x = metabo.eset,
+                                                 test.c = "limma2ways",
+                                                 factor_names.vc = c("gene", "sex"),
+                                                 factor_levels.ls = list(factor1 = c("WT", "OK"),
+                                                                         factor2 = c("M", "F")),
+                                                 adjust.c = "BH",
+                                                 adjust_thresh.n = 0.05,
+                                                 prefix.c = "",
+                                                 figure.c = "none"))
+  
+  metabo.eset <- phenomis::hypotesting(x = metabo.eset,
+                                       test.c = "limma2ways",
+                                       factor_names.vc = c("gene", "sex"),
+                                       figure.c = "interactive",
+                                       report.c = "none")
+  
+  testthat::expect_equal(Biobase::fData(metabo.eset)["v11", "limma2ways_sex_F.M_diff"],
+                         0.03642992,
+                         tolerance = 1e-6)
+  testthat::expect_equal(Biobase::fData(metabo.eset)["v11", "limma2ways_sex_F.M_BH"],
+                         0.9077522,
+                         tolerance = 1e-6)
+  
+})
+
+
+testthat::test_that("limma2waysInter", {
+  
+  metabo.eset <- phenomis::reading(system.file("extdata/prometis/metabolomics",
+                                               package = "phenomis"))
+  
+  ## .limma2waysInter
+  limma2waysInterLs <- phenomis:::.anovas2ways(x = metabo.eset,
+                                               test.c = "limma2waysInter",
+                                               factor_names.vc = c("gene", "sex"),
+                                               factor_levels.ls = list(factor1Vc = c("WT", "KO"),
+                                                                       factor2Vc = c("M", "F")),
+                                               adjust.c = "BH",
+                                               adjust_thresh.n = 0.05,
+                                               prefix.c = "",
+                                               figure.c = "none")
+  
+  testthat::expect_equal(limma2waysInterLs[["metric.mn"]]["v11", "limma2waysInter_gene_WT.KO_diff"],
+                         0.3291035,
+                         tolerance = 1e-6)
+  
+  testthat::expect_equal(Biobase::fData(limma2waysInterLs[["x"]])["v11", "limma2waysInter_gene_WT.KO_BH"],
+                         0.009124355,
+                         tolerance = 1e-6)
+  
+  testthat::expect_equal(Biobase::fData(limma2waysInterLs[["x"]])["v6", "limma2waysInter_gene:sex_BH"],
+                         0.996654,
+                         tolerance = 1e-6)
+  
+  limma2waysInterLs <- phenomis:::.anovas2ways(x = metabo.eset,
+                                               test.c = "limma2waysInter",
+                                               factor_names.vc = c("gene", "sex"),
+                                               factor_levels.ls = list(factor1 = "default",
+                                                                       factor2 = "default"),
+                                               adjust.c = "BH",
+                                               adjust_thresh.n = 0.05,
+                                               prefix.c = "",
+                                               figure.c = "none")
+  
+  testthat::expect_equal(limma2waysInterLs[["metric.mn"]]["v11", "limma2waysInter_gene_KO.WT_diff"],
+                         -0.3291035,
+                         tolerance = 1e-6)
+  
+  testthat::expect_error(phenomis:::.anovas2ways(x = metabo.eset,
+                                                 test.c = "limma2waysInter",
+                                                 factor_names.vc = c("gene", "sex"),
+                                                 factor_levels.ls = list(factor1 = c("WT", "OK"),
+                                                                         factor2 = c("M", "F")),
+                                                 adjust.c = "BH",
+                                                 adjust_thresh.n = 0.05,
+                                                 prefix.c = "",
+                                                 figure.c = "none"))
+  
+  metabo.eset <- phenomis::hypotesting(x = metabo.eset,
+                                       test.c = "limma2waysInter",
+                                       factor_names.vc = c("gene", "sex"),
+                                       figure.c = "interactive",
+                                       report.c = "none")
+  
+  testthat::expect_equal(Biobase::fData(metabo.eset)["v11", "limma2waysInter_gene_KO.WT_diff"],
+                         -0.3291035,
+                         tolerance = 1e-6)
+  testthat::expect_equal(Biobase::fData(metabo.eset)["v11", "limma2waysInter_gene_KO.WT_BH"],
+                         0.009124355,
+                         tolerance = 1e-6)
+  
+})

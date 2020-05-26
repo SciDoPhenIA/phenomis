@@ -1,21 +1,21 @@
 #' reading
 #'
-#' Reading dataset(s) in the 3 tables 'dataMatrix.tsv', sampleMetadata.tsv' and
-#' 'variableMetadata.tsv' format. In case of a single dataset (3 tables in the
-#' specified directory), an ExpressionSet instance is returned. In case of a
-#' multiple dataset (several subfolders containing 3 tables), a MultiDataSet
-#' instance is created.
+#' Reading dataset(s) in the 3 tables 'dataMatrix' (or 'DM'), sampleMetadata'
+#' (or 'SM') and variableMetadata' (or 'VM') tabular format. In case of a single
+#' dataset (3 tables in the specified directory), an ExpressionSet instance is
+#' returned. In case of a multiple dataset (several subfolders containing 3
+#' tables), a MultiDataSet instance is created.
 #'
-#' @param dir.c Character: directory containing the 3 .tsv files (single
-#' dataset), or containing several subdirectories with 3 .tsv files
+#' @param dir.c Character: directory containing the 3 tabular files (single
+#' dataset), or containing several subdirectories with 3 tabular files
 #' (multiple datasets)
 #' @param subsets.vc Vector of characters: specifying a subset of the
 #' subdirectories to be included in the MultiDataSet (by default, all
 #' subdirectories containing the 3 tables will be considered as datasets)
 #' @param files.ls List: if dir.c is set to NA, the full names of the
 #' individual files can be provided; in case of an ExpressionSet, the
-#' names of the list must be 'dataMatrix.tsvC', 'sampleMetadata.tsvC',
-#' and 'variableMetadata.tsvC' with the corresponding file full names;
+#' names of the list must be 'dataMatrix', 'sampleMetadata',
+#' and 'variableMetadata' with the corresponding file full names;
 #' in case of a MultiDataSet, the list must consists of one such sublist
 #' per dataset
 #' @param report.c Character: File name for the printed results (call to
@@ -30,21 +30,21 @@
 #' sacurine.eset <- reading(sacurine_dir.c)
 #' # or
 #' sacurine.eset <- reading(NA,
-#'                   files.ls = list(dataMatrix.tsvC = file.path(sacurine_dir.c, "dataMatrix.tsv"),
-#'                                  sampleMetadata.tsvC = file.path(sacurine_dir.c, "sampleMetadata.tsv"),
-#'                                  variableMetadata.tsvC = file.path(sacurine_dir.c, "variableMetadata.tsv")))
+#'                   files.ls = list(dataMatrix = file.path(sacurine_dir.c, "dataMatrix.tsv"),
+#'                                   sampleMetadata = file.path(sacurine_dir.c, "sampleMetadata.tsv"),
+#'                                   variableMetadata = file.path(sacurine_dir.c, "variableMetadata.tsv")))
 #' ## 2) Multiple sets
 #' prometis_dir.c <- file.path(data_dir.c, "prometis")
 #' prometis.mset <- reading(prometis_dir.c)
 #' metabo.mset <- reading(prometis_dir.c, subsets.vc = "metabolomics")
 #' # or
 #' prometis.mset <- reading(NA,
-#'                        files.ls = list(metabolomics = list(dataMatrix.tsvC = file.path(prometis_dir.c, "metabolomics", "dataMatrix.tsv"),
-#'                                                     sampleMetadata.tsvC = file.path(prometis_dir.c, "metabolomics", "sampleMetadata.tsv"),
-#'                                                     variableMetadata.tsvC = file.path(prometis_dir.c, "metabolomics", "variableMetadata.tsv")),
-#'                                       proteomics = list(dataMatrix.tsvC = file.path(prometis_dir.c, "proteomics", "dataMatrix.tsv"),
-#'                                                     sampleMetadata.tsvC = file.path(prometis_dir.c, "proteomics", "sampleMetadata.tsv"),
-#'                                                     variableMetadata.tsvC = file.path(prometis_dir.c, "proteomics", "variableMetadata.tsv"))))
+#'                        files.ls = list(metabolomics = list(dataMatrix = file.path(prometis_dir.c, "metabolomics", "dataMatrix.tsv"),
+#'                                                            sampleMetadata = file.path(prometis_dir.c, "metabolomics", "sampleMetadata.tsv"),
+#'                                                            variableMetadata = file.path(prometis_dir.c, "metabolomics", "variableMetadata.tsv")),
+#'                                       proteomics = list(dataMatrix = file.path(prometis_dir.c, "proteomics", "dataMatrix.tsv"),
+#'                                                         sampleMetadata = file.path(prometis_dir.c, "proteomics", "sampleMetadata.tsv"),
+#'                                                         variableMetadata = file.path(prometis_dir.c, "proteomics", "variableMetadata.tsv"))))
 #' @rdname reading
 #' @export
 reading <- function(dir.c,
@@ -76,9 +76,9 @@ reading <- function(dir.c,
     if (length(subDirVc) == 0) { ## ExpressionSet
       
       x <- .reading(dir.c,
-                    dataMatrix.tsvC = NA,
-                    sampleMetadata.tsvC = NA,
-                    variableMetadata.tsvC = NA,
+                    dataMatrix = NA,
+                    sampleMetadata = NA,
+                    variableMetadata = NA,
                     report.c = report.c)
       
     } else {## MultiDataSet
@@ -88,21 +88,21 @@ reading <- function(dir.c,
       subDirVl <- sapply(subDirVc,
                          function(sub_dir.c) {
                            fileC <- list.files(sub_dir.c,
-                                               pattern = "dataMatrix.tsv",
+                                               pattern = "(dataMatrix|DM)",
                                                full.names = TRUE)
                            length(fileC) == 1 && file.exists(fileC)
                          })
       
       if (sum(subDirVl) == 0) {
         
-        stop("All subfolders have none or multiple 'dataMatrix.tsv' file(s):\n",
+        stop("All subfolders have none or multiple 'dataMatrix' or 'DM' file(s):\n",
              paste(subDirVc, collapse = "\n"),
              "\n", call. = FALSE)
         
       } else if (sum(!subDirVl) > 0) {
         
         if (report.c != "none")
-          message("No or multiple 'dataMatrix.tsv' file(s) was/were found in the following subfolders:\n",
+          message("No or multiple 'dataMatrix' or 'DM' file(s) was/were found in the following subfolders:\n",
                   paste(subDirVc[!subDirVl], collapse = "\n"),
                   "\nThe corresponding datasets will be skipped.")
         
@@ -115,20 +115,16 @@ reading <- function(dir.c,
       
       for (setC in names(files.ls)) {
         
-        files.ls[[setC]] <- list(list.files(subDirVc[setC], pattern = "dataMatrix.tsv",
+        files.ls[[setC]] <- list(list.files(subDirVc[setC], pattern = "(dataMatrix|DM)",
                                             full.names = TRUE),
-                                 list.files(subDirVc[setC], pattern = "sampleMetadata.tsv",
+                                 list.files(subDirVc[setC], pattern = "(sampleMetadata|SM)",
                                             full.names = TRUE),
-                                 list.files(subDirVc[setC], pattern = "variableMetadata.tsv",
+                                 list.files(subDirVc[setC], pattern = "(variableMetadata|VM)",
                                             full.names = TRUE))
         
-        # files.ls[setC] <- list(file.path(subDirVc[setC],
-        #                                 c("dataMatrix.tsv",
-        #                                   "sampleMetadata.tsv",
-        #                                   "variableMetadata.tsv")))
-        names(files.ls[[setC]]) <- c("dataMatrix.tsvC",
-                                    "sampleMetadata.tsvC",
-                                    "variableMetadata.tsvC")
+        names(files.ls[[setC]]) <- c("dataMatrix",
+                                     "sampleMetadata",
+                                     "variableMetadata")
         
       }
       
@@ -141,18 +137,18 @@ reading <- function(dir.c,
     if (sum(sapply(files.ls, is.list)) == 0) { ## ExpressionSet
       
       if (length(subNamVc) == 3 &&
-          identical(subNamVc, c("dataMatrix.tsvC",
-                                "sampleMetadata.tsvC",
-                                "variableMetadata.tsvC"))) {
+          identical(subNamVc, c("dataMatrix",
+                                "sampleMetadata",
+                                "variableMetadata"))) {
         
         x <- .reading(NA,
-                      dataMatrix.tsvC = files.ls[["dataMatrix.tsvC"]],
-                      sampleMetadata.tsvC = files.ls[["sampleMetadata.tsvC"]],
-                      variableMetadata.tsvC = files.ls[["variableMetadata.tsvC"]])
+                      dataMatrix = files.ls[["dataMatrix"]],
+                      sampleMetadata = files.ls[["sampleMetadata"]],
+                      variableMetadata = files.ls[["variableMetadata"]])
         
       } else {
         
-        stop("'files.ls does not contain any sublist nor is a list with names 'dataMatrix.tsvC', 'sampleMetadata.tsvC' and 'variableMetadata.tsvC' giving the corresponding file full names.",
+        stop("'files.ls does not contain any sublist nor is a list with names 'dataMatrix', 'sampleMetadata' and 'variableMetadata' giving the corresponding file full names.",
              call. = FALSE)
         
       }
@@ -164,21 +160,21 @@ reading <- function(dir.c,
         setLs <- files.ls[[setC]]
         
         if (!identical(names(setLs),
-                       c("dataMatrix.tsvC",
-                         "sampleMetadata.tsvC",
-                         "variableMetadata.tsvC"))) {
+                       c("dataMatrix",
+                         "sampleMetadata",
+                         "variableMetadata"))) {
           
           if (report.c != "none")
-            message("The names of the following sublist are not 'dataMatrix.tsvC', 'sampleMetadata.tsvC' and 'variableMetadata.tsvC':\n",
+            message("The names of the following sublist are not 'dataMatrix', 'sampleMetadata' and 'variableMetadata':\n",
                     setC,
                     "\nThe corresponding datasets will be skipped.")
           
           files.ls[[setC]] <- NULL
           
-        } else if (!file.exists(setLs[["dataMatrix.tsvC"]])) {
+        } else if (!file.exists(setLs[["dataMatrix"]])) {
           
           if (report.c != "none")
-            message("No 'dataMatrix.tsv' file was found in the following sublist:\n",
+            message("No 'dataMatrix' file was found in the following sublist:\n",
                     setC,
                     "\nThe corresponding datasets will be skipped.")
           
@@ -224,9 +220,9 @@ reading <- function(dir.c,
         message("Reading the '", setC, "' dataset...")
       
       ese <- .reading(NA,
-                      setLs[["dataMatrix.tsvC"]],
-                      setLs[["sampleMetadata.tsvC"]],
-                      setLs[["variableMetadata.tsvC"]])
+                      setLs[["dataMatrix"]],
+                      setLs[["sampleMetadata"]],
+                      setLs[["variableMetadata"]])
       
       ese$id <- rownames(Biobase::pData(ese))
       
@@ -252,55 +248,55 @@ reading <- function(dir.c,
 
 
 .reading <- function(dir.c,
-                     dataMatrix.tsvC = NA,
-                     sampleMetadata.tsvC = NA,
-                     variableMetadata.tsvC = NA,
+                     dataMatrix = NA,
+                     sampleMetadata = NA,
+                     variableMetadata = NA,
                      report.c = "interactive") {
   
-  if (!is.na(dir.c) && !is.na(dataMatrix.tsvC))
-    stop("Either 'dir.c' or 'dataMatrix.tsvC' argument must be set to NA",
+  if (!is.na(dir.c) && !is.na(dataMatrix))
+    stop("Either 'dir.c' or 'dataMatrix' argument must be set to NA",
          call. = FALSE)
   
   if (!is.na(dir.c)) {
     
-    dataMatrixFileC <- list.files(dir.c, pattern = "dataMatrix.tsv",
+    dataMatrixFileC <- list.files(dir.c, pattern = "(dataMatrix|DM)",
                                   full.names = TRUE)
     
     if (length(dataMatrixFileC) == 0) {
-      stop("No 'dataMatrix.tsv' file was found in the directory:\n",
+      stop("No 'dataMatrix' (or 'DM') file was found in the directory:\n",
            dir.c, call. = FALSE)
     } else if (length(dataMatrixFileC) > 1) {
-      stop("Multiple 'dataMatrix.tsv' files were found in the directory:\n",
+      stop("Multiple 'dataMatrix' (or 'DM') files were found in the directory:\n",
            dir.c, call. = FALSE)
     }
     
-    sampleMetadataFileC <- list.files(dir.c, pattern = "sampleMetadata.tsv",
+    sampleMetadataFileC <- list.files(dir.c, pattern = "(sampleMetadata|SM)",
                                       full.names = TRUE)
     
     if (length(sampleMetadataFileC) == 0) {
       if (report.c != "none")
-        warning("No 'sampleMetadata.tsv' file was found in the directory:\n",
+        warning("No 'sampleMetada' (or 'SM') file was found in the directory:\n",
                 dir.c,
-                "\nThe corresponding 'sampleMetadata' slot will be empty.",
+                "\nThe corresponding 'pData' slot will be empty.",
                 immediate. = FALSE, call. = FALSE)
       sampleMetadataFileC <- NA_character_
     } else if (length(sampleMetadataFileC) > 1) {
-      stop("Multiple 'sampleMetadata.tsv' files were found in the directory:\n",
+      stop("Multiple 'sampleMetadata' files were found in the directory:\n",
            dir.c, call. = FALSE)
     }
     
-    variableMetadataFileC <- list.files(dir.c, pattern = "variableMetadata.tsv",
+    variableMetadataFileC <- list.files(dir.c, pattern = "(variableMetadata|VM)",
                                         full.names = TRUE)
     
     if (length(variableMetadataFileC) == 0) {
       if (report.c != "none")
-        warning("No 'variableMetadata.tsv' file was found in the directory:\n",
+        warning("No 'variableMetadata' (or 'VM') file was found in the directory:\n",
                 dir.c,
-                "\nThe corresponding 'variableMetadata' slot will be empty.",
+                "\nThe corresponding 'fData' slot will be empty.",
                 immediate. = FALSE, call. = FALSE)
       variableMetadataFileC <- NA_character_
     } else if (length(variableMetadataFileC) > 1) {
-      stop("Multiple 'variableMetadata.tsv' files were found in the directory:\n",
+      stop("Multiple 'variableMetadata' files were found in the directory:\n",
            dir.c, call. = FALSE)
     }
     
@@ -310,9 +306,9 @@ reading <- function(dir.c,
     
   } else {
     
-    tabFilVc <- c(dataMatrix = dataMatrix.tsvC,
-                  sampleMetadata = sampleMetadata.tsvC,
-                  variableMetadata = variableMetadata.tsvC)
+    tabFilVc <- c(dataMatrix = dataMatrix,
+                  sampleMetadata = sampleMetadata,
+                  variableMetadata = variableMetadata)
     
     for (tabC in names(tabFilVc)) {
       
@@ -326,7 +322,7 @@ reading <- function(dir.c,
                tabFilC, call. = FALSE)
           
         } else if (!file.exists(tabFilC)) {
-
+          
           if (report.c != "none")
             warning("The following '", tabC,
                     "' file was not found:\n", tabFilC,
@@ -511,14 +507,14 @@ setMethod("writing", "MultiDataSet",
                 filLs <- files.ls[[setC]]
                 
                 if (length(filLs) != 3 ||
-                    !identical(names(filLs), c("dataMatrix.tsvC",
-                                               "sampleMetadata.tsvC",
-                                               "variableMetadata.tsvC")))
+                    !identical(names(filLs), c("dataMatrix",
+                                               "sampleMetadata",
+                                               "variableMetadata")))
                   stop("The names of the '", setC,
-                       "' sublist of 'files.ls are not identical to 'dataMatrix.tsvC', 'sampleMetadata.tsvC' and 'variableMetadata.tsvC'.")
+                       "' sublist of 'files.ls are not identical to 'dataMatrix', 'sampleMetadata' and 'variableMetadata'.")
                 
-                if (is.na(filLs[["dataMatrix.tsvC"]]))
-                  stop("The 'dataMatrix.tsvC' file name from the '", setC,
+                if (is.na(filLs[["dataMatrix"]]))
+                  stop("The 'dataMatrix' file name from the '", setC,
                        "' sublist is missing (ie set to NA).")
                 
                 for (filC in names(filLs)) {
@@ -546,9 +542,9 @@ setMethod("writing", "MultiDataSet",
                 
                 phenomis::writing(x[[setC]],
                                   NA,
-                                  files.ls = list(dataMatrix.tsvC = filLs[["dataMatrix.tsvC"]],
-                                                 sampleMetadata.tsvC = filLs[["sampleMetadata.tsvC"]],
-                                                 variableMetadata.tsvC = filLs[["variableMetadata.tsvC"]]),
+                                  files.ls = list(dataMatrix = filLs[["dataMatrix"]],
+                                                  sampleMetadata = filLs[["sampleMetadata"]],
+                                                  variableMetadata = filLs[["variableMetadata"]]),
                                   overwrite.l = overwrite.l,
                                   report.c = infTxtC)
                 
@@ -592,18 +588,18 @@ setMethod("writing", "ExpressionSet",
                      call. = FALSE)
               
               if (length(files.ls) != 3 ||
-                  !identical(names(files.ls), c("dataMatrix.tsvC",
-                                               "sampleMetadata.tsvC",
-                                               "variableMetadata.tsvC")))
-                stop("The names of the 'files.ls' list are not identical to 'dataMatrix.tsvC', 'sampleMetadata.tsvC' and 'variableMetadata.tsvC'.",
+                  !identical(names(files.ls), c("dataMatrix",
+                                                "sampleMetadata",
+                                                "variableMetadata")))
+                stop("The names of the 'files.ls' list are not identical to 'dataMatrix', 'sampleMetadata' and 'variableMetadata'.",
                      call. = FALSE)
               
-              if (is.na(files.ls[["dataMatrix.tsvC"]]))
-                stop("The 'dataMatrix.tsvC' file name from the 'files.ls' list is missing (ie set to NA).")
+              if (is.na(files.ls[["dataMatrix"]]))
+                stop("The 'dataMatrix' file name from the 'files.ls' list is missing (ie set to NA).")
               
-              tabFilVc <- c(dataMatrix = files.ls[["dataMatrix.tsvC"]],
-                            sampleMetadata = files.ls[["sampleMetadata.tsvC"]],
-                            variableMetadata = files.ls[["variableMetadata.tsvC"]])
+              tabFilVc <- c(dataMatrix = files.ls[["dataMatrix"]],
+                            sampleMetadata = files.ls[["sampleMetadata"]],
+                            variableMetadata = files.ls[["variableMetadata"]])
               
             }
             

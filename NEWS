@@ -1,3 +1,10 @@
+CHANGES IN VERSION 0.2.26
+------------------------------
+
+NEW FEATURE
+
+    o reading: detecting 'DM', 'SM', and 'VM' patterns in file names, in addition to 'dataMatrix', 'sampleMetadata', and 'variableMetadata' (without the need for a '.tsv' extension)
+
 CHANGES IN VERSION 0.2.24
 ------------------------------
 
