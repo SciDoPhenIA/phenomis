@@ -403,15 +403,16 @@ setGeneric("transforming",
 #' Exporting an ExpressionSet (or MultiDataSet) instance into (subfolders with)
 #' the 3 tabulated files 'dataMatrix.tsv', sampleMetadata.tsv', 'variableMetadata.tsv'
 #'
-#' Note that the \code{dataMatrix} is transposed before
-#' export (e.g., the samples are written column wise in the 'dataMatrix.tsv'
-#' exported file).
+#' Note that the \code{dataMatrix} is transposed before export (e.g., the samples
+#' are written column wise in the 'dataMatrix.tsv' exported file).
 #'
 #' @param x An S4 object of class \code{ExpressionSet} or \code{MultiDataSet}
-#' @param dir.c Character: directory where each dataset should be written
-#' @param files.ls List: alternatively to the dir.c argument, the full names of the files can be provided as a list
-#' @param overwrite.l Logical: should existing files be overwritten?
-#' @param report.c Character: File name with '.txt' extension for the printed
+#' @param dir.c character(1): directory where each dataset should be written
+#' @param prefix.c character(1): prefix to be used (followed by '_') in the
+#' 'dataMatrix.tsv', 'sampleMetadata.tsv', and 'variableMetadata.tsv' file names
+#' @param files.ls list: alternatively to the dir.c argument, the full names of the files can be provided as a list
+#' @param overwrite.l logical(1): should existing files be overwritten?
+#' @param report.c character(1): File name with '.txt' extension for the printed
 #' results (call to sink()'); if 'interactive' (default), messages will be
 #' printed on the screen; if 'none', no verbose will be generated
 #' @return No object returned.
@@ -439,6 +440,7 @@ setGeneric("transforming",
 setGeneric("writing",
            function(x,
                     dir.c,
+                    prefix.c = "",
                     files.ls = NULL,
                     overwrite.l = FALSE,
                     report.c = c("none", "interactive", "myfile.txt")[2])

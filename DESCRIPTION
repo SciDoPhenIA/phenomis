@@ -1,7 +1,7 @@
 Package: phenomis
 Type: Package
 Title: Analysis of single and multiple phenomic data sets
-Version: 0.2.26
+Version: 0.2.28
 Date: 2020-05-26
 Author: Etienne A. Thevenot
 Maintainer: Etienne A. Thevenot <etienne.thevenot@cea.fr>

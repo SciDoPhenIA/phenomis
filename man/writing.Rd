@@ -10,6 +10,7 @@ the 3 tabulated files 'dataMatrix.tsv', sampleMetadata.tsv', 'variableMetadata.t
 writing(
   x,
   dir.c,
+  prefix.c = "",
   files.ls = NULL,
   overwrite.l = FALSE,
   report.c = c("none", "interactive", "myfile.txt")[2]
@@ -18,6 +19,7 @@ writing(
 \S4method{writing}{MultiDataSet}(
   x,
   dir.c,
+  prefix.c = "",
   files.ls = NULL,
   overwrite.l = FALSE,
   report.c = c("none", "interactive", "myfile.txt")[2]
@@ -26,6 +28,7 @@ writing(
 \S4method{writing}{ExpressionSet}(
   x,
   dir.c,
+  prefix.c = "",
   files.ls = NULL,
   overwrite.l = FALSE,
   report.c = c("none", "interactive", "myfile.txt")[2]
@@ -34,13 +37,16 @@ writing(
 \arguments{
 \item{x}{An S4 object of class \code{ExpressionSet} or \code{MultiDataSet}}
 
-\item{dir.c}{Character: directory where each dataset should be written}
+\item{dir.c}{character(1): directory where each dataset should be written}
 
-\item{files.ls}{List: alternatively to the dir.c argument, the full names of the files can be provided as a list}
+\item{prefix.c}{character(1): prefix to be used (followed by '_') in the
+'dataMatrix.tsv', 'sampleMetadata.tsv', and 'variableMetadata.tsv' file names}
 
-\item{overwrite.l}{Logical: should existing files be overwritten?}
+\item{files.ls}{list: alternatively to the dir.c argument, the full names of the files can be provided as a list}
 
-\item{report.c}{Character: File name with '.txt' extension for the printed
+\item{overwrite.l}{logical(1): should existing files be overwritten?}
+
+\item{report.c}{character(1): File name with '.txt' extension for the printed
 results (call to sink()'); if 'interactive' (default), messages will be
 printed on the screen; if 'none', no verbose will be generated}
 }
@@ -48,9 +54,8 @@ printed on the screen; if 'none', no verbose will be generated}
 No object returned.
 }
 \description{
-Note that the \code{dataMatrix} is transposed before
-export (e.g., the samples are written column wise in the 'dataMatrix.tsv'
-exported file).
+Note that the \code{dataMatrix} is transposed before export (e.g., the samples
+are written column wise in the 'dataMatrix.tsv' exported file).
 }
 \examples{
 metabo.eset <- phenomis::reading(system.file("extdata/prometis/metabolomics", package="phenomis"))

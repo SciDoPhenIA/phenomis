@@ -416,6 +416,7 @@ reading <- function(dir.c,
 setMethod("writing", "MultiDataSet",
           function(x,
                    dir.c,
+                   prefix.c = "",
                    files.ls = NULL,
                    overwrite.l = FALSE,
                    report.c = c("none", "interactive", "myfile.txt")[2]) {
@@ -470,6 +471,7 @@ setMethod("writing", "MultiDataSet",
                 
                 phenomis::writing(x[[setC]],
                                   set_dir.c,
+                                  prefix.c = prefix.c,
                                   overwrite.l = overwrite.l,
                                   report.c = infTxtC)
                 
@@ -564,6 +566,7 @@ setMethod("writing", "MultiDataSet",
 setMethod("writing", "ExpressionSet",
           function(x,
                    dir.c,
+                   prefix.c = "",
                    files.ls = NULL,
                    overwrite.l = FALSE,
                    report.c = c("none", "interactive", "myfile.txt")[2]){
@@ -577,9 +580,15 @@ setMethod("writing", "ExpressionSet",
                 dir.create(dir.c,
                            showWarnings = report.c != "none")
               
-              tabFilVc <- c(dataMatrix = file.path(dir.c, "dataMatrix.tsv"),
-                            sampleMetadata = file.path(dir.c, "sampleMetadata.tsv"),
-                            variableMetadata = file.path(dir.c, "variableMetadata.tsv"))
+              if (prefix.c != "")
+                prefix.c <- paste0(prefix.c, "_")
+              
+              tabFilVc <- c(dataMatrix = file.path(dir.c,
+                                                   paste0(prefix.c, "dataMatrix.tsv")),
+                            sampleMetadata = file.path(dir.c,
+                                                       paste0(prefix.c, "sampleMetadata.tsv")),
+                            variableMetadata = file.path(dir.c,
+                                                         paste0(prefix.c, "variableMetadata.tsv")))
               
             } else if (is.na(dir.c)) {
               
