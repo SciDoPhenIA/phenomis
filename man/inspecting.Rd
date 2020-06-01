@@ -82,7 +82,7 @@ or a variance of 0 will be filtered out at the beginning of the method and
 therefore in the output ExpressionSet(s)
 }
 \examples{
-sacurine.eset <- reading(system.file("extdata/sacurine", package = "phenomis"))
+sacurine.eset <- reading(system.file("extdata/W4M00001_Sacurine-statistics", package = "phenomis"))
 sacurine.eset <- inspecting(sacurine.eset)
 sacurine.eset <- correcting(sacurine.eset)
 sacurine.eset <- inspecting(sacurine.eset)

@@ -52,7 +52,7 @@ Annotation with chemical and biological databases
 The parameters and their default values are printed for the selected database
 }
 \examples{
-sacurine.eset <- phenomis::reading(system.file("extdata/sacurine", package = "phenomis"))
+sacurine.eset <- phenomis::reading(system.file("extdata/W4M00001_Sacurine-statistics", package = "phenomis"))
 # see the (default) parameters (e.g. for ChEBI query)
 phenomis::annotating_parameters("chebi")
 # mz annotation with ChEBI

@@ -2,7 +2,7 @@ testthat::context("Testing 'filtering'")
 
 testthat::test_that("filtering-eset", {
 
-  sacurine.eset <- phenomis::reading(system.file("extdata/sacurine", package = "phenomis"))
+  sacurine.eset <- phenomis::reading(system.file("extdata/W4M00001_Sacurine-statistics", package = "phenomis"))
   
   exprs.mn <- Biobase::exprs(sacurine.eset)
   exprs.mn[exprs.mn < 1e5] <- NA
@@ -20,7 +20,7 @@ testthat::test_that("filtering-eset", {
 
 testthat::test_that("filtering-eset-gender", {
   
-  sacurine.eset <- phenomis::reading(system.file("extdata/sacurine", package = "phenomis"))
+  sacurine.eset <- phenomis::reading(system.file("extdata/W4M00001_Sacurine-statistics", package = "phenomis"))
   
   exprs.mn <- Biobase::exprs(sacurine.eset)
   exprs.mn[exprs.mn < 1e5] <- NA

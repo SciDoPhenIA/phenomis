@@ -126,7 +126,7 @@ The **reading** function reads the data sets and builds the *ExpressionSet* obje
 
 
 ```{r reading}
-sacurine.eset <- phenomis::reading(system.file("extdata/sacurine", package = "phenomis"))
+sacurine.eset <- phenomis::reading(system.file("extdata/W4M00001_Sacurine-statistics", package = "phenomis"))
 ```
 
 ## **inspecting**: Looking at the data

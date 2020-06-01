@@ -2,7 +2,7 @@ testthat::context("Testing 'read-write'")
 
 testthat::test_that(".reading", {
   
-  sacdir.c <- system.file("extdata/sacurine", package = "phenomis")
+  sacdir.c <- system.file("extdata/W4M00001_Sacurine-statistics", package = "phenomis")
   
   sacSet1 <- phenomis:::.reading(sacdir.c)
   
@@ -13,9 +13,9 @@ testthat::test_that(".reading", {
                          tolerance = 1e-3)
   # alternatively
   sacSet2 <- phenomis:::.reading(NA,
-                                 file.path(sacdir.c, "dataMatrix.tsv"),
-                                 file.path(sacdir.c, "sampleMetadata.tsv"),
-                                 file.path(sacdir.c, "variableMetadata.tsv"))
+                                 file.path(sacdir.c, "Galaxy1_dataMatrix.tabular"),
+                                 file.path(sacdir.c, "Galaxy2_sampleMetadata.tabular"),
+                                 file.path(sacdir.c, "Galaxy3_variableMetadata.tabular"))
   
   testthat::expect_true(class(sacSet2) == "ExpressionSet")
   
@@ -25,15 +25,15 @@ testthat::test_that(".reading", {
   
   
   testthat::expect_error(phenomis:::.reading(NA,
-                                             file.path(sacdir.c, "dataMatrix.tsv_XXX"),
-                                             file.path(sacdir.c, "sampleMetadata.tsv"),
-                                             file.path(sacdir.c, "variableMetadata.tsv")))
+                                             file.path(sacdir.c, "Galaxy1_dataMatrix.tsv"),
+                                             file.path(sacdir.c, "Galaxy2_sampleMetadata.tabular"),
+                                             file.path(sacdir.c, "Galaxy3_variableMetadata.tabular")))
   
 })
 
 testthat::test_that("reading_ExpressionSet", {
   
-  sacdir.c <- system.file("extdata/sacurine", package = "phenomis")
+  sacdir.c <- system.file("extdata/W4M00001_Sacurine-statistics", package = "phenomis")
   
   sacSet2 <- phenomis::reading(sacdir.c)
   
@@ -44,9 +44,9 @@ testthat::test_that("reading_ExpressionSet", {
                          tolerance = 1e-3)
   # alternatively
   sacSet3 <- phenomis::reading(NA,
-                               files.ls = list(dataMatrix = file.path(sacdir.c, "dataMatrix.tsv"),
-                                               sampleMetadata = file.path(sacdir.c, "sampleMetadata.tsv"),
-                                               variableMetadata = file.path(sacdir.c, "variableMetadata.tsv")))
+                               files.ls = list(dataMatrix = file.path(sacdir.c, "Galaxy1_dataMatrix.tabular"),
+                                               sampleMetadata = file.path(sacdir.c, "Galaxy2_sampleMetadata.tabular"),
+                                               variableMetadata = file.path(sacdir.c, "Galaxy3_variableMetadata.tabular")))
   
   testthat::expect_true(class(sacSet3) == "ExpressionSet")
   
@@ -56,9 +56,9 @@ testthat::test_that("reading_ExpressionSet", {
   
   
   testthat::expect_error(phenomis::reading(NA,
-                                           files.ls = list(dataMatrix = file.path(sacdir.c, "dataMatrix.tsv_XXX"),
-                                                           sampleMetadata = file.path(sacdir.c, "sampleMetadata.tsv"),
-                                                           variableMetadata = file.path(sacdir.c, "variableMetadata.tsv"))))
+                                           files.ls = list(dataMatrix = file.path(sacdir.c, "Galaxy1_dataMatrix.tsv"),
+                                                           sampleMetadata = file.path(sacdir.c, "Galaxy2_sampleMetadata.tabular"),
+                                                           variableMetadata = file.path(sacdir.c, "Galaxy3_variableMetadata.tabular"))))
   
 })
 

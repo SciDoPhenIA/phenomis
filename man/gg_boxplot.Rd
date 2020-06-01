@@ -54,7 +54,7 @@ character vector of outlier labels (same dimension as the number of rows from da
 Boxplot with ggplot2
 }
 \examples{
-sacurine.eset <- phenomis::reading(system.file("extdata/sacurine", package = "phenomis"))
+sacurine.eset <- phenomis::reading(system.file("extdata/W4M00001_Sacurine-statistics", package = "phenomis"))
 sacurine_pda.df <- Biobase::pData(sacurine.eset)
 sacurine_pda.df <- sacurine_pda.df[!grepl("QC", rownames(sacurine_pda.df)), ]
 phenomis::gg_boxplot(sacurine_pda.df, y.c = "age")

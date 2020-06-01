@@ -80,7 +80,7 @@ intensities in the expr matrix (matrices)
 Signal drift and batch effect correction
 }
 \examples{
-sacurine.eset <- phenomis::reading(system.file("extdata/sacurine", package = "phenomis"))
+sacurine.eset <- phenomis::reading(system.file("extdata/W4M00001_Sacurine-statistics", package = "phenomis"))
 sacurine.eset <- phenomis::correcting(sacurine.eset)
 # MultiDataSet (to be done)
 }

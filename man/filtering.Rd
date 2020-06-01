@@ -63,7 +63,7 @@ printed on the screen; if 'none', no verbose will be generated}
 Filtering of the features (or samples) with a high proportion of NAs or a low variance
 }
 \examples{
-sacurine.eset <- phenomis::reading(system.file("extdata/sacurine", package = "phenomis"))
+sacurine.eset <- phenomis::reading(system.file("extdata/W4M00001_Sacurine-statistics", package = "phenomis"))
 exprs.mn <- Biobase::exprs(sacurine.eset)
 ropls::view(exprs.mn)
 phenomis::filtering(sacurine.eset)

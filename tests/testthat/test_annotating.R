@@ -2,7 +2,7 @@ testthat::context("Testing 'annotating'")
 
 testthat::test_that("annotating-eset-chebi", {
   
-  sacurine.eset <- phenomis::reading(system.file("extdata/sacurine", package = "phenomis"))
+  sacurine.eset <- phenomis::reading(system.file("extdata/W4M00001_Sacurine-statistics", package = "phenomis"))
   sacurine.eset <- sacurine.eset[tail(Biobase::featureNames(sacurine.eset)), ]
   sacurine.eset <- phenomis::annotating(sacurine.eset, database.c = "chebi",
                                         param.ls = list(query.type = "mz",
@@ -40,7 +40,7 @@ testthat::test_that("annotating-eset-chebi", {
 
 testthat::test_that("annotating-eset-localms", {
   
-  sacurine.eset <- phenomis::reading(system.file("extdata/sacurine", package = "phenomis"))
+  sacurine.eset <- phenomis::reading(system.file("extdata/W4M00001_Sacurine-statistics", package = "phenomis"))
   msdbDF <- read.table(system.file("extdata/local_ms_db.tsv", package = "phenomis"),
                        header = TRUE,
                        sep = "\t",
@@ -59,7 +59,7 @@ testthat::test_that("annotating-eset-localms", {
 
 testthat::test_that("annotating-eset-chebiID", {
   
-  sacurine.eset <- phenomis::reading(system.file("extdata/sacurine", package = "phenomis"))
+  sacurine.eset <- phenomis::reading(system.file("extdata/W4M00001_Sacurine-statistics", package = "phenomis"))
   sacurine.eset <- sacurine.eset[tail(Biobase::featureNames(sacurine.eset)), ]
   sacurine.eset <- phenomis::annotating(sacurine.eset, database.c = "chebi",
                                         param.ls = list(query.type = "chebi.id", query.col = "database_identifier",

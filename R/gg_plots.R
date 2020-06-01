@@ -206,7 +206,7 @@ gg_barplot <- function(data.mn,
 #' @return character vector of outlier labels (same dimension as the number of rows from data.tb)
 #' @export
 #' @examples
-#' sacurine.eset <- phenomis::reading(system.file("extdata/sacurine", package = "phenomis"))
+#' sacurine.eset <- phenomis::reading(system.file("extdata/W4M00001_Sacurine-statistics", package = "phenomis"))
 #' sacurine_pda.df <- Biobase::pData(sacurine.eset)
 #' sacurine_pda.df <- sacurine_pda.df[!grepl("QC", rownames(sacurine_pda.df)), ]
 #' phenomis::gg_boxplot(sacurine_pda.df, y.c = "age")
@@ -354,7 +354,7 @@ gg_boxplot <- function(data.tb,
 #' @return invisible ggplot2 object
 #' @export
 #' @examples
-#' sacurine.eset <- phenomis::reading(system.file("extdata/sacurine", package = "phenomis"))
+#' sacurine.eset <- phenomis::reading(system.file("extdata/W4M00001_Sacurine-statistics", package = "phenomis"))
 #' sacurine_pda.df <- Biobase::pData(sacurine.eset)
 #' sacurine_pda.df <- sacurine_pda.df[!grepl("QC", rownames(sacurine_pda.df)), ]
 #' gg_pie(sacurine_pda.df, y.c = "gender", label.c = "value")
@@ -500,7 +500,7 @@ gg_pie <- function(data.tb,
 #' @return invisible ggplot2 object
 #' @export
 #' @examples
-#' sacurine.eset <- phenomis::reading(system.file("extdata/sacurine", package = "phenomis"))
+#' sacurine.eset <- phenomis::reading(system.file("extdata/W4M00001_Sacurine-statistics", package = "phenomis"))
 #' sacurine.eset <- phenomis::correcting(sacurine.eset, figure.c = "none")
 #' sacurine.eset <- sacurine.eset[, Biobase::pData(sacurine.eset)[, "sampleType"] != "pool"]
 #' sacurine.eset <- phenomis::transforming(sacurine.eset)
@@ -686,7 +686,7 @@ gg_volcanoplot <- function(fold_change.vn,
 #' @return invisible grid object
 #' @export
 #' @examples
-#' sacurine.eset <- phenomis::reading(system.file("extdata/sacurine", package = "phenomis"))
+#' sacurine.eset <- phenomis::reading(system.file("extdata/W4M00001_Sacurine-statistics", package = "phenomis"))
 #' sacurine.eset <- phenomis::correcting(sacurine.eset, figure.c = 'none')
 #' sacurine.eset <- sacurine.eset[, Biobase::pData(sacurine.eset)[, "sampleType"] != "pool"]
 #' sacurine.eset <- phenomis::transforming(sacurine.eset)

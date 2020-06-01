@@ -16,7 +16,7 @@
 #' @rdname annotating
 #' @export
 #' @examples
-#' sacurine.eset <- phenomis::reading(system.file("extdata/sacurine", package = "phenomis"))
+#' sacurine.eset <- phenomis::reading(system.file("extdata/W4M00001_Sacurine-statistics", package = "phenomis"))
 #' # see the (default) parameters (e.g. for ChEBI query)
 #' phenomis::annotating_parameters("chebi")
 #' # mz annotation with ChEBI
@@ -81,7 +81,7 @@ setGeneric("annotating",
 #' @rdname clustering
 #' @export
 #' @examples
-#' sacurine.eset <- phenomis::reading(system.file("extdata/sacurine", package = "phenomis"))
+#' sacurine.eset <- phenomis::reading(system.file("extdata/W4M00001_Sacurine-statistics", package = "phenomis"))
 #' sacurine.eset <- phenomis::correcting(sacurine.eset)
 #' sacurine.eset <- sacurine.eset[, Biobase::pData(sacurine.eset)[, "sampleType"] != "pool"]
 #' sacurine.eset <- phenomis::transforming(sacurine.eset)
@@ -154,7 +154,7 @@ setGeneric("clustering",
 #' @rdname correcting
 #' @export
 #' @examples
-#' sacurine.eset <- phenomis::reading(system.file("extdata/sacurine", package = "phenomis"))
+#' sacurine.eset <- phenomis::reading(system.file("extdata/W4M00001_Sacurine-statistics", package = "phenomis"))
 #' sacurine.eset <- phenomis::correcting(sacurine.eset)
 #' # MultiDataSet (to be done)
 setGeneric("correcting",
@@ -195,7 +195,7 @@ setGeneric("correcting",
 #' @rdname filtering
 #' @export
 #' @examples
-#' sacurine.eset <- phenomis::reading(system.file("extdata/sacurine", package = "phenomis"))
+#' sacurine.eset <- phenomis::reading(system.file("extdata/W4M00001_Sacurine-statistics", package = "phenomis"))
 #' exprs.mn <- Biobase::exprs(sacurine.eset)
 #' ropls::view(exprs.mn)
 #' phenomis::filtering(sacurine.eset)
@@ -268,7 +268,7 @@ setGeneric("filtering",
 #' @rdname hypotesting
 #' @export
 #' @examples
-#' sacurine.eset <- phenomis::reading(system.file("extdata/sacurine", package = "phenomis"))
+#' sacurine.eset <- phenomis::reading(system.file("extdata/W4M00001_Sacurine-statistics", package = "phenomis"))
 #' sacurine.eset <- phenomis::correcting(sacurine.eset, figure.c = 'none')
 #' sacurine.eset <- sacurine.eset[, Biobase::pData(sacurine.eset)[, "sampleType"] != "pool"]
 #' sacurine.eset <- phenomis::transforming(sacurine.eset)
@@ -343,7 +343,7 @@ setGeneric("hypotesting",
 #' in pData and fData sample and variable metrics
 #' @rdname inspecting
 #' @examples
-#' sacurine.eset <- reading(system.file("extdata/sacurine", package = "phenomis"))
+#' sacurine.eset <- reading(system.file("extdata/W4M00001_Sacurine-statistics", package = "phenomis"))
 #' sacurine.eset <- inspecting(sacurine.eset)
 #' sacurine.eset <- correcting(sacurine.eset)
 #' sacurine.eset <- inspecting(sacurine.eset)
@@ -367,6 +367,70 @@ setGeneric("inspecting",
              standardGeneric("inspecting"))
 
 
+#### reducing ####
+
+#' Grouping chemically redundant MS1 features
+#'
+#' This method groups chemically redundant features from a peak table, based on
+#' 1) correlation of sample profiles, 2) retention time window, 3) referenced
+#' m/z differences. The initial algorithm is named 'Analytic Correlation Filtration'
+#' (Monnerie et al., 2019; DOI:10.3390/metabo9110250) and is available in Perl and
+#' on the Workflow4Metabolomics platform.
+#' Here, the algorithm described in the paper was implemented in R as follows:
+#' An adjacency matrix of all pairs of features is built, containing a 1 when the
+#' features have a (Pearson) correlation above the (0.9) threshold, a retention time
+#' difference between the (6) seconds threshold, and an m/z difference belonging to
+#' referenced adducts, isotopes and fragments m/z difference, and containing a 0 otherwise.
+#' The connex components of this adjacency matrix are extracted ('igraph' package).
+#' Within each component, the features are ranked by decreasing average intensity in samples;
+#' all features except the first one are flagged as 'redundant'.
+#' Note: the algorithm relies on the 'mzdiff_db.tsv' file referencing the known adducts,
+#' isotopes, and fragments.
+#'
+#' @param x An S4 object of class \code{ExpressionSet} or \code{MultiDataSet}:
+#' the dataset(s) must contain the dataMatrix and the variableMetadata (with the
+#' 'mz' and 'rt' columns)
+#' @param cor_method.c character(1): correlation method (default: 'pearson')
+#' @param cor_threshold.n numeric(1): correlation threshold (default: 0.9)
+#' @param rt_tol.n numeric(1): retention time width in seconds (default: 6 s)
+#' @param rt_colname.c character(1): column name for the retention time in the fData
+#' (default: 'rt')
+#' @param mzdiff_tol.n numeric(1): tolerance in Da for the matching of m/z differences
+#' and referenced adducts, isotopes, and fragments (default: 0.005 Da)
+#' @param mz_colname.c character(1): column name for the m/z in the fData (default: 'mz')
+#' @param return_adjacency.l logical(1): should the adjacency matrix be returned
+#' (in addition to the updated ExpressionSet)?
+#' @param report.c character(1): File name with '.txt' extension for the printed
+#' results (call to sink()'); if 'interactive' (default), messages will be
+#' printed on the screen; if 'none', no verbose will be generated
+#' @return updated \code{ExpressionSet} or \code{MultiDataSet}: the ExpressionSet(s)
+#' now include(s) 5 new columns in the fData: 'redund_samp_mean', 'redund_is',
+#' 'redund_group', redund_iso_add_frag', 'redund_repres' and 'redund_relative'
+#' containing, respectively, the redundant features (coded by 1; i.e. features with
+#' a relative annotation distinct from '' and 'M'), the connected components,
+#' the m/z diff. chemical annotations, the representative ion of each group, and
+#' the annotations relative to this representative ion within each group
+#' @export
+#' @examples
+#' sac.eset <- phenomis::reading(system.file("extdata/W4M00002_Sacurine-comprehensive",
+#'                                           package = "phenomis"),
+#'                               report.c = "none")
+#' sac.eset <- phenomis::reducing(sac.eset,
+#'                                rt_tol.n = 6)
+#' table(Biobase::fData(sac.eset)[, "redund_group"])
+setGeneric("reducing",
+           function(x,
+                    cor_method.c = "pearson",
+                    cor_threshold.n = 0.9,
+                    rt_tol.n = 6,
+                    rt_colname.c = "rt",
+                    mzdiff_tol.n = 0.005,
+                    mz_colname.c = "mz",
+                    return_adjacency.l = FALSE,
+                    report.c = c("none", "interactive", "myfile.txt")[2])
+             standardGeneric("reducing"))
+
+
 #### transforming ####
 
 #' Transformation of the dataMatrix
@@ -384,7 +448,7 @@ setGeneric("inspecting",
 #' @rdname transforming
 #' @export
 #' @examples
-#' sacurine.eset <- phenomis::reading(system.file("extdata/sacurine", package = "phenomis"))
+#' sacurine.eset <- phenomis::reading(system.file("extdata/W4M00001_Sacurine-statistics", package = "phenomis"))
 #' sacurine.eset <- phenomis::correcting(sacurine.eset)
 #' sacurine.eset <- sacurine.eset[, Biobase::pData(sacurine.eset)[, "sampleType"] != "pool"]
 #' sacurine.eset <- phenomis::transforming(sacurine.eset)

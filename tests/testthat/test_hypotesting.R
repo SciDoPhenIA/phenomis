@@ -2,7 +2,7 @@ testthat::context("Testing 'hypotesting'")
 
 testthat::test_that("ttest", {
   
-  sacurine.eset <- phenomis::reading(system.file("extdata/sacurine", package = "phenomis"))
+  sacurine.eset <- phenomis::reading(system.file("extdata/W4M00001_Sacurine-statistics", package = "phenomis"))
   sacurine.eset <- phenomis::correcting(sacurine.eset, figure.c = "none")
   sacurine.eset <- sacurine.eset[, Biobase::pData(sacurine.eset)[, "sampleType"] != "pool"]
   sacurine.eset <- phenomis::transforming(sacurine.eset)
@@ -114,7 +114,7 @@ testthat::test_that("ttest", {
 
 testthat::test_that("anova", {
   
-  sacurine.eset <- phenomis::reading(system.file("extdata/sacurine",
+  sacurine.eset <- phenomis::reading(system.file("extdata/W4M00001_Sacurine-statistics",
                                                  package = "phenomis"))
   sacurine.eset <- phenomis::correcting(sacurine.eset, figure.c = "none")
   sacurine.eset <- sacurine.eset[, Biobase::pData(sacurine.eset)[, "sampleType"] != "pool"]
@@ -171,7 +171,7 @@ testthat::test_that("anova", {
 
 testthat::test_that("kruskal", {
   
-  sacurine.eset <- phenomis::reading(system.file("extdata/sacurine",
+  sacurine.eset <- phenomis::reading(system.file("extdata/W4M00001_Sacurine-statistics",
                                                  package = "phenomis"))
   
   sacurine.eset <- phenomis::correcting(sacurine.eset, figure.c = "none")

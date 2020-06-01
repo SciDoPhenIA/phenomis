@@ -91,7 +91,7 @@ the clusters in pData and fData if 'clusters.vi' has been specified
 Hierarchical clustering of both samples and variables
 }
 \examples{
-sacurine.eset <- phenomis::reading(system.file("extdata/sacurine", package = "phenomis"))
+sacurine.eset <- phenomis::reading(system.file("extdata/W4M00001_Sacurine-statistics", package = "phenomis"))
 sacurine.eset <- phenomis::correcting(sacurine.eset)
 sacurine.eset <- sacurine.eset[, Biobase::pData(sacurine.eset)[, "sampleType"] != "pool"]
 sacurine.eset <- phenomis::transforming(sacurine.eset)
