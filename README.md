@@ -6,11 +6,11 @@
 
 This package provides methods to perform the statistical analysis of phenomics datasets (e.g. in proteomics and metabolomics). These methods include the reading of datasets (as 3 table *dataMatrix*, *sampleMetadata* and *variableMetadata* .tsv files) into an **ExpressionSet** object (**reading**), quality control (**inspecting**) and transformation (**transforming**) of the dataMatrix, reduction of chemical redundancy (**reducing**), and univariate hypothesis testing (**hypotesting**). Multivariate analysis and feature selection can be further performed with the [**ropls**](http://bioconductor.org/packages/release/bioc/html/ropls.html) and [**biosigner**](http://bioconductor.org/packages/release/bioc/html/biosigner.html) packages, respectively. Finally, features can be annotated based on their m/z (and rt) values against public or local databases (**annotating**; based on the [**biodb**](https://github.com/pkrog/biodb) package). See the [**phenomis vignette**](vignettes/phenomis.Rmd) for a detailed example of the analysis of a metabolomics dataset.
 
-## Main contributors
+## Authors
 
-Alyssa Imbert, Camille Roquencourt, Camilo Broc, Alexis Delabriere, Philippe Rinaudo, Krystyna Biletska, Marie Tremblay-Franco, Stephanie Monnerie, Florence Castelli, Natacha Lenuzza, Eric Venot, Pierrick Roger and Etienne A. Thevenot
+Alyssa Imbert (*hypotesting*), Camille Roquencourt, Camilo Broc, Alexis Delabriere, Philippe Rinaudo (*biosigner*), Krystyna Biletska, Marie Tremblay-Franco (*hypotesting*), Stephanie Monnerie (*reducing*), Melanie Petera (*inspecting*), Florence Castelli (*inspecting*), Natacha Lenuzza, Eric Venot, Pierrick Roger (*annotating*) and Etienne A. Thevenot.
 
-## Contact
+## Maintainer
 
 Etienne A. Thevenot ([etienne.thevenot@cea.fr](mailto:etienne.thevenot@cea.fr))  
 Data Sciences for Deep Phenotyping and Precision Medicine team  
@@ -50,6 +50,7 @@ See the [**phenomis vignette**](vignettes/phenomis.Rmd) for a detailed example o
 ## Funding
 
 * [CEA](http://www.cea.fr/english)
+* [INRAE](https://www.inrae.fr/en)
 * [MetaboHUB](https://www.metabohub.fr/home.html) [ANR-11-INBS-0010]
 * [IFB](https://www.france-bioinformatique.fr/en) [ANR-11-INBS-0013]
 * [PhenoMeNal](http://phenomenal-h2020.eu/home/) [EINFRA H2020]

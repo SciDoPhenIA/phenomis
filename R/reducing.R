@@ -142,6 +142,10 @@ setMethod("reducing", signature(x = "ExpressionSet"),
   
   mzdiff_db.df <- phenomis:::.mzdiff_db()
   
+  mzdiff_db.df[, "delta_mass"] <- abs(mzdiff_db.df[, "delta_mass"])
+  
+  mzdiff_db.df <- mzdiff_db.df[mzdiff_db.df[, "add_and_frag_dup"] < 1, ]
+  
   # mean intensity for each feature
   
   fdata.df[, "redund_samp_mean"] <- rowMeans(exprs.mn, na.rm = TRUE)
@@ -212,27 +216,27 @@ setMethod("reducing", signature(x = "ExpressionSet"),
   if (any(is.na(mz.vn)))
     stop("The '", mz_colname.c, "' column contains missing values")
   
-  mzdiff.mn <- outer(mz.vn, mz.vn, "-")
+  mzdiff.mn <- -outer(mz.vn, mz.vn, "-")
   dimnames(mzdiff.mn) <- dimnames(corrt.mi)
   
-  mzdiff_lower.mi <- which(lower.tri(mzdiff.mn) & corrt.mi > 0, arr.ind = TRUE)
+  mzdiff_upper.mi <- which(upper.tri(mzdiff.mn) & corrt.mi > 0, arr.ind = TRUE)
   
-  mzdiff.vn <- mzdiff.mn[mzdiff_lower.mi]
+  mzdiff.vn <- mzdiff.mn[mzdiff_upper.mi]
   
-  mzmin.vn <- fdata.df[colnames(mzdiff.mn)[mzdiff_lower.mi[, 2]], mz_colname.c]
+  mzmin.vn <- fdata.df[rownames(mzdiff.mn), mz_colname.c]
   
-  mzannot_lower.mc <- vapply(seq_along(mzdiff.vn),
+  mzannot_upper.mc <- vapply(seq_along(mzdiff.vn),
                              function(mzdiff.i) {
                                mzdiff.n <- mzdiff.vn[mzdiff.i]
                                mzmin.n <- mzmin.vn[mzdiff.i]
-                               paste(which(abs(c(abs(mzdiff_db.df[, "delta_mass"]), mzmin.n) - mzdiff.n) <= mzdiff_tol.n),
+                               paste(which(abs(c(mzdiff_db.df[, "delta_mass"], mzmin.n) - mzdiff.n) <= mzdiff_tol.n),
                                      collapse = "_")
                              }, character(1))
   
   corrtmz.mc <- matrix("", nrow = nrow(corrt.mi), ncol = ncol(corrt.mi),
                        dimnames = dimnames(corrt.mi))
-  corrtmz.mc[mzdiff_lower.mi] <- mzannot_lower.mc
-  corrtmz.mc <- paste0(corrtmz.mc, t(corrtmz.mc))
+  corrtmz.mc[mzdiff_upper.mi] <- mzannot_upper.mc
+  corrtmz.mc <- paste0(t(corrtmz.mc), corrtmz.mc)
   dim(corrtmz.mc) <- dim(corrt.mi)
   dimnames(corrtmz.mc) <- dimnames(corrt.mi)
   
@@ -262,6 +266,7 @@ setMethod("reducing", signature(x = "ExpressionSet"),
   
   for (group.i in seq_along(table(group.vi))) {
     
+    # group.i <- 1
     # group.i <- 62
     
     ## features from the component
@@ -279,17 +284,14 @@ setMethod("reducing", signature(x = "ExpressionSet"),
       
       for (linked.c in setdiff(group_feat.vc, group_feat.c)) {
         
-        sign.i <- sign(mzdiff.mn[group_feat.c, linked.c])
+        sign.i <- sign(mzdiff.mn[linked.c, group_feat.c])
         
         annot.c <- corrtmz.mc[linked.c, group_feat.c]
         
         if (annot.c != "") {
           
           annot_split.vc <- unlist(strsplit(annot.c, split = "_"))
-          
-          if (sign.i < 0)
-            annot_split.vc <- annot_split.vc[mzdiff_db.df[as.numeric(annot_split.vc), "type"] != "isotope"]
-          
+         
           if (length(annot_split.vc)) {
             
             annot.c <- paste(vapply(annot_split.vc,
@@ -312,30 +314,60 @@ setMethod("reducing", signature(x = "ExpressionSet"),
                                                          
                                         
                                       } else {
-                                      
-                                      code.c <- mzdiff_db.df[as.numeric(annot_split.c), "losses_or_gains"]
-                                      
-                                      if (sign.i > 0) {
                                         
-                                        if (!(substr(code.c, 1, 1) %in% c("+", "-")))
-                                          code.c <- paste0("+", code.c)
+                                        code.c <- mzdiff_db.df[as.numeric(annot_split.c), "losses_or_gains"]
                                         
-                                      } else {
+                                        if (sign.i > 0) {
+                                          
+                                          if (!(substr(code.c, 1, 1) %in% c("+", "-"))) {
+                                            code.c <- paste0("+", code.c)
+                                          } else if (substr(code.c, 1, 1) == "-") {
+                                            code.c <- gsub("@", "-",
+                                                           gsub("-", "+",
+                                                                gsub("+", "@", code.c, fixed = TRUE), fixed = TRUE),
+                                                           fixed = TRUE)
+                                          }
+                                          
+                                          # if (!(substr(code.c, 1, 1) %in% c("+", "-")))
+                                          #   code.c <- paste0("+", code.c)
+                                          
+                                        } else {
+                                          
+                                          if (!(substr(code.c, 1, 1) %in% c("+", "-"))) {
+                                            if (code.c != "(H2O-CO)")
+                                              code.c <- gsub("@", "-",
+                                                             gsub("-", "+",
+                                                                  gsub("+", "@", code.c,
+                                                                       fixed = TRUE),
+                                                                  fixed = TRUE),
+                                                             fixed = TRUE)
+                                            code.c <- paste0("-", code.c)
+                                          } else if (substr(code.c, 1, 1) == "+") {
+                                            code.c <- gsub("@", "-",
+                                                           gsub("-", "+",
+                                                                gsub("+", "@", code.c,
+                                                                     fixed = TRUE),
+                                                                fixed = TRUE),
+                                                           fixed = TRUE)
+                                            
+                                          }
+                                          
+                                          # code.c <- gsub("@", "-",
+                                          #                gsub("-", "+",
+                                          #                     gsub("+", "@", code.c, fixed = TRUE), fixed = TRUE),
+                                          #                fixed = TRUE)
+                                          # 
+                                          # if (!(substr(code.c, 1, 1) %in% c("+", "-")))
+                                          #   code.c <- paste0("-", code.c)
+                                          
+                                        }
                                         
-                                        code.c <- gsub("@", "-",
-                                                       gsub("-", "+",
-                                                            gsub("+", "@", code.c, fixed = TRUE), fixed = TRUE),
-                                                       fixed = TRUE)
+                                        return(code.c)
                                         
-                                        if (!(substr(code.c, 1, 1) %in% c("+", "-")))
-                                          code.c <- paste0("-", code.c)
+                                        # return(paste0(code.c, "(",
+                                        #               floor(mzdiff_db.df[as.numeric(annot_split.c), "delta_mass"] * 1e4) / 1e4,
+                                        #               ")")) 
                                         
-                                      }
-                                      
-                                      return(paste0(code.c, "(",
-                                             floor(mzdiff_db.df[as.numeric(annot_split.c), "delta_mass"] * 1e4) / 1e4,
-                                             ")")) 
-                                      
                                       }
                                       
                                     }, character(1)), collapse = "|")
@@ -362,9 +394,9 @@ setMethod("reducing", signature(x = "ExpressionSet"),
     
     for (linked.c in setdiff(group_feat.vc, ion_sel.c)) {
       
-      sign.i <- sign(mzdiff.mn[linked.c, ion_sel.c])
+      sign.i <- sign(mzdiff.mn[ion_sel.c, linked.c])
       
-      annot.c <- corrtmz.mc[linked.c, ion_sel.c]
+      annot.c <- corrtmz.mc[ion_sel.c, linked.c]
       
       if (annot.c != "") {
         
@@ -400,18 +432,35 @@ setMethod("reducing", signature(x = "ExpressionSet"),
                                       
                                       if (sign.i > 0) {
                                         
-                                        if (!(substr(code.c, 1, 1) %in% c("+", "-")))
+                                        if (!(substr(code.c, 1, 1) %in% c("+", "-"))) {
                                           code.c <- paste0("+", code.c)
+                                        } else if (substr(code.c, 1, 1) == "-") {
+                                          code.c <- gsub("@", "-",
+                                                         gsub("-", "+",
+                                                              gsub("+", "@", code.c, fixed = TRUE), fixed = TRUE),
+                                                         fixed = TRUE)
+                                        }
                                         
                                       } else {
                                         
-                                        code.c <- gsub("@", "-",
-                                                       gsub("-", "+",
-                                                            gsub("+", "@", code.c, fixed = TRUE), fixed = TRUE),
-                                                       fixed = TRUE)
-                                        
-                                        if (!(substr(code.c, 1, 1) %in% c("+", "-")))
+                                        if (!(substr(code.c, 1, 1) %in% c("+", "-"))) {
+                                          if (code.c != "(H2O-CO)")
+                                            code.c <- gsub("@", "-",
+                                                           gsub("-", "+",
+                                                                gsub("+", "@", code.c,
+                                                                     fixed = TRUE),
+                                                                fixed = TRUE),
+                                                           fixed = TRUE)
                                           code.c <- paste0("-", code.c)
+                                        } else if (substr(code.c, 1, 1) == "+") {
+                                          code.c <- gsub("@", "-",
+                                                         gsub("-", "+",
+                                                              gsub("+", "@", code.c,
+                                                                   fixed = TRUE),
+                                                              fixed = TRUE),
+                                                         fixed = TRUE)
+                                          
+                                        }
                                         
                                       }
                                       
@@ -479,8 +528,36 @@ setMethod("reducing", signature(x = "ExpressionSet"),
                              quote = "",
                              sep = "\t",
                              stringsAsFactors = FALSE)
+  
+  mzdiff_db.df[ , "losses_or_gains"] <- gsub(" ", "", mzdiff_db.df[ , "losses_or_gains"])
+  
 
-  stopifnot(!any(duplicated(mzdiff_db.df[, "losses_or_gains"])))
+  
+  add_and_frag.vi <- integer(nrow(mzdiff_db.df))
+  
+  loss_or_gain.vc <- sapply(mzdiff_db.df[ , "losses_or_gains"],
+                            function(loss_or_gain.c) {
+                              if (substr(loss_or_gain.c, 1, 1) %in% c("+", "-"))
+                                loss_or_gain.c <- substr(loss_or_gain.c, 2, nchar(loss_or_gain.c))
+                              loss_or_gain.c
+                            })
+  
+  for (add_and_frag.c in c("(CH3OH)",
+                           "(H2O)",
+                           "(HCOOH)",
+                           "(NaCl)",
+                           "2(H2O)",
+                           "2(HCOOH)",
+                           "(NaCl)")) {
+    
+    dup.vi <- which(loss_or_gain.vc == add_and_frag.c)
+    stopifnot(length(dup.vi) == 2)
+    
+    add_and_frag.vi[dup.vi[2]] <- 1
+    
+  }
+
+  mzdiff_db.df[, "add_and_frag_dup"] <- add_and_frag.vi
   
   mzdiff_db.df
 }
