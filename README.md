@@ -1,6 +1,6 @@
 # **phenomis**: An R package for phenotyping data sciences
 
-[![Travis build status](https://travis-ci.org/SciDoPhenIA/phenomis.svg?branch=master)](https://travis-ci.org/SciDoPhenIA/phenomis)
+# [![Travis build status](https://travis-ci.org/SciDoPhenIA/phenomis.svg?branch=master)](https://travis-ci.org/SciDoPhenIA/phenomis)
 
 ## Description
 
