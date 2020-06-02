@@ -1,7 +1,5 @@
 # **phenomis**: An R package for phenotyping data sciences
 
-# [![Travis build status](https://travis-ci.org/SciDoPhenIA/phenomis.svg?branch=master)](https://travis-ci.org/SciDoPhenIA/phenomis)
-
 ## Description
 
 This package provides methods to perform the statistical analysis of phenomics datasets (e.g. in proteomics and metabolomics). These methods include the reading of datasets (as 3 table *dataMatrix*, *sampleMetadata* and *variableMetadata* .tsv files) into an **ExpressionSet** object (**reading**), quality control (**inspecting**) and transformation (**transforming**) of the dataMatrix, reduction of chemical redundancy (**reducing**), and univariate hypothesis testing (**hypotesting**). Multivariate analysis and feature selection can be further performed with the [**ropls**](http://bioconductor.org/packages/release/bioc/html/ropls.html) and [**biosigner**](http://bioconductor.org/packages/release/bioc/html/biosigner.html) packages, respectively. Finally, features can be annotated based on their m/z (and rt) values against public or local databases (**annotating**; based on the [**biodb**](https://github.com/pkrog/biodb) package). See the [**phenomis vignette**](vignettes/phenomis.Rmd) for a detailed example of the analysis of a metabolomics dataset.
