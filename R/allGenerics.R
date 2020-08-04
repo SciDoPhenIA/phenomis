@@ -20,9 +20,7 @@
 #' # see the (default) parameters (e.g. for ChEBI query)
 #' phenomis::annotating_parameters("chebi")
 #' # mz annotation with ChEBI
-#' sacurine.eset <- phenomis::annotating(sacurine.eset, database.c = "chebi",
-#' param.ls = list(query.type = "mz", query.col = "mass_to_charge", ms.mode = "neg",
-#' prefix = "chebiMZ."))
+#' sacurine.eset <- phenomis::annotating(sacurine.eset, database.c = "chebi", param.ls = list(query.type = "mz", query.col = "mass_to_charge", ms.mode = "neg", prefix = "chebiMZ."))
 #' # mz annotation with local database
 #' msdbDF <- read.table(system.file("extdata/local_ms_db.tsv", package = "phenomis"),
 #' header = TRUE, sep = "\t", stringsAsFactors = FALSE)

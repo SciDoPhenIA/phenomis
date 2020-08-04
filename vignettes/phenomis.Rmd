@@ -142,9 +142,9 @@ sacurine.eset <- phenomis::inspecting(sacurine.eset)
 ```{r correcting}
 sacurine.eset <- phenomis::correcting(sacurine.eset,
                                       reference.c = "pool",
-                                      batch.c = "batch",
-                                      injection_order.c = "injectionOrder",
-                                      sample_type.c = "sampleType")
+                                      col_batch.c = "batch",
+                                      col_injectionOrder.c = "injectionOrder",
+                                      col_sampleType.c = "sampleType")
 ```
 
 ### Variable filtering
@@ -266,6 +266,8 @@ sacurine.eset <- biosigner::getEset(sacSign)
 This method is based on the [**biodb**](https://doi.org/10.18129/B9.bioc.biosigner) R package available on github:
 ```{r installing_biodb, eval = FALSE}
 devtools::install_github("pkrog/biodb")
+devtools::install_github("pkrog/biodbChebi")
+devtools::install_github("pkrog/biodbKegg")
 ```
 
 Viewing the parameters from the **annotating** method and their default values:

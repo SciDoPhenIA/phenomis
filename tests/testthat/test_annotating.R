@@ -31,7 +31,9 @@ testthat::test_that("annotating-eset-chebi", {
   # table(matchVl)
   # FALSE
   #     3
-  testthat::expect_identical(as.numeric(table(matchVl)), 3)
+  testthat::expect_identical(as.numeric(table(matchVl)), c(2, 1))
+  # FALSE  TRUE 
+  # 2     1
   # for the whole sacurine.eset:
   # FALSE TRUE
   #    68   14  

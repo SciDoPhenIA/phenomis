@@ -252,11 +252,11 @@ annotating_parameters <- function(database.c = c("chebi", "local.ms", "kegg")[1]
   if (sum(!queriableVl))
     fdataTempDF[!queriableVl, param.ls[["query.col"]]] <- -c(1:sum(!queriableVl))
   
-  mybiodb <- biodb::Biodb()
+  mybiodb <- biodb::Biodb$new()
   
   if (param.ls[["query.type"]] == "mz") {
     
-    chebi <- mybiodb$getFactory()$getConn('chebi')
+    chebi <- mybiodb$getFactory()$createConn('chebi')
     
     resultDF <- chebi$annotateMzValues(data.frame(mz = queryVn),
                                        mz.tol = param.ls[["mz.tol"]],
@@ -317,7 +317,7 @@ annotating_parameters <- function(database.c = c("chebi", "local.ms", "kegg")[1]
   
   queryVn <- queryVn[!missingVl]
   
-  mybiodb <- biodb::Biodb()
+  mybiodb <- biodb::Biodb$new()
   
   conn <- mybiodb$getFactory()$createConn('mass.csv.file')
   conn$setDb(param.ls[["local.ms.db"]])
@@ -353,6 +353,7 @@ annotating_parameters <- function(database.c = c("chebi", "local.ms", "kegg")[1]
 .annot_kegg <- function(fdataDF, param.ls, paramDefaultLs, verboseL) {
   
   # param.ls <- list(query.col = "database_identifier", query.type = "chebi")
+  # in progress
   
   param.ls <- c(param.ls,
                 paramDefaultLs[setdiff(names(paramDefaultLs),
