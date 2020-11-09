@@ -35,7 +35,7 @@ setMethod("transforming", signature(x = "MultiDataSet"),
             if (!(report.c %in% c("none", "interactive")))
               sink()
             
-            return(x)
+            return(invisible(x))
             
           })
 

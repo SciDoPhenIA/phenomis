@@ -41,7 +41,7 @@ setMethod("filtering", signature(x = "MultiDataSet"),
             if (!(report.c %in% c("none", "interactive")))
               sink()
             
-            invisible(x)
+            return(invisible(x))
             
           })
 
@@ -76,7 +76,7 @@ setMethod("filtering", signature(x = "ExpressionSet"),
             if (!(report.c %in% c("none", "interactive")))
               sink()
             
-            invisible(x)
+            return(invisible(x))
             
           })
 

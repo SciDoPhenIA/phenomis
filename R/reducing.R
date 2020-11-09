@@ -72,7 +72,7 @@ setMethod("reducing", signature(x = "MultiDataSet"),
               
             } else {
               
-              return(x)
+              return(invisible(x))
               
             }
             
@@ -123,7 +123,7 @@ setMethod("reducing", signature(x = "ExpressionSet"),
               
             } else {
               
-              return(x)
+              return(invisible(x))
               
             }
             
