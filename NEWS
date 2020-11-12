@@ -1,3 +1,10 @@
+CHANGES IN VERSION 0.3.10
+------------------------------
+
+MINOR MODIFICATION
+
+    o hypotesting: exact = FALSE in Spearman correlation test to avoid warnings in case of ties
+
 CHANGES IN VERSION 0.3.8
 ------------------------------
 

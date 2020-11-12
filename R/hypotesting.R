@@ -407,7 +407,7 @@ setMethod("hypotesting", signature(x = "ExpressionSet"),
       hypotest <- function(y) stats::wilcox.test(y ~ factorFc, exact = FALSE)[["p.value"]]
     } else if (test.c %in% c("pearson", "spearman")) {
       hypotest <- function(y) stats::cor.test(factorVn, y, method = test.c,
-                                              use = "pairwise.complete.obs")[["p.value"]]
+                                              use = "pairwise.complete.obs", exact = FALSE)[["p.value"]]
     }
     
     return(apply(Biobase::exprs(x), 1, hypotest))
