@@ -25,7 +25,9 @@ NULL
 #' @return nothing is returned
 #' @export
 #' @examples
-#' phenomis::search_code("aes")
+#' \dontrun{
+#' phenomis::search_code("aes", filename_pattern.c = ".R")
+#' }
 search_code <- function(pattern.c,
                         dir.c = getwd(),
                         fixed.l = TRUE,

@@ -27,5 +27,7 @@ nothing is returned
 This function is useful for code inspection, development, and debugging
 }
 \examples{
-phenomis::search_code("aes")
+\dontrun{
+phenomis::search_code("aes", filename_pattern.c = ".R")
+}
 }

@@ -26,13 +26,13 @@
 #' @examples
 #' data_dir.c <- system.file("extdata", package="phenomis")
 #' ## 1) Single set
-#' sacurine_dir.c <- file.path(data_dir.c, "sacurine")
+#' sacurine_dir.c <- file.path(data_dir.c, "W4M00001_Sacurine-statistics")
 #' sacurine.eset <- reading(sacurine_dir.c)
 #' # or
 #' sacurine.eset <- reading(NA,
-#'                   files.ls = list(dataMatrix = file.path(sacurine_dir.c, "dataMatrix.tsv"),
-#'                                   sampleMetadata = file.path(sacurine_dir.c, "sampleMetadata.tsv"),
-#'                                   variableMetadata = file.path(sacurine_dir.c, "variableMetadata.tsv")))
+#'                   files.ls = list(dataMatrix = file.path(sacurine_dir.c, "Galaxy1_dataMatrix.tabular"),
+#'                                   sampleMetadata = file.path(sacurine_dir.c, "Galaxy2_sampleMetadata.tabular"),
+#'                                   variableMetadata = file.path(sacurine_dir.c, "Galaxy3_variableMetadata.tabular")))
 #' ## 2) Multiple sets
 #' prometis_dir.c <- file.path(data_dir.c, "prometis")
 #' prometis.mset <- reading(prometis_dir.c)

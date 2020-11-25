@@ -46,9 +46,6 @@ manually defining the colors}
 
 \item{figure.c}{Character: either 'interactive' for interactive display,
 'my_barplot.pdf' for figure saving (only the extension matters), or 'none' to prevent plotting}
-
-\item{geom_text.ls}{List of sizes for axis and legend text (default: 18), bar text
-(default 10) and adjustment (default 1.5) and title (default: 28)}
 }
 \value{
 invisible ggplot2 object

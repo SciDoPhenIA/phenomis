@@ -1,30 +1,51 @@
 Package: phenomis
 Type: Package
 Title: Analysis of single and multiple phenomic data sets
-Version: 0.3.12
-Date: 2020-11-24
+Version: 0.3.14
+Date: 2020-11-25
 Authors@R: c(
 	   person(given = "Etienne A.", family = "Thevenot",
 	   email = "etienne.thevenot@cea.fr",
 	   role = c("aut", "cre"),
 	   comment = c(ORCID = "0000-0003-1019-4577")),
+	   person(given = "Camille", family = "Roquencourt",
+	   email = "camille.roquencourt@cea.fr",
+	   role = "aut"),
 	   person(given = "Alyssa", family = "Imbert",
 	   email = "alyssa.imbert@france-bioinformatique.fr",
 	   role = "ctb"),
-	   person(given = "Pierrick", family = "Roger",
-	   email = "pierrick.roger@cea.fr",
-	   role = "ctb"),
+	   person(given = "Camilo", family = "Broc",
+	   email = "camilo.broc@cea.fr",
+	   role = "aut"),
+	   person(given = "Alexis", family = "Delabriere",
+	   email = "delabriere@imsb.biol.ethz.ch",
+	   role = "aut"),
+	   person(given = "Philippe", family = "Rinaudo",
+	   email = "phd.rinaudo@gmail.com",
+	   role = "aut"),
+	   person(given = "Krystyna", family = "Biletska",
+	   email = "krystyna.biletska@cea.fr",
+	   role = "aut"),
 	   person(given = "Natacha", family = "Lenuzza",
 	   email = "n.lenuzza@gmail.com",
-	   role = "ctb"),
+	   role = "aut"),
+	   person(given = "Pierrick", family = "Roger",
+	   email = "pierrick.roger@cea.fr",
+	   role = "aut"),
+	   person(given = "Eric", family = "Venot",
+	   email = "eric.venot@inrae.fr",
+	   role = "aut"),
 	   person(given = "Florence", family = "Castelli",
 	   email = "florence.castelli@cea.fr",
 	   role = "ctb"),
 	   person(given = "Marie", family = "Tremblay-Franco",
 	   email = "marie.tremblay-franco@inrae.fr",
-	   role = "ctb"),	   
+	   role = "ctb"),
+	   person(given = "Melanie", family = "Petera",
+	   email = "melanie.petera@inrae.fr",
+	   role = "ctb"),
 	   person(given = "Stephanie", family = "Monnerie",
-	   email = "stephanie.monnerie@inra.fr",
+	   email = "stephanie.monnerie@inrae.fr",
 	   role = "ctb")
 	   )
 Author: Etienne A. Thevenot <etienne.thevenot@cea.fr>
@@ -42,6 +63,7 @@ Depends:
     MultiDataSet
 Imports:
     biodb,
+    biodbChebi,
     data.table,
     dplyr,
     futile.logger,
