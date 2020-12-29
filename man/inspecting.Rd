@@ -11,7 +11,7 @@ inspecting(
   pool_as_pool1.l = FALSE,
   pool_cv.n = 0.3,
   span.n = 1,
-  sample_intensity.c = c("median", "mean")[1],
+  sample_intensity.c = c("median", "mean", "sum")[2],
   title.c = NA,
   plot_dims.l = TRUE,
   figure.c = c("none", "interactive", "myfile.pdf")[2],
@@ -23,7 +23,7 @@ inspecting(
   pool_as_pool1.l = FALSE,
   pool_cv.n = 0.3,
   span.n = 1,
-  sample_intensity.c = c("median", "mean")[1],
+  sample_intensity.c = c("median", "mean", "sum")[2],
   title.c = NA,
   plot_dims.l = TRUE,
   figure.c = c("none", "interactive", "myfile.pdf")[2],
@@ -35,7 +35,7 @@ inspecting(
   pool_as_pool1.l = FALSE,
   pool_cv.n = 0.3,
   span.n = 1,
-  sample_intensity.c = c("median", "mean")[1],
+  sample_intensity.c = c("median", "mean", "sum")[2],
   title.c = NA,
   plot_dims.l = TRUE,
   figure.c = c("none", "interactive", "myfile.pdf")[2],
@@ -53,7 +53,7 @@ with the dilution factor?}
 \item{span.n}{Numeric: span parameter used in the loess trend estimation}
 
 \item{sample_intensity.c}{Character: function to be used to display the global
-sample intensity}
+sample intensity; default: 'mean'}
 
 \item{title.c}{Character: MultiDataSet: title of the barplot showing the number
 of samples and variables in each dataset; ExpressionSet: title of the multipanel

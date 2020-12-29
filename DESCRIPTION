@@ -1,8 +1,8 @@
 Package: phenomis
 Type: Package
 Title: Analysis of single and multiple phenomic data sets
-Version: 0.3.14
-Date: 2020-11-25
+Version: 0.3.16
+Date: 2020-12-29
 Authors@R: c(
 	   person(given = "Etienne A.", family = "Thevenot",
 	   email = "etienne.thevenot@cea.fr",

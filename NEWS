@@ -1,3 +1,10 @@
+CHANGES IN VERSION 0.3.16
+------------------------------
+
+NEW FEATURE
+
+    o inspecting: drift display: mean of variable intensities (instead of median)
+
 CHANGES IN VERSION 0.3.14
 ------------------------------
 

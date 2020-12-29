@@ -324,7 +324,7 @@ setGeneric("hypotesting",
 #' @param pool_cv.n Numeric: threshold for the coefficient of variation of the pools
 #' @param span.n Numeric: span parameter used in the loess trend estimation
 #' @param sample_intensity.c Character: function to be used to display the global
-#' sample intensity
+#' sample intensity; default: 'mean'
 #' @param title.c Character: MultiDataSet: title of the barplot showing the number
 #' of samples and variables in each dataset; ExpressionSet: title of the multipanel
 #' graphic displaying the metrics (if NA -default- the title slot from the experimentData
@@ -357,7 +357,7 @@ setGeneric("inspecting",
                     pool_as_pool1.l = FALSE,
                     pool_cv.n = 0.3,
                     span.n = 1,
-                    sample_intensity.c = c("median", "mean")[1],
+                    sample_intensity.c = c("median", "mean", "sum")[2],
                     title.c = NA,
                     plot_dims.l = TRUE,
                     figure.c = c("none", "interactive", "myfile.pdf")[2],
