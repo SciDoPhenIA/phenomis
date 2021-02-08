@@ -1,52 +1,43 @@
 Package: phenomis
 Type: Package
 Title: Analysis of single and multiple phenomic data sets
-Version: 0.3.16
-Date: 2020-12-29
+Version: 0.3.18
+Date: 2021-02-08
 Authors@R: c(
-	   person(given = "Etienne A.", family = "Thevenot",
-	   email = "etienne.thevenot@cea.fr",
-	   role = c("aut", "cre"),
-	   comment = c(ORCID = "0000-0003-1019-4577")),
-	   person(given = "Camille", family = "Roquencourt",
+     person(given = "Camille", family = "Roquencourt",
 	   email = "camille.roquencourt@cea.fr",
-	   role = "aut"),
+	   role = "ctb"),
 	   person(given = "Alyssa", family = "Imbert",
 	   email = "alyssa.imbert@france-bioinformatique.fr",
 	   role = "ctb"),
 	   person(given = "Camilo", family = "Broc",
 	   email = "camilo.broc@cea.fr",
-	   role = "aut"),
+	   role = "ctb"),
 	   person(given = "Alexis", family = "Delabriere",
 	   email = "delabriere@imsb.biol.ethz.ch",
-	   role = "aut"),
+	   role = "ctb"),
 	   person(given = "Philippe", family = "Rinaudo",
 	   email = "phd.rinaudo@gmail.com",
-	   role = "aut"),
+	   role = "ctb"),
+	   person(given = "Sylvain", family = "Dechaumet",
+	   email = "sylvain.dechaumet@cea.fr",
+	   role = "ctb"),
 	   person(given = "Krystyna", family = "Biletska",
 	   email = "krystyna.biletska@cea.fr",
-	   role = "aut"),
+	   role = "ctb"),
 	   person(given = "Natacha", family = "Lenuzza",
 	   email = "n.lenuzza@gmail.com",
-	   role = "aut"),
+	   role = "ctb"),
 	   person(given = "Pierrick", family = "Roger",
 	   email = "pierrick.roger@cea.fr",
-	   role = "aut"),
+	   role = "ctb"),
 	   person(given = "Eric", family = "Venot",
 	   email = "eric.venot@inrae.fr",
-	   role = "aut"),
-	   person(given = "Florence", family = "Castelli",
-	   email = "florence.castelli@cea.fr",
 	   role = "ctb"),
-	   person(given = "Marie", family = "Tremblay-Franco",
-	   email = "marie.tremblay-franco@inrae.fr",
-	   role = "ctb"),
-	   person(given = "Melanie", family = "Petera",
-	   email = "melanie.petera@inrae.fr",
-	   role = "ctb"),
-	   person(given = "Stephanie", family = "Monnerie",
-	   email = "stephanie.monnerie@inrae.fr",
-	   role = "ctb")
+	   person(given = "Etienne A.", family = "Thevenot",
+	   email = "etienne.thevenot@cea.fr",
+	   role = c("aut", "cre"),
+	   comment = c(ORCID = "0000-0003-1019-4577"))
 	   )
 Author: Etienne A. Thevenot <etienne.thevenot@cea.fr>
 Maintainer: Etienne A. Thevenot <etienne.thevenot@cea.fr>
