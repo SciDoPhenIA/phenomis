@@ -9,11 +9,12 @@
 correcting(
   x,
   reference.c = c("pool", "sample")[1],
+  span.n = 1,
+  sample_intensity.c = c("median", "mean", "sum")[2],
+  title.c = NA,
   col_batch.c = "batch",
   col_injectionOrder.c = "injectionOrder",
   col_sampleType.c = "sampleType",
-  span.n = 1,
-  title.c = NA,
   figure.c = c("none", "interactive", "myfile.pdf")[2],
   report.c = c("none", "interactive", "myfile.txt")[2]
 )
@@ -21,11 +22,12 @@ correcting(
 \S4method{correcting}{MultiDataSet}(
   x,
   reference.c = c("pool", "sample")[1],
+  span.n = 1,
+  sample_intensity.c = c("median", "mean", "sum")[2],
+  title.c = NA,
   col_batch.c = "batch",
   col_injectionOrder.c = "injectionOrder",
   col_sampleType.c = "sampleType",
-  span.n = 1,
-  title.c = NA,
   figure.c = c("none", "interactive", "myfile.pdf")[2],
   report.c = c("none", "interactive", "myfile.txt")[2]
 )
@@ -33,11 +35,12 @@ correcting(
 \S4method{correcting}{ExpressionSet}(
   x,
   reference.c = c("pool", "sample")[1],
+  span.n = 1,
+  sample_intensity.c = c("median", "mean", "sum")[2],
+  title.c = NA,
   col_batch.c = "batch",
   col_injectionOrder.c = "injectionOrder",
   col_sampleType.c = "sampleType",
-  span.n = 1,
-  title.c = NA,
   figure.c = c("none", "interactive", "myfile.pdf")[2],
   report.c = c("none", "interactive", "myfile.txt")[2]
 )
@@ -49,6 +52,14 @@ correcting(
 the correction (as indicated in the 'colnameSampleType' column from the
 pData(x); e.g. 'pool')}
 
+\item{span.n}{Numeric: smoothing parameter for the loess regression;
+between 0 and 1; (default set to 1)}
+
+\item{sample_intensity.c}{Character: metric to be used when displaying the sample intensities}
+
+\item{title.c}{Character (ExpressionSet): Graphic title: if NA [default] the
+title slot from the experimentData will be used}
+
 \item{col_batch.c}{Character: name of the column from pData(x) containing
 the batch information (encoded as characters)}
 
@@ -57,12 +68,6 @@ containing the injection order information (encoded as numerics)}
 
 \item{col_sampleType.c}{Character:  name of the column from pData(x)
 containing the sample type information (encoded as characters)}
-
-\item{span.n}{Numeric: smoothing parameter for the loess regression;
-between 0 and 1; (default set to 1)}
-
-\item{title.c}{Character (ExpressionSet): Graphic title: if NA [default] the
-title slot from the experimentData will be used}
 
 \item{figure.c}{Character: File name with '.pdf' extension for the figure;
 if 'interactive' (default), figures will be displayed interactively; if 'none',

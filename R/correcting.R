@@ -5,11 +5,12 @@
 setMethod("correcting", signature(x = "MultiDataSet"),
           function(x,
                    reference.c = c("pool", "sample")[1],
+                   span.n = 1,
+                   sample_intensity.c = c("median", "mean", "sum")[2],
+                   title.c = NA,
                    col_batch.c = "batch",
                    col_injectionOrder.c = "injectionOrder",
                    col_sampleType.c = "sampleType",
-                   span.n = 1,
-                   title.c = NA,
                    figure.c = c("none", "interactive", "myfile.pdf")[2],
                    report.c = c("none", "interactive", "myfile.txt")[2]) {
             
@@ -34,10 +35,11 @@ setMethod("correcting", signature(x = "MultiDataSet"),
               
               ese <- phenomis::correcting(x = x[[set.c]],
                                           reference.c = reference.c,
+                                          span.n = span.n,
                                           col_batch.c = col_batch.c,
                                           col_injectionOrder.c = col_injectionOrder.c,
                                           col_sampleType.c = col_sampleType.c,
-                                          span.n = span.n,
+                                          sample_intensity.c = sample_intensity.c,
                                           title.c = set.c,
                                           figure.c = figure_set.c,
                                           report.c = report_set.c)
@@ -70,11 +72,12 @@ setMethod("correcting", signature(x = "MultiDataSet"),
 setMethod("correcting", signature(x = "ExpressionSet"),
           function(x,
                    reference.c = c("pool", "sample")[1],
+                   span.n = 1,
+                   sample_intensity.c = c("median", "mean", "sum")[2],
+                   title.c = NA,
                    col_batch.c = "batch",
                    col_injectionOrder.c = "injectionOrder",
                    col_sampleType.c = "sampleType",
-                   span.n = 1,
-                   title.c = NA,
                    figure.c = c("none", "interactive", "myfile.pdf")[2],
                    report.c = c("none", "interactive", "myfile.txt")[2]) {
             
@@ -86,10 +89,11 @@ setMethod("correcting", signature(x = "ExpressionSet"),
             
             x <- phenomis:::.correcting(eset = x,
                                         reference.c = reference.c,
+                                        span.n = span.n,
                                         col_batch.c = col_batch.c,
                                         col_injectionOrder.c = col_injectionOrder.c,
                                         col_sampleType.c = col_sampleType.c,
-                                        span.n = span.n,
+                                        sample_intensity.c = sample_intensity.c,
                                         title.c = title.c,
                                         figure.c = figure.c)
             
@@ -104,12 +108,13 @@ setMethod("correcting", signature(x = "ExpressionSet"),
 
 .correcting <- function(eset,
                         reference.c,
+                        span.n,
+                        title.c,
+                        figure.c,
                         col_batch.c,
                         col_injectionOrder.c,
                         col_sampleType.c,
-                        span.n,
-                        title.c,
-                        figure.c) {
+                        sample_intensity.c) {
   
   ## checking
   
@@ -157,16 +162,20 @@ setMethod("correcting", signature(x = "ExpressionSet"),
     
     .plot_batch(eset = eset,
                 span.n = span.n,
-                col_batch.c = col_batch.c,
-                col_sampleType.c = col_sampleType.c,
+                sample_intensity.c = sample_intensity.c,
                 title.c = title.c,
-                type.c = "raw")
+                raw_vs_normalized.c = "raw",
+                col_batch.c = col_batch.c,
+                col_injectionOrder.c = col_injectionOrder.c,
+                col_sampleType.c = col_sampleType.c)
     .plot_batch(eset = normalized.eset,
                 span.n = span.n,
-                col_batch.c = col_batch.c,
-                col_sampleType.c = col_sampleType.c,
+                sample_intensity.c = sample_intensity.c,
                 title.c = title.c,
-                type.c = "normalized")
+                raw_vs_normalized.c = "normalized",
+                col_batch.c = col_batch.c,
+                col_injectionOrder.c = col_injectionOrder.c,
+                col_sampleType.c = col_sampleType.c)
     
     if (figure.c != "interactive")
       grDevices::dev.off()
@@ -210,12 +219,14 @@ setMethod("correcting", signature(x = "ExpressionSet"),
 
 .plot_batch <- function(eset,
                         span.n,
-                        col_batch.c,
-                        col_sampleType.c,
+                        sample_intensity.c,
                         title.c = NA,
-                        type.c) {
+                        raw_vs_normalized.c,
+                        col_batch.c,
+                        col_injectionOrder.c,
+                        col_sampleType.c) {
   
-  main.c <- paste0(type.c, 
+  main.c <- paste0(raw_vs_normalized.c, 
                    ifelse(!is.na(title.c) && title.c != "",
                           paste0(" (", title.c, ")"),
                           ""))
@@ -227,172 +238,38 @@ setMethod("correcting", signature(x = "ExpressionSet"),
   
   obsNamVc <- Biobase::sampleNames(eset)
   
-  obsColVc <- .sample_color(Biobase::pData(eset)[, col_sampleType.c])
+  obsColVc <- .sample_color_eset(eset = eset, col_sampleType.c = col_sampleType.c)
 
-  ## Graphic 1: Median of intensities for each sample
+  ## Graphic 1: Mean of intensities for each sample
   
-  graphics::par(mar = c(3.6, 3.6, 3.1, 0.6))
-  
-  batch.tab <- table(Biobase::pData(eset)[, col_batch.c])
-  
-  median.vn <- apply(Biobase::exprs(eset), 2,
-                     function(samp.vn) median(samp.vn, na.rm = TRUE))
-  
-  graphics::plot(median.vn,
-                 cex = 1.2,
-                 col = obsColVc,
-                 pch = 18,
-                 xaxs = "i",
-                 xlab = "",
-                 ylab = "")
-  
-  graphics::mtext("Injection order",
-                  line = 2.2,
-                  side = 1)
-  graphics::mtext("Median of variable intensities",
-                  line = 2.2,
-                  side = 2)
-  
-  graphics::mtext(main.c, cex = 1.2, line = 1.5, side = 3)
-  
-  graphics::abline(v = cumsum(batch.tab) + 0.5,
-                   col = "black")
-  
-  graphics::mtext(names(batch.tab),
-                  at = batch.tab / 2 + c(0, cumsum(batch.tab[-length(batch.tab)])))
-  
-  obsColVuc <- obsColVc[sort(unique(names(obsColVc)))]
-  
-  graphics::text(rep(batch.tab[1], times = length(obsColVuc)),
-                 graphics::par("usr")[3] + (0.97 - length(obsColVuc) * 0.03 + 1:length(obsColVuc) * 0.03) * diff(graphics::par("usr")[3:4]),
-                 col = obsColVuc,
-                 font = 2,
-                 labels = names(obsColVuc),
-                 pos = 2)
-  
-  for (batch.c in names(batch.tab)) {
-    
-    batch_seq.vi <- which(Biobase::pData(eset)[, col_batch.c] == batch.c)
-    batch_pool.vi <- intersect(batch_seq.vi,
-                               which(Biobase::pData(eset)[, col_sampleType.c] == "pool"))
-    batch_samp.vi <- intersect(batch_seq.vi,
-                               which(Biobase::pData(eset)[, col_sampleType.c] == "sample"))
-    if (length(batch_pool.vi))
-      graphics::lines(batch_seq.vi,
-                      .loess(median.vn, batch_pool.vi, batch_seq.vi, span.n),
-                      col = .sample_color("pool"))
-    if (length(batch_samp.vi))
-      graphics::lines(batch_seq.vi,
-                      .loess(median.vn, batch_samp.vi, batch_seq.vi, span.n),
-                      col = .sample_color("sample"))
-    
-  }
-  
+  .plot_drift(eset = eset,
+              span.n = span.n,
+              sample_intensity.c = sample_intensity.c,
+              mar.vn = c(3.6, 3.6, 3.1, 0.6),
+              col_batch.c = col_batch.c,
+              col_injectionOrder.c = col_injectionOrder.c,
+              col_sampleType.c = col_sampleType.c)
+
   ## Graphics 2 and 3 (right): PCA score plots of components 1-4
   
-  rad.vn <- seq(0, 2 * pi, length.out = 100)
+  pca_metrics.ls <- .pca_metrics(eset = eset, pred.i = 4)
   
-  pca.mn <- t(Biobase::exprs(eset))
+  .plot_pca_metrics(eset = eset,
+                    pred.i = 4,
+                    show_pred.vi = c(1, 2),
+                    col_sampleType.c = "sampleType",
+                    labels.l = TRUE,
+                    mar.vn = c(3.6, 3.6, 0.6, 1.1),
+                    pca_metrics.ls = pca_metrics.ls)
   
-  if (any(is.na(pca.mn))) {
-    minN <- min(pca.mn, na.rm = TRUE)
-    pca.mn[is.na(pca.mn)] <- minN
-  }
-  
-  pca_model <- ropls::opls(pca.mn, predI = 4, algoC = "svd",
-                        fig.pdfC = "none", info.txtC = "none")
-  score.mn <- ropls::getScoreMN(pca_model)
-  vRelVn <- pca_model@modelDF[, "R2X"]
-  
-  n <- nrow(score.mn)
-  hotN <- 2 * (n - 1) * (n^2 - 1) / (n^2 * (n - 2))
-  
-  hotFisN <- hotN * stats::qf(0.95, 2, n - 2)
-  
-  pcsLs <- list(c(1, 2), c(3, 4))
-  
-  graphics::par(mar = c(3.6, 3.6, 0.6, 1.1))
-  
-  for (pcsN in 1:length(pcsLs)) {
-    
-    pcsVn <- pcsLs[[pcsN]]
-    
-    tcsMN <- score.mn[, pcsVn]
-    
-    micMN <- solve(stats::cov(tcsMN))
-    
-    n <- nrow(score.mn)
-    hotN <- 2 * (n - 1) * (n^2 - 1) / (n^2 * (n - 2))
-    
-    hotFisN <- hotN * stats::qf(0.95, 2, n - 2)
-    
-    hotVn <- apply(tcsMN,
-                   1,
-                   function(x) 1 - stats::pf(1 / hotN * t(as.matrix(x)) %*% micMN %*% as.matrix(x), 2, n - 2))
-    
-    obsHotVi <- which(hotVn < 0.05)
-    
-    xLabC <- paste("t",
-                   pcsVn[1],
-                   "(",
-                   round(vRelVn[pcsVn[1]] * 100),
-                   "%)",
-                   sep = "")
-    
-    yLabC <- paste("t",
-                   pcsVn[2],
-                   "(",
-                   round(vRelVn[pcsVn[2]] * 100),
-                   "%)",
-                   sep = "")
-    
-    xLimVn <- c(-1, 1) * max(sqrt(stats::var(tcsMN[, 1]) * hotFisN), max(abs(tcsMN[, 1])))
-    yLimVn <- c(-1, 1) * max(sqrt(stats::var(tcsMN[, 2]) * hotFisN), max(abs(tcsMN[, 2])))
-    
-    graphics::plot(tcsMN,
-                   main = "",
-                   type = "n",
-                   xlab = "",
-                   ylab = "",
-                   xlim = xLimVn,
-                   ylim = yLimVn)
-    
-    graphics::mtext(xLabC,
-                    line = 2.2,
-                    side = 1)
-    graphics::mtext(yLabC,
-                    line = 2.2,
-                    side = 2)
-    
-    graphics::par(lwd = 1)
-    
-    graphics::abline(v = graphics::axTicks(1),
-                     col = "grey")
-    
-    graphics::abline(h = graphics::axTicks(2),
-                     col = "grey")
-    
-    graphics::abline(v = 0)
-    graphics::abline(h = 0)
-    
-    graphics::lines(sqrt(stats::var(tcsMN[, 1]) * hotFisN) * cos(rad.vn),
-                    sqrt(stats::var(tcsMN[, 2]) * hotFisN) * sin(rad.vn))
-    
-    graphics::points(tcsMN,
-                     col = obsColVc,
-                     pch = 18)
-    
-    if (length(obsHotVi))
-      graphics::text(tcsMN[obsHotVi, 1],
-                     tcsMN[obsHotVi, 2],
-                     col = obsColVc[obsHotVi],
-                     labels = obsNamVc[obsHotVi],
-                     pos = 3)
-    
-  } ## for(pcsN in 1:length(pcsLs)) {
-  
-  invisible(list(median.vn = median.vn,
-                 tcsMN = tcsMN))
+  .plot_pca_metrics(eset = eset,
+                    pred.i = 4,
+                    show_pred.vi = c(3, 4),
+                    col_sampleType.c = "sampleType",
+                    labels.l = TRUE,
+                    mar.vn = c(3.6, 3.6, 0.6, 1.1),
+                    pca_metrics.ls = pca_metrics.ls)
+ 
   
 } ## plotBatchF
 

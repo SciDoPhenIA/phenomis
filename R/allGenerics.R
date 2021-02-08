@@ -131,16 +131,17 @@ setGeneric("clustering",
 #' @param reference.c Character: sample type to be used as reference for
 #' the correction (as indicated in the 'colnameSampleType' column from the
 #' pData(x); e.g. 'pool')
+#' @param span.n Numeric: smoothing parameter for the loess regression;
+#' between 0 and 1; (default set to 1)
+#' @param sample_intensity.c Character: metric to be used when displaying the sample intensities
+#' @param title.c Character (ExpressionSet): Graphic title: if NA [default] the
+#' title slot from the experimentData will be used
 #' @param col_batch.c Character: name of the column from pData(x) containing
 #' the batch information (encoded as characters)
 #' @param col_injectionOrder.c Character: name of the column from pData(x)
 #' containing the injection order information (encoded as numerics)
 #' @param col_sampleType.c Character:  name of the column from pData(x)
 #' containing the sample type information (encoded as characters)
-#' @param span.n Numeric: smoothing parameter for the loess regression;
-#' between 0 and 1; (default set to 1)
-#' @param title.c Character (ExpressionSet): Graphic title: if NA [default] the
-#' title slot from the experimentData will be used
 #' @param figure.c Character: File name with '.pdf' extension for the figure;
 #' if 'interactive' (default), figures will be displayed interactively; if 'none',
 #' no figure will be generated
@@ -158,11 +159,12 @@ setGeneric("clustering",
 setGeneric("correcting",
            function(x,
                     reference.c = c("pool", "sample")[1],
+                    span.n = 1,
+                    sample_intensity.c = c("median", "mean", "sum")[2],
+                    title.c = NA,
                     col_batch.c = "batch",
                     col_injectionOrder.c = "injectionOrder",
                     col_sampleType.c = "sampleType",
-                    span.n = 1,
-                    title.c = NA,
                     figure.c = c("none", "interactive", "myfile.pdf")[2],
                     report.c = c("none", "interactive", "myfile.txt")[2])
              standardGeneric("correcting"))
@@ -330,7 +332,13 @@ setGeneric("hypotesting",
 #' graphic displaying the metrics (if NA -default- the title slot from the experimentData
 #' will be used)
 #' @param plot_dims.l (MultiDataSet) Logical: should an overview of the number of samples and
-#' variables in all datasets be barplotted? 
+#' variables in all datasets be barplotted?
+#' @param col_batch.c Character: name of the column from pData(x) containing
+#' the batch information (encoded as characters)
+#' @param col_injectionOrder.c Character: name of the column from pData(x)
+#' containing the injection order information (encoded as numerics)
+#' @param col_sampleType.c Character:  name of the column from pData(x)
+#' containing the sample type information (encoded as characters)
 #' @param figure.c Character: File name with '.pdf' extension for the figure;
 #' if 'interactive' (default), figures will be displayed interactively; if 'none',
 #' no figure will be generated
@@ -360,6 +368,9 @@ setGeneric("inspecting",
                     sample_intensity.c = c("median", "mean", "sum")[2],
                     title.c = NA,
                     plot_dims.l = TRUE,
+                    col_batch.c = "batch",
+                    col_injectionOrder.c = "injectionOrder",
+                    col_sampleType.c = "sampleType",
                     figure.c = c("none", "interactive", "myfile.pdf")[2],
                     report.c = c("none", "interactive", "myfile.txt")[2])
              standardGeneric("inspecting"))

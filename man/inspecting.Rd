@@ -14,6 +14,9 @@ inspecting(
   sample_intensity.c = c("median", "mean", "sum")[2],
   title.c = NA,
   plot_dims.l = TRUE,
+  col_batch.c = "batch",
+  col_injectionOrder.c = "injectionOrder",
+  col_sampleType.c = "sampleType",
   figure.c = c("none", "interactive", "myfile.pdf")[2],
   report.c = c("none", "interactive", "myfile.txt")[2]
 )
@@ -26,6 +29,9 @@ inspecting(
   sample_intensity.c = c("median", "mean", "sum")[2],
   title.c = NA,
   plot_dims.l = TRUE,
+  col_batch.c = "batch",
+  col_injectionOrder.c = "injectionOrder",
+  col_sampleType.c = "sampleType",
   figure.c = c("none", "interactive", "myfile.pdf")[2],
   report.c = c("none", "interactive", "myfile.txt")[2]
 )
@@ -38,6 +44,9 @@ inspecting(
   sample_intensity.c = c("median", "mean", "sum")[2],
   title.c = NA,
   plot_dims.l = TRUE,
+  col_batch.c = "batch",
+  col_injectionOrder.c = "injectionOrder",
+  col_sampleType.c = "sampleType",
   figure.c = c("none", "interactive", "myfile.pdf")[2],
   report.c = c("none", "interactive", "myfile.txt")[2]
 )
@@ -62,6 +71,15 @@ will be used)}
 
 \item{plot_dims.l}{(MultiDataSet) Logical: should an overview of the number of samples and
 variables in all datasets be barplotted?}
+
+\item{col_batch.c}{Character: name of the column from pData(x) containing
+the batch information (encoded as characters)}
+
+\item{col_injectionOrder.c}{Character: name of the column from pData(x)
+containing the injection order information (encoded as numerics)}
+
+\item{col_sampleType.c}{Character:  name of the column from pData(x)
+containing the sample type information (encoded as characters)}
 
 \item{figure.c}{Character: File name with '.pdf' extension for the figure;
 if 'interactive' (default), figures will be displayed interactively; if 'none',

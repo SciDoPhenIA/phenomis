@@ -79,8 +79,24 @@ search_code <- function(pattern.c,
   
 }
 
+.sample_color_eset <- function(eset,
+                               col_sampleType.c = "sampleType") {
+  
+  if (col_sampleType.c %in% Biobase::varLabels(eset)) {
+    
+    sample_types.vc <- Biobase::pData(eset)[, col_sampleType.c]
+    
+  } else {
+    
+    sample_types.vc <- rep("other", Biobase::dims(eset)["Samples", 1])
+    
+  }
+  
+  .sample_color_vector(sample_types.vc = sample_types.vc)
+  
+}
 
-.sample_color <- function(sample_types.vc) {
+.sample_color_vector <- function(sample_types.vc) {
   
   type_colors.vc <- c(sample = "green4",
                       pool = RColorBrewer::brewer.pal(9, "Reds")[7],
@@ -89,9 +105,9 @@ search_code <- function(pattern.c,
                       pool4 = RColorBrewer::brewer.pal(9, "Reds")[3],
                       pool8 = RColorBrewer::brewer.pal(9, "Reds")[2],
                       blank = "black",
-                      other = "yellow")
+                      other = RColorBrewer::brewer.pal(9, "Blues")[7])
   
-  sample_types.vc[!(sample_types.vc %in% setdiff(names(type_colors.vc), "other"))] <- "other"
+  sample_types.vc[!(sample_types.vc %in% names(type_colors.vc))] <- "other"
   
   type_colors.vc[sample_types.vc]
   
