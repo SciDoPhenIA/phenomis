@@ -87,7 +87,7 @@ setMethod("correcting", signature(x = "ExpressionSet"),
             if (is.na(title.c))
               title.c <- Biobase::experimentData(x)@title
             
-            x <- phenomis:::.correcting(eset = x,
+            x <- .correcting(eset = x,
                                         reference.c = reference.c,
                                         span.n = span.n,
                                         col_batch.c = col_batch.c,
@@ -147,7 +147,7 @@ setMethod("correcting", signature(x = "ExpressionSet"),
   
   ## signal drift and batch-effect correction
   
-  normalized.eset <- phenomis:::.batch_correct(eset = eset,
+  normalized.eset <- .batch_correct(eset = eset,
                                                reference.c = reference.c,
                                                span.n = span.n,
                                                col_batch.c = col_batch.c,
@@ -218,13 +218,13 @@ setMethod("correcting", signature(x = "ExpressionSet"),
 }
 
 .plot_batch <- function(eset,
-                        span.n,
-                        sample_intensity.c,
+                        span.n = 1,
+                        sample_intensity.c = "mean",
                         title.c = NA,
-                        raw_vs_normalized.c,
-                        col_batch.c,
-                        col_injectionOrder.c,
-                        col_sampleType.c) {
+                        raw_vs_normalized.c = "",
+                        col_batch.c = "batch",
+                        col_injectionOrder.c = "injectionOrder",
+                        col_sampleType.c = "sampleType") {
   
   main.c <- paste0(raw_vs_normalized.c, 
                    ifelse(!is.na(title.c) && title.c != "",
@@ -249,29 +249,29 @@ setMethod("correcting", signature(x = "ExpressionSet"),
               col_batch.c = col_batch.c,
               col_injectionOrder.c = col_injectionOrder.c,
               col_sampleType.c = col_sampleType.c)
+  
+  title(main.c)
 
   ## Graphics 2 and 3 (right): PCA score plots of components 1-4
   
   pca_metrics.ls <- .pca_metrics(eset = eset, pred.i = 4)
   
   .plot_pca_metrics(eset = eset,
-                    pred.i = 4,
-                    show_pred.vi = c(1, 2),
-                    col_sampleType.c = "sampleType",
-                    labels.l = TRUE,
-                    mar.vn = c(3.6, 3.6, 0.6, 1.1),
-                    pca_metrics.ls = pca_metrics.ls)
+                               pred.i = 4,
+                               show_pred.vi = c(1, 2),
+                               pca_metrics.ls = pca_metrics.ls,
+                               col_sampleType.c = "sampleType",
+                               mar.vn = c(3.6, 3.6, 0.6, 1.1))
   
   .plot_pca_metrics(eset = eset,
-                    pred.i = 4,
-                    show_pred.vi = c(3, 4),
-                    col_sampleType.c = "sampleType",
-                    labels.l = TRUE,
-                    mar.vn = c(3.6, 3.6, 0.6, 1.1),
-                    pca_metrics.ls = pca_metrics.ls)
+                               pred.i = 4,
+                               show_pred.vi = c(3, 4),
+                               pca_metrics.ls = pca_metrics.ls,
+                               col_sampleType.c = "sampleType",
+                               mar.vn = c(3.6, 3.6, 0.6, 1.1))
  
   
-} ## plotBatchF
+} ## plot_batch
 
 .batch_correct <- function(eset,
                            reference.c,

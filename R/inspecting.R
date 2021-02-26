@@ -534,16 +534,10 @@ setMethod("inspecting", signature(x = "ExpressionSet"),
   ## Constants
   
   marLs <- list(tit = c(0.6, 1.1, 1.1, 0.6),
-                drivol = c(3.5, 3.6, 4.1, 0.6),
                 sca = c(0.6, 3.1, 4.1, 0.6),
-                scavol = c(3.5, 3.1, 4.1, 0.6),
                 ima = c(0.6, 2.6, 4.1, 0.9),
-                imavol = c(3.5, 2.6, 4.1, 0.9),
                 dri = c(3.5, 3.6, 1.1, 0.6),
-                vol = c(3.5, 3.6, 1.1, 0.9),
                 pca = c(3.5, 3.6, 1.1, 0.9))
-  
-  heat_palette.vc <- rev(grDevices::rainbow(ceiling(256 * 1.5))[1:256])
  
   ## Script
   
@@ -592,13 +586,11 @@ setMethod("inspecting", signature(x = "ExpressionSet"),
   ## sca: Color scale
   
   .plot_color_scale(eset = eset,
-                    palette.vc = heat_palette.vc,
                     mar.vn = marLs[["sca"]])
   
   ## ima: Image
   
   .plot_image(eset = eset,
-              palette.vc = heat_palette.vc,
               mar.vn = marLs[["ima"]])
   
   ## dri: Analytical drift
@@ -606,18 +598,17 @@ setMethod("inspecting", signature(x = "ExpressionSet"),
   .plot_drift(eset = eset,
               span.n = span.n,
               sample_intensity.c = sample_intensity.c,
-              mar.vn = marLs[["dri"]],
-              col_batch.c,
-              col_injectionOrder.c,
-              col_sampleType.c)
+              col_batch.c = col_batch.c,
+              col_injectionOrder.c = col_injectionOrder.c,
+              col_sampleType.c = col_sampleType.c,
+              mar.vn = marLs[["dri"]])
   
   ## pca: PCA and Hotelling ellipse
   
   .plot_pca_metrics(eset = eset,
+                    pca_metrics.ls = pca_metrics.ls,
                     col_sampleType.c = col_sampleType.c,
-                    labels.l = TRUE,
-                    mar.vn = marLs[["pca"]],
-                    pca_metrics.ls = pca_metrics.ls)
+                    mar.vn = marLs[["pca"]])
   
   ## resetting par
   
@@ -626,6 +617,12 @@ setMethod("inspecting", signature(x = "ExpressionSet"),
   
 }
 
+
+.palette <- function(palette.c = "heat") {
+  if (palette.c == "heat") {
+    return(rev(grDevices::rainbow(ceiling(256 * 1.5))[1:256]))
+  }
+}
 
 .plot_pretty_axis <- function(valVn,
                               lenN) {
@@ -658,8 +655,9 @@ setMethod("inspecting", signature(x = "ExpressionSet"),
 }
 
 .plot_color_scale <- function(eset,
-                              palette.vc,
-                              mar.vn) {
+                              mar.vn = c(0.6, 3.1, 4.1, 0.6)) {
+  
+  palette.vc <- .palette("heat")
   
   graphics::par(mar = mar.vn)
   
@@ -712,8 +710,9 @@ setMethod("inspecting", signature(x = "ExpressionSet"),
 
 
 .plot_image <- function(eset,
-                        palette.vc,
-                        mar.vn) {
+                        mar.vn = c(0.6, 2.6, 4.1, 0.9)) {
+  
+  palette.vc <- .palette("heat")
   
   graphics::par(mar = mar.vn)
   
@@ -785,12 +784,12 @@ setMethod("inspecting", signature(x = "ExpressionSet"),
 
 
 .plot_drift <- function(eset,
-                        span.n,
-                        sample_intensity.c,
-                        mar.vn,
-                        col_batch.c,
-                        col_injectionOrder.c,
-                        col_sampleType.c) {
+                        span.n = 1,
+                        sample_intensity.c = "mean",
+                        col_batch.c = "batch",
+                        col_injectionOrder.c = "injectionOrder",
+                        col_sampleType.c = "sampleType",
+                        mar.vn = c(3.5, 3.6, 1.1, 0.6)) {
   
   sample_color.vc <- .sample_color_eset(eset = eset,
                                         col_sampleType.c = col_sampleType.c)
@@ -816,7 +815,7 @@ setMethod("inspecting", signature(x = "ExpressionSet"),
     ordVi <- 1:nrow(texprs.mn)
   }
   
-  texprs.mn <- texprs.mn[ordVi, ]
+  texprs.mn <- texprs.mn[ordVi, , drop = FALSE]
   pdata.df <- pdata.df[ordVi, ]
   sample_color_ordered.vc <- sample_color.vc[ordVi]
   
@@ -869,7 +868,7 @@ setMethod("inspecting", signature(x = "ExpressionSet"),
       
       if (col_sampleType.c %in% colnames(pdata.df)) {
         batch_sample.vi <- intersect(batch_seq.vi,
-                              grep("sample", pdata.df[, col_sampleType.c]))
+                                     grep("sample", pdata.df[, col_sampleType.c]))
       } else
         batch_sample.vi <- batch_seq.vi
       
@@ -881,7 +880,7 @@ setMethod("inspecting", signature(x = "ExpressionSet"),
           "pool" %in% pdata.df[, col_sampleType.c]) {
         
         batch_pool.vi <- intersect(batch_seq.vi,
-                              grep("^pool$", pdata.df[, col_sampleType.c]))
+                                   grep("^pool$", pdata.df[, col_sampleType.c]))
         
         graphics::lines(batch_seq.vi,
                         .loess(sample_means.vn, batch_pool.vi, batch_seq.vi, span.n),
@@ -897,7 +896,7 @@ setMethod("inspecting", signature(x = "ExpressionSet"),
     
     if (col_sampleType.c %in% colnames(pdata.df)) {
       batch_sample.vi <- intersect(batch_seq.vi,
-                            grep("sample", pdata.df[, col_sampleType.c]))
+                                   grep("sample", pdata.df[, col_sampleType.c]))
     } else
       batch_sample.vi <- batch_seq.vi
     
@@ -909,7 +908,7 @@ setMethod("inspecting", signature(x = "ExpressionSet"),
         "pool" %in% pdata.df[, col_sampleType.c]) {
       
       batch_pool.vi <- intersect(batch_seq.vi,
-                            grep("^pool$", pdata.df[, col_sampleType.c]))
+                                 grep("^pool$", pdata.df[, col_sampleType.c]))
       
       graphics::lines(batch_seq.vi,
                       .loess(sample_means.vn, batch_pool.vi, batch_seq.vi, span.n),
@@ -920,26 +919,56 @@ setMethod("inspecting", signature(x = "ExpressionSet"),
     
   }
   
+  # legend
+  
+  if (col_sampleType.c %in% colnames(pdata.df)) {
+    obsColVuc <- sample_color_ordered.vc[sort(unique(names(sample_color_ordered.vc)))]
+    legOrdVc <- c("blank", paste0("pool", 8:1), "pool", "other", "sample")
+    obsColVuc <- obsColVuc[legOrdVc[legOrdVc %in% names(obsColVuc)]]
+    
+    graphics::text(rep(graphics::par("usr")[2], times = length(obsColVuc)),
+                   graphics::par("usr")[3] + (0.03 + 1:length(obsColVuc) * 0.03) * diff(graphics::par("usr")[3:4]),
+                   adj = 1,
+                   col = obsColVuc,
+                   font = 2,
+                   labels = names(obsColVuc),
+                   pos = 2)
+  }
+  
 }
 
 
 .plot_pca_metrics <- function(eset,
                               pred.i = 2,
                               show_pred.vi = c(1, 2),
+                              pca_metrics.ls = NULL,
                               col_sampleType.c = "sampleType",
                               labels.l = TRUE,
-                              mar.vn,
-                              pca_metrics.ls = NULL) {
+                              mar.vn = c(3.5, 3.6, 1.1, 0.9)) {
   
   if (is.null(pca_metrics.ls))
-    pca_metrics.ls <- .pca_metrics(eset = eset, pred.i = pred.i)
+    pca_metrics.ls <- phenomis:::.pca_metrics(eset = eset, pred.i = pred.i)
   
   pcaScoreMN <- pca_metrics.ls[["pcaScoreMN"]]
-
+  
   if (ncol(pcaScoreMN) < max(show_pred.vi))
     stop("Not enough pca components computed")
   
-  sample_color.vc <- .sample_color_eset(eset = eset, col_sampleType.c = col_sampleType.c)
+  sample_color.vc <- phenomis:::.sample_color_eset(eset = eset, col_sampleType.c = col_sampleType.c)
+  if ("injectionOrder" %in% Biobase::varLabels(eset) &&
+      "sampleType" %in% Biobase::varLabels(eset)) {
+    palette.vc <- rev(rainbow(100, end = 4/6))
+    inj_rank.vi <- rank(Biobase::pData(eset)[, "injectionOrder"])
+    sample_color.vc <- palette.vc[round((inj_rank.vi - 1) / diff(range(inj_rank.vi)) * 99) + 1]
+  }
+  
+  sample_label.vc <- Biobase::sampleNames(eset)
+  if ("sampleType" %in% Biobase::varLabels(eset)) {
+    sample_label.vc <- Biobase::pData(eset)[, "sampleType"]
+    sample_label.vc[sample_label.vc == "sample"] <- "s"
+    sample_label.vc[sample_label.vc == "pool"] <- "QC"
+  }
+  
   
   graphics::par(mar = mar.vn)
   
@@ -947,11 +976,17 @@ setMethod("inspecting", signature(x = "ExpressionSet"),
                  type = "n",
                  xlab = "",
                  ylab = "")
-  graphics::mtext(paste("t1 (", round(pca_metrics.ls[["varRelVn"]][show_pred.vi[1]] * 100), "%)", sep = ""),
+  graphics::mtext(paste0("t",
+                         show_pred.vi[1],
+                         " (",
+                         round(pca_metrics.ls[["varRelVn"]][show_pred.vi[1]] * 100), "%)"),
                   cex = 0.7,
                   line = 2,
                   side = 1)
-  graphics::mtext(paste("t2 (", round(pca_metrics.ls[["varRelVn"]][show_pred.vi[2]] * 100), "%)", sep = ""),
+  graphics::mtext(paste0("t",
+                         show_pred.vi[2],
+                         " (",
+                         round(pca_metrics.ls[["varRelVn"]][show_pred.vi[2]] * 100), "%)"),
                   cex = 0.7,
                   las = 0,
                   line = 2,
@@ -980,37 +1015,60 @@ setMethod("inspecting", signature(x = "ExpressionSet"),
     
   } else
     stop("'show_pred.vi' must be either 'c(1, 2)' or 'c(3, 4)'")
-
+  
   obsHotVi <- which(hotVn < 0.05)
-
+  
   if (labels.l) {
-    graphics::text(pcaScoreMN[obsHotVi, show_pred.vi[1]],
-                   pcaScoreMN[obsHotVi, show_pred.vi[2]],
-                   cex = 0.7,
-                   col = sample_color.vc[obsHotVi],
-                   labels = Biobase::sampleNames(eset)[obsHotVi])
-    graphics::points(pcaScoreMN[setdiff(1:nrow(pcaScoreMN), obsHotVi), show_pred.vi[1]],
+    if (length(obsHotVi))
+      graphics::text(pcaScoreMN[obsHotVi, show_pred.vi[1]],
+                     pcaScoreMN[obsHotVi, show_pred.vi[2]],
+                     cex = 0.7,
+                     col = sample_color.vc[obsHotVi],
+                     labels = Biobase::sampleNames(eset)[obsHotVi])
+    graphics::text(pcaScoreMN[setdiff(1:nrow(pcaScoreMN), obsHotVi), show_pred.vi[1]],
                      pcaScoreMN[setdiff(1:nrow(pcaScoreMN), obsHotVi), show_pred.vi[2]],
                      col = sample_color.vc[setdiff(1:nrow(pcaScoreMN), obsHotVi)],
-                     pch = 16)
+                     labels = sample_label.vc[setdiff(1:nrow(pcaScoreMN), obsHotVi)])
   } else
-    graphics::points(pcaScoreMN[, show_pred.vi[1]],
+    graphics::text(pcaScoreMN[, show_pred.vi[1]],
                      pcaScoreMN[, show_pred.vi[2]],
                      col = sample_color.vc,
-                     pch = 16)
+                     labels = sample_label.vc)
+  
+}
+
+
+.sample_color_eset <- function(eset,
+                               col_sampleType.c = "sampleType") {
   
   if (col_sampleType.c %in% Biobase::varLabels(eset)) {
-    obsColVuc <- sample_color.vc[sort(unique(names(sample_color.vc)))]
-    legOrdVc <- c("blank", paste0("pool", 8:1), "pool", "other", "sample")
-    obsColVuc <- obsColVuc[legOrdVc[legOrdVc %in% names(obsColVuc)]]
     
-    graphics::text(rep(graphics::par("usr")[1], times = length(obsColVuc)),
-                   graphics::par("usr")[3] + (0.97 - length(obsColVuc) * 0.03 + 1:length(obsColVuc) * 0.03) * diff(graphics::par("usr")[3:4]),
-                   col = obsColVuc,
-                   font = 2,
-                   labels = names(obsColVuc),
-                   pos = 4)
+    sample_types.vc <- Biobase::pData(eset)[, col_sampleType.c]
+    
+  } else {
+    
+    sample_types.vc <- rep("other", Biobase::dims(eset)["Samples", 1])
+    
   }
+  
+  .sample_color_vector(sample_types.vc = sample_types.vc)
+  
+}
+
+.sample_color_vector <- function(sample_types.vc) {
+  
+  type_colors.vc <- c(sample = "green4",
+                      pool = RColorBrewer::brewer.pal(9, "Reds")[7],
+                      pool1 = RColorBrewer::brewer.pal(9, "Reds")[5],
+                      pool2 = RColorBrewer::brewer.pal(9, "Reds")[4],
+                      pool4 = RColorBrewer::brewer.pal(9, "Reds")[3],
+                      pool8 = RColorBrewer::brewer.pal(9, "Reds")[2],
+                      blank = "black",
+                      other = RColorBrewer::brewer.pal(9, "Blues")[7])
+  
+  sample_types.vc[!(sample_types.vc %in% names(type_colors.vc))] <- "other"
+  
+  type_colors.vc[sample_types.vc]
   
 }
 
