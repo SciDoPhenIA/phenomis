@@ -176,10 +176,12 @@ setMethod("inspecting", signature(x = "ExpressionSet"),
               message("Data description:")
               message("observations: ", ncol(Biobase::exprs(x)))
               message("variables: ", nrow(Biobase::exprs(x)))
-              message("missing: ", sum(is.na(Biobase::exprs(x))))
-              message("0 values (%): ",
-                      signif(sum(abs(Biobase::exprs(x)) < .Machine[["double.eps"]],
-                                 na.rm = TRUE) / cumprod(dim(Biobase::exprs(x)))[2] * 100, 1), 2)
+              message("missing: ", format(sum(is.na(Biobase::exprs(x))), big.mark = ","),
+                      " (", round(sum(is.na(Biobase::exprs(x))) / cumprod(dim(Biobase::exprs(x)))[2] * 100), "%)")
+              message("0 values: ",
+                      format(sum(abs(Biobase::exprs(x)) < .Machine[["double.eps"]], na.rm = TRUE), big.mark = ","),
+                      " (", round(sum(abs(Biobase::exprs(x)) < .Machine[["double.eps"]],
+                                 na.rm = TRUE) / cumprod(dim(Biobase::exprs(x)))[2] * 100), "%)")
               message("min: ", signif(min(Biobase::exprs(x), na.rm = TRUE), 2))
               message("mean: ", signif(mean(Biobase::exprs(x), na.rm = TRUE), 2))
               message("median: ", signif(stats::median(Biobase::exprs(x), na.rm = TRUE), 2))

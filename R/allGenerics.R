@@ -376,6 +376,36 @@ setGeneric("inspecting",
              standardGeneric("inspecting"))
 
 
+#### normalizing ####
+
+#' Normalization of the dataMatrix
+#'
+#' Normalization of the dataMatrix intensities
+#'
+#' @param x An S4 object of class \code{ExpressionSet} or \code{MultiDataSet}
+#' @param method.c Character: Normalization method (default: "pqn")
+#' @param report.c Character: File name with '.txt' extension for the printed
+#' results (call to sink()'); if 'interactive' (default), messages will be
+#' printed on the screen; if 'none', no verbose will be generated
+#' @return \code{ExpressionSet} or \code{MultiDataSet} including the exprs matrix
+#' (list of matrices) with transformed intensities
+#' @rdname normalizing
+#' @export
+#' @examples
+#' eset <- phenomis::reading(file.path(system.file(package = "phenomis"),
+#'                                     "extdata/W4M00001_Sacurine-statistics"))
+#' eset <- eset[, Biobase::sampleNames(eset) != 'HU_neg_096_b2']
+#' eset <- phenomis::transforming(eset, method.c = "log10")
+#' norm.eset <- phenomis::normalizing(eset, method.c = "pqn")
+#' # MultiDataSet
+
+setGeneric("normalizing",
+           function(x,
+                    method.c = "pqn",
+                    report.c = c("none", "interactive", "myfile.txt")[2])
+             standardGeneric("normalizing"))
+
+
 #### reducing ####
 
 #' Grouping chemically redundant MS1 features

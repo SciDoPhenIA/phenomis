@@ -80,3 +80,45 @@ search_code <- function(pattern.c,
 }
 
 
+.identi_check <- function(x, y) {
+  
+  colors.vc <- c("TRUE" = 32, "FALSE" = 31)
+  
+  .check <- function(test.c) {
+    test_result.c <- as.character(eval(parse(text = test.c)))
+    cat(paste0("\033[0;",
+               colors.vc[test_result.c],
+               "m",
+               test.c, ": ", test_result.c,
+               "\033[0m","\n"))
+  }
+  
+  .check("identical(x, y)")
+  
+  .check("identical(unname(x), unname(y))")
+  
+  .check("identical(length(x), length(y))")
+  
+  .check("identical(class(x), class(y))")
+  
+  .check("identical(mode(x), mode(y))")
+  
+  .check("!any(duplicated(x))")
+  
+  .check("!any(duplicated(y))")
+  
+  .check("identical(sort(x), sort(y))")
+  
+  bind.m <- cbind(sort(x), sort(y))
+  
+  ident.vl <- apply(bind.m, 1,
+                    function(bind.v) {
+                      identical(unname(bind.v[1]), unname(bind.v[2]))
+                    })
+  
+  diff.vi <- union(which(is.na(ident.vl)), which(!ident.vl))
+  
+  if(length(diff.vi))
+    print(bind.m[diff.vi, , drop = FALSE])
+  
+}

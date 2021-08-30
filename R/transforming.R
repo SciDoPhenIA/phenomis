@@ -52,9 +52,11 @@ setMethod("transforming", signature(x = "ExpressionSet"),
             if (!(report.c %in% c("none", "interactive")))
               sink(report.c, append = TRUE)
             
-            x <- .transforming(x,
-                               method.c,
-                               report.c != "none")
+            transf.mn <- .transforming(t(Biobase::exprs(x)),
+                                       method.c = method.c,
+                                       report.c != "none")
+            
+            Biobase::exprs(x) <- t(transf.mn)
             
             methods::validObject(x)
             
@@ -65,64 +67,60 @@ setMethod("transforming", signature(x = "ExpressionSet"),
             
           })
 
-.transforming <- function(eset,
-                          methC = c("log2", "log10", "sqrt")[1],
-                          verbL = TRUE) {
-  
-  exprs.mn <- Biobase::exprs(eset)
+.transforming <- function(data.mn,
+                          method.c = c("log2", "log10", "sqrt")[1],
+                          verbose.l = TRUE) {
   
   ## checking
   
-  if (length(which(exprs.mn < 0)))
+  if (length(which(data.mn < 0)))
     stop("The 'dataMatrix' contains negative values", call. = FALSE)
   
   ## Number of missing values
-  exprs_na.ml <- is.na(exprs.mn)
-  exprs_na.i <- sum(exprs_na.ml)
-  if (exprs_na.i > 0 && verbL)
-    message("Missing values in the 'dataMatrix': ", exprs_na.i,
-            " (", round(exprs_na.i / cumprod(dim(exprs.mn))[2] * 100), "%)")
+  data_na.ml <- is.na(data.mn)
+  data_na.i <- sum(data_na.ml)
+  if (data_na.i > 0 && verbose.l)
+    message("Missing values in the 'dataMatrix': ", data_na.i,
+            " (", round(data_na.i / cumprod(dim(data.mn))[2] * 100), "%)")
   
   ## Number of zero values
-  exprs_zero.ml <- exprs.mn < .Machine$double.eps # warning: exprs_zero.ml contains NA values
-  exprs_zero.ml[exprs_na.ml] <- FALSE # NA values set to FALSE
-  exprs_zero.i <- sum(exprs_zero.ml)
-  if (exprs_zero.i > 0 && verbL)
-    message("Zero values in the 'dataMatrix': ", exprs_zero.i,
-            " (", round(exprs_zero.i / cumprod(dim(exprs.mn))[2] * 100), "%)")
+  data_zero.ml <- data.mn < .Machine$double.eps # warning: data_zero.ml contains NA values
+  data_zero.ml[data_na.ml] <- FALSE # NA values set to FALSE
+  data_zero.i <- sum(data_zero.ml)
+  if (data_zero.i > 0 && verbose.l)
+    message("Zero values in the 'dataMatrix': ", data_zero.i,
+            " (", round(data_zero.i / cumprod(dim(data.mn))[2] * 100), "%)")
   
   ## transforming
   
-  switch(methC,
+  switch(method.c,
          log2 = {
            
-           if (verbL)
+           if (verbose.l)
              message("'log2' transformation")
            
-           exprs.mn[!exprs_zero.ml] <- log2(exprs.mn[!exprs_zero.ml])
+           data.mn[!data_zero.ml] <- log2(data.mn[!data_zero.ml])
            # log applied to non-negative and NA values
            
          },
          log10 = {
            
-           if (verbL)
+           if (verbose.l)
              message("'log10' transformation")
            
-           exprs.mn[!exprs_zero.ml] <- log10(exprs.mn[!exprs_zero.ml])
+           data.mn[!data_zero.ml] <- log10(data.mn[!data_zero.ml])
            # log applied to non-negative and NA values
            
          },
          sqrt = {
            
-           if (verbL)
+           if (verbose.l)
              message("'Square root' transformation")
            
-           exprs.mn <- sqrt(exprs.mn)
+           data.mn <- sqrt(data.mn)
            
          })
-  
-  Biobase::exprs(eset) <- exprs.mn
-  
-  eset
+ 
+  return(data.mn)
   
 }

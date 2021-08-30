@@ -1,8 +1,8 @@
 Package: phenomis
 Type: Package
 Title: Analysis of single and multiple phenomic data sets
-Version: 0.3.22
-Date: 2021-02-26
+Version: 0.3.24
+Date: 2021-08-30
 Authors@R: c(
      person(given = "Camille", family = "Roquencourt",
 	   email = "camille.roquencourt@cea.fr",
