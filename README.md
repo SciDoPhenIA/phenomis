@@ -6,13 +6,13 @@
 
 This package provides methods to perform the statistical analysis of phenomics datasets (e.g. in proteomics and metabolomics). These methods include the reading of datasets (as 3 table *dataMatrix*, *sampleMetadata* and *variableMetadata* .tsv files) into an **ExpressionSet** object (**reading**), quality control (**inspecting**) and transformation (**transforming**) of the dataMatrix, reduction of chemical redundancy (**reducing**), and univariate hypothesis testing (**hypotesting**). Multivariate analysis and feature selection can be further performed with the [**ropls**](http://bioconductor.org/packages/release/bioc/html/ropls.html) and [**biosigner**](http://bioconductor.org/packages/release/bioc/html/biosigner.html) packages, respectively. Finally, features can be annotated based on their m/z (and rt) values against public or local databases (**annotating**; based on the [**biodb**](https://github.com/pkrog/biodb) package). See the [**phenomis vignette**](vignettes/phenomis.Rmd) for a detailed example of the analysis of a metabolomics dataset.
 
-## Authors (SciDoPhenIA team)
+## Contributors
 
-Camille Roquencourt, Alyssa Imbert, Camilo Broc, Alexis Delabriere, Philippe Rinaudo, Sylvain Dechaumet, Krystyna Biletska, Natacha Lenuzza, Pierrick Roger, Eric Venot and Etienne A. Thevenot.
+Natacha Lenuzza, Alyssa Imbert, Marie Tremblay-Franco, Pierrick Roger, Eric Venot, Sylvain Dechaumet, and Etienne A. Thevenot.
 
 ## Maintainer
 
-Etienne A. Thevenot ([etienne.thevenot@cea.fr](mailto:etienne.thevenot@cea.fr))   
+Etienne A. Thévenot ([etienne.thevenot@cea.fr](mailto:etienne.thevenot@cea.fr))   
 Data Sciences for Molecular Phenotyping and Precision Medicine team (SciDoPhenIA)
 Medicines and Healthcare Technologies Department  
 CEA, INRAE, Paris Saclay University, MetaboHUB  
@@ -45,6 +45,8 @@ See the [**phenomis vignette**](vignettes/phenomis.Rmd) for a detailed example o
 
 ## Please cite
 
+* Imbert, A., Rompais, M., Selloum, M., Castelli, F., Mouton-Barbosa, E., Brandolini-Bunlon, M., Chu-Van, E., Joly, C., Hirschler, A., Roger, P., Burger, T., Leblanc, S., Sorg, T., Ouzia, S., Vandenbrouck, Y., Médigue, C., Junot, C., Ferro, M., Pujos-Guillot, E., de Peredo, A. G., Fenaille, F., Carapito, C., Herault, Y., & Thévenot, E. A. (2021). ProMetIS, deep phenotyping of mouse models by combined proteomics and metabolomics analysis. *Scientific Data*, 8(1). [doi:10.1038/s41597-021-01095-3](https://doi.org/10.1038/s41597-021-01095-3)
+
 * Thévenot, E.A., Roux, A., Xu, Y., Ezan, E., and Junot, C. (2015). Analysis of the human adult urinary metabolome variations with age, body mass index and gender by implementing a comprehensive workflow for univariate and OPLS statistical analyses. *Journal of Proteome Research* 14, 3322–3335. [doi:10.1021/acs.jproteome.5b00354](https://doi.org/10.1021/acs.jproteome.5b00354)
 
 ## Funding
@@ -52,6 +54,4 @@ See the [**phenomis vignette**](vignettes/phenomis.Rmd) for a detailed example o
 * [CEA](http://www.cea.fr/english)
 * [INRAE](https://www.inrae.fr/en)
 * [MetaboHUB](https://www.metabohub.fr/home.html) [ANR-11-INBS-0010]
-* [IFB](https://www.france-bioinformatique.fr/en) [ANR-11-INBS-0013]
-* [PhenoMeNal](http://phenomenal-h2020.eu/home/) [EINFRA H2020]
 

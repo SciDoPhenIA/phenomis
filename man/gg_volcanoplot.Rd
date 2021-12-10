@@ -32,7 +32,7 @@ gg_volcanoplot(
 \item{adjust_thresh.n}{Numeric: significance threshold}
 
 \item{label.vc}{Character (vector): either the name of a character column
-from the data or a character vector of the same length as the rown number of
+from the data or a character vector of the same length as the row number of
 the data, containing the feature labeling}
 
 \item{title.c}{Character: plot title}

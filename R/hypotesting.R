@@ -237,21 +237,21 @@ setMethod("hypotesting", signature(x = "ExpressionSet"),
   adjustSigniVn <- as.numeric(pvalAdjustVn <= adjust_thresh.n)
   
   metric.mn <- cbind(statVn,
-                    pvalAdjustVn,
-                    adjustSigniVn)
+                     pvalAdjustVn,
+                     adjustSigniVn)
   
   rownames(metric.mn) <- Biobase::featureNames(x)
   colnames(metric.mn) <- .twoSampCorNames(test.c,
-                                         factorNameC,
-                                         factorFc,
-                                         adjust.c,
-                                         prefix.c)
+                                          factorNameC,
+                                          factorFc,
+                                          adjust.c,
+                                          prefix.c)
   
   for (colC in colnames(metric.mn))
     Biobase::fData(x)[, colC] <- metric.mn[, colC]
   
   metric.mn <- metric.mn[order(pvalVn), ,
-                       drop = FALSE]
+                         drop = FALSE]
   
   if (figure.c != "none") {
     

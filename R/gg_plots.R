@@ -478,7 +478,7 @@ gg_pie <- function(data.tb,
 #' @param adjust_method.c Character: method for multiple testing correction
 #' @param adjust_thresh.n Numeric: significance threshold
 #' @param label.vc Character (vector): either the name of a character column
-#' from the data or a character vector of the same length as the rown number of
+#' from the data or a character vector of the same length as the row number of
 #' the data, containing the feature labeling
 #' @param title.c Character: plot title
 #' @param xlab.c Character: x label (default: "Fold Change")
