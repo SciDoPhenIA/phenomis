@@ -1,8 +1,8 @@
 Package: phenomis
 Type: Package
 Title: Analysis of single and multiple phenomic data sets
-Version: 0.3.26
-Date: 2022-02-08
+Version: 0.4.0
+Date: 2022-05-17
 Authors@R: c(
 	   person(given = "Natacha", family = "Lenuzza",
 	   email = "n.lenuzza@gmail.com",
@@ -13,9 +13,6 @@ Authors@R: c(
 	   person(given = "Pierrick", family = "Roger",
 	   email = "pierrick.roger@cea.fr",
 	   role = "ctb"),
-	   person(given = "Marie", family = "Tremblay-Franco",
-	   email = "marie.tremblay-franco@inrae.fr",
-	   role = "ctb"),	   
 	   person(given = "Eric", family = "Venot",
 	   email = "eric.venot@inrae.fr",
 	   role = "ctb"),
@@ -45,7 +42,9 @@ BiocViews:
     Clustering
 Depends:
     Biobase,
-    MultiDataSet
+    MultiDataSet,
+    SummarizedExperiment,
+    MultiAssayExperiment
 Imports:
     biodb,
     biodbChebi,

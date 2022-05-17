@@ -8,6 +8,7 @@ reading(
   dir.c,
   files.ls = NULL,
   subsets.vc = NA,
+  output.c = c("exp", "set")[2],
   report.c = c("none", "interactive", "myfile.txt")[2]
 )
 }
@@ -27,6 +28,8 @@ per dataset}
 subdirectories to be included in the MultiDataSet (by default, all
 subdirectories containing the 3 tables will be considered as datasets)}
 
+\item{output.c}{Character: Either 'exp' for SummarizedExperiment (or MultiAssayExperiment), or 'set' for ExpressionSet (or MultiDataSet) output formats}
+
 \item{report.c}{Character: File name for the printed results (call to
 'sink()'); if NA (default), messages will be printed on the screen; if NULL,
 no verbose will be generated}
@@ -43,7 +46,7 @@ returned. In case of a multiple dataset (several subfolders containing 3
 tables), a MultiDataSet instance is created.
 }
 \examples{
-data_dir.c <- system.file("extdata", package="phenomis")
+data_dir.c <- system.file("extdata", package = "phenomis")
 ## 1) Single set
 sacurine_dir.c <- file.path(data_dir.c, "W4M00001_Sacurine-statistics")
 sacurine.eset <- reading(sacurine_dir.c)

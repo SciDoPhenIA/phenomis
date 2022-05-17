@@ -1,3 +1,10 @@
+CHANGES IN VERSION 0.4.0
+------------------------------
+
+NEW FEATURE
+
+    o 'reading' output format now includes "SummarizedExperiment" (or "MultiAssayExperiment")
+
 CHANGES IN VERSION 0.3.26
 ------------------------------
 

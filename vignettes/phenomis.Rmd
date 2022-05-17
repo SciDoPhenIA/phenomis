@@ -49,25 +49,6 @@ Input (i.e. preprocessed) data consists of a 'samples times variables' matrix of
 
 ![3 table format used as input/output from the data analysis workflow.](figures/permanent/phenomis_3table_format.png)
 
-### **ExpressionSet** class used within the data analysis workflow
-
-Within the R workflow, the **ExpressionSet** class perfectly handles these 3 tables (for additional information about *ExpressionSet* class, see the ['An introduction to Biobase and ExpressionSets'](https://bioconductor.org/packages/release/bioc/vignettes/Biobase/inst/doc/ExpressionSetIntroduction.pdf) documentation from the [**Biobase**](https://doi.org/doi:10.18129/B9.bioc.Biobase) package). The following table describes useful Biobase methods for the handling of ExpressionSet objects: 
-
-| Biobase methods | Description |
-|---|---|
-| **exprs(eset)** | 'variable times samples' numeric matrix - dataMatrix |
-| **pData(eset)** | sample metadata data frame - sampleMetadata |
-| **fData(eset)** | variable metadata data frame - variableMetadata |
-| **sampleNames(eset)** | sample names |
-| **featureNames(eset)** | variable names |
-| **dims(eset)** | 2-element numeric vector of 'Features' and 'Samples' dimensions |
-| **varLabels(eset)** | Column names of the sampleMetadata, pData(eset) |
-| **fvarLabels(eset)** | Column names of the variableMetadata, fData(eset) |
-
-### **MultiDataSet** class for multiple datasets
-
-All *phenomis* methods (including *reading* and *writing*) can also be applied to multiple omics datasets: in this case, the **MultiDataSet** class is used instead of *ExpressionSet* [[@hernandez-ferrer_multidataset:_2016]](https://doi.org/10.1186/s12859-016-1455-1).
-
 ## Text and graphical outputs
 
 Text and graphics can be handled with the *phenomis* methods by setting the two arguments:

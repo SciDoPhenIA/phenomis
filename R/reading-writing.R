@@ -18,13 +18,14 @@
 #' and 'variableMetadata' with the corresponding file full names;
 #' in case of a MultiDataSet, the list must consists of one such sublist
 #' per dataset
+#' @param output.c Character: Either 'exp' for SummarizedExperiment (or MultiAssayExperiment), or 'set' for ExpressionSet (or MultiDataSet) output formats
 #' @param report.c Character: File name for the printed results (call to
 #' 'sink()'); if NA (default), messages will be printed on the screen; if NULL,
 #' no verbose will be generated
 #' @return \code{ExpressionSet} (one dataset) or \code{MultiDataSet} (multiple
 #' datasets) instance containing the dataset(s)
 #' @examples
-#' data_dir.c <- system.file("extdata", package="phenomis")
+#' data_dir.c <- system.file("extdata", package = "phenomis")
 #' ## 1) Single set
 #' sacurine_dir.c <- file.path(data_dir.c, "W4M00001_Sacurine-statistics")
 #' sacurine.eset <- reading(sacurine_dir.c)
@@ -50,6 +51,7 @@
 reading <- function(dir.c,
                     files.ls = NULL,
                     subsets.vc = NA,
+                    output.c = c("exp", "set")[2],
                     report.c = c("none", "interactive", "myfile.txt")[2]) {
   
   if (!(report.c %in% c("none", "interactive")))
@@ -57,7 +59,12 @@ reading <- function(dir.c,
   
   x <- NULL
   
-  ## Creating the ExpressionSet or building the list for the MultiDataSet
+  ## Parameter check
+  
+  stopifnot(output.c %in% c("exp", "set"))
+  
+  ## Creating the ExpressionSet/SummarizedExperiment
+  ##   or building the list for the MultiDataSet/MultiAssayExperiment
   
   if (!is.na(dir.c)) {
     
@@ -67,25 +74,26 @@ reading <- function(dir.c,
     if (!file.info(dir.c)[, "isdir"])
       stop(dir.c, "' is not a directory.")
     
-    dirVc <- dir(dir.c, full.names = TRUE)
+    dir.vc <- dir(dir.c, full.names = TRUE)
     
-    dirVl <- file.info(dirVc)[, "isdir"]
+    dir.vl <- file.info(dir.vc)[, "isdir"]
     
-    subDirVc <- dirVc[dirVl]
+    subdir.vc <- dir.vc[dir.vl]
     
-    if (length(subDirVc) == 0) { ## ExpressionSet
+    if (length(subdir.vc) == 0) { ## ExpressionSet/SummarizedExperiment
       
       x <- .reading(dir.c,
                     dataMatrix = NA,
                     sampleMetadata = NA,
                     variableMetadata = NA,
+                    output.c = output.c,
                     report.c = report.c)
       
-    } else {## MultiDataSet
+    } else { ## MultiDataSet/MultiAssayExperiment
       
-      names(subDirVc) <- basename(subDirVc)
+      names(subdir.vc) <- basename(subdir.vc)
       
-      subDirVl <- sapply(subDirVc,
+      subdir.vl <- sapply(subdir.vc,
                          function(sub_dir.c) {
                            fileC <- list.files(sub_dir.c,
                                                pattern = "(dataMatrix|DM)",
@@ -93,38 +101,38 @@ reading <- function(dir.c,
                            length(fileC) == 1 && file.exists(fileC)
                          })
       
-      if (sum(subDirVl) == 0) {
+      if (sum(subdir.vl) == 0) {
         
         stop("All subfolders have none or multiple 'dataMatrix' or 'DM' file(s):\n",
-             paste(subDirVc, collapse = "\n"),
+             paste(subdir.vc, collapse = "\n"),
              "\n", call. = FALSE)
         
-      } else if (sum(!subDirVl) > 0) {
+      } else if (sum(!subdir.vl) > 0) {
         
         if (report.c != "none")
           message("No or multiple 'dataMatrix' or 'DM' file(s) was/were found in the following subfolders:\n",
-                  paste(subDirVc[!subDirVl], collapse = "\n"),
+                  paste(subdir.vc[!subdir.vl], collapse = "\n"),
                   "\nThe corresponding datasets will be skipped.")
         
-        subDirVc <- subDirVc[subDirVl]
+        subdir.vc <- subdir.vc[subdir.vl]
         
       }
       
-      files.ls <- vector(mode = "list", length = length(subDirVc))
-      names(files.ls) <- names(subDirVc)
+      files.ls <- vector(mode = "list", length = length(subdir.vc))
+      names(files.ls) <- names(subdir.vc)
       
-      for (setC in names(files.ls)) {
+      for (set.c in names(files.ls)) {
         
-        files.ls[[setC]] <- list(list.files(subDirVc[setC], pattern = "(dataMatrix|DM)",
-                                            full.names = TRUE),
-                                 list.files(subDirVc[setC], pattern = "(sampleMetadata|SM)",
-                                            full.names = TRUE),
-                                 list.files(subDirVc[setC], pattern = "(variableMetadata|VM)",
-                                            full.names = TRUE))
+        files.ls[[set.c]] <- list(list.files(subdir.vc[set.c], pattern = "(dataMatrix|DM)",
+                                             full.names = TRUE),
+                                  list.files(subdir.vc[set.c], pattern = "(sampleMetadata|SM)",
+                                             full.names = TRUE),
+                                  list.files(subdir.vc[set.c], pattern = "(variableMetadata|VM)",
+                                             full.names = TRUE))
         
-        names(files.ls[[setC]]) <- c("dataMatrix",
-                                     "sampleMetadata",
-                                     "variableMetadata")
+        names(files.ls[[set.c]]) <- c("dataMatrix",
+                                      "sampleMetadata",
+                                      "variableMetadata")
         
       }
       
@@ -144,7 +152,8 @@ reading <- function(dir.c,
         x <- .reading(NA,
                       dataMatrix = files.ls[["dataMatrix"]],
                       sampleMetadata = files.ls[["sampleMetadata"]],
-                      variableMetadata = files.ls[["variableMetadata"]])
+                      variableMetadata = files.ls[["variableMetadata"]],
+                      output.c = output.c)
         
       } else {
         
@@ -153,32 +162,32 @@ reading <- function(dir.c,
         
       }
       
-    } else {## MultiDataSet
+    } else { ## MultiDataSet/MultiAssayExperiment
       
-      for (setC in names(files.ls)) {
+      for (set.c in names(files.ls)) {
         
-        setLs <- files.ls[[setC]]
+        set.ls <- files.ls[[set.c]]
         
-        if (!identical(names(setLs),
+        if (!identical(names(set.ls),
                        c("dataMatrix",
                          "sampleMetadata",
                          "variableMetadata"))) {
           
           if (report.c != "none")
             message("The names of the following sublist are not 'dataMatrix', 'sampleMetadata' and 'variableMetadata':\n",
-                    setC,
+                    set.c,
                     "\nThe corresponding datasets will be skipped.")
           
-          files.ls[[setC]] <- NULL
+          files.ls[[set.c]] <- NULL
           
-        } else if (!file.exists(setLs[["dataMatrix"]])) {
+        } else if (!file.exists(set.ls[["dataMatrix"]])) {
           
           if (report.c != "none")
             message("No 'dataMatrix' file was found in the following sublist:\n",
-                    setC,
+                    set.c,
                     "\nThe corresponding datasets will be skipped.")
           
-          files.ls[[setC]] <- NULL
+          files.ls[[set.c]] <- NULL
           
         }
         
@@ -192,9 +201,11 @@ reading <- function(dir.c,
     
   }
   
-  ## Creating the MultiDataSet
+  ## Creating the MultiDataSet/MultiAssayExperiment
   
   if (is.null(x)) {
+    
+    # in case subsets have been specified
     
     if (!any(is.na(subsets.vc))) {
       
@@ -208,39 +219,130 @@ reading <- function(dir.c,
       
     }
     
-    # MultiDataSet
+    # MultiDataSet/MultiAssayExperiment
     
-    x <- MultiDataSet::createMultiDataSet()
+    set.vc <- names(files.ls)
+    set.n <- length(set.vc)
     
-    for (setC in names(files.ls)) {
-      
-      setLs <- files.ls[[setC]]
-      
-      if (report.c != "none")
-        message("Reading the '", setC, "' dataset...")
-      
-      ese <- .reading(NA,
-                      setLs[["dataMatrix"]],
-                      setLs[["sampleMetadata"]],
-                      setLs[["variableMetadata"]])
-      
-      ese$id <- rownames(Biobase::pData(ese))
-      
-      x <- MultiDataSet::add_eset(x, ese,
-                                  dataset.type = setC,
-                                  GRanges = NA)
-      
+    # uploading the sets as ExpressionSet
+    
+    eset.ls <- lapply(set.vc,
+                      function(set.c) {
+                        if (report.c != "none")
+                          message("Reading the '", set.c, "' dataset...")
+                        phenomis:::.reading(NA,
+                                            files.ls[[set.c]][["dataMatrix"]],
+                                            files.ls[[set.c]][["sampleMetadata"]],
+                                            files.ls[[set.c]][["variableMetadata"]],
+                                            output.c = "set")
+                      })
+    names(eset.ls) <- set.vc
+    
+    # checking the agreement between the sample metadata
+    
+    disagree.mc <- matrix("",
+                          nrow = set.n,
+                          ncol = set.n,
+                          dimnames = list(set.vc, set.vc))
+    
+    for (i in seq(1, set.n - 1, by = 1)) {
+      for (j in seq(i + 1, set.n, by = 1)) {
+        sam_i.df <- Biobase::pData(eset.ls[[i]])
+        sam_j.df <- Biobase::pData(eset.ls[[j]])
+        sam_com.vc <- intersect(rownames(sam_i.df), rownames(sam_j.df))
+        sam_i.df <- sam_i.df[sam_com.vc, ]
+        sam_j.df <- sam_j.df[sam_com.vc, ]
+        sam_var.vc <- intersect(Biobase::varLabels(eset.ls[[i]]),
+                                Biobase::varLabels(eset.ls[[j]]))
+        disagree.vc <- ""
+        if (length(sam_var.vc)) {
+          for (sam_var.c in sam_var.vc) {
+            if (!identical(sam_i.df[, sam_var.c],
+                           sam_j.df[, sam_var.c])) {
+              disagree.vc <- c(disagree.vc, sam_var.c)
+            }
+          }
+        }
+        disagree.mc[i, j] <- paste(disagree.vc, collapse = ", ")
+      }
     }
     
+    if (output.c == "set") { # Creating the MultiDataSet
+      
+      x <- MultiDataSet::createMultiDataSet()
+      
+      for (set.c in names(eset.ls)) {
+        
+        eset <- eset.ls[[set.c]]
+        
+        eset$id <- rownames(Biobase::pData(eset))
+        
+        x <- MultiDataSet::add_eset(x, eset,
+                                    dataset.type = set.c,
+                                    GRanges = NA)
+        
+      }
+      
+    } else if (output.c == "exp") {
+      
+      sam_all.vc <- sort(unique(Reduce("union", lapply(eset.ls, Biobase::sampleNames))))
+      sam_var.vc <- sort(unique(Reduce("intersect", lapply(eset.ls, Biobase::varLabels))))
+      
+      eset <- eset.ls[[1]]
+      sam.df <- Biobase::pData(eset)[, sam_var.vc]
+      
+      map.ls <- vector(mode = "list", length = length(files.ls))
+      names(map.ls) <- names(files.ls)
+      map.ls[[1]] <- data.frame(primary = Biobase::sampleNames(eset),
+                                colname = Biobase::sampleNames(eset))
+      
+      for (set.c in 2:length(eset.ls)) {
+        
+        sam_add.df <- Biobase::pData(eset.ls[[set.c]])[, sam_var.vc]
+        
+        sam_add.vc <- setdiff(rownames(sam_add.df), rownames(sam.df))
+        
+        if (length(sam_add.vc)) {
+          sam.df <- rbind.data.frame(sam.df,
+                                     sam_add.df[sam_add.vc, , drop = FALSE])
+        }
+        
+        map.ls[[set.c]] <- data.frame(primary = Biobase::sampleNames(eset.ls[[set.c]]),
+                                      colname = Biobase::sampleNames(eset.ls[[set.c]]))
+        
+      
+      }
+      
+      sam.df <- sam.df[sort(rownames(sam.df)), ]
+      map.df <- MultiAssayExperiment::listToMap(map.ls)
+      
+      x <- MultiAssayExperiment::MultiAssayExperiment(experiments = lapply(eset.ls, function(eset) as(eset, "SummarizedExperiment")),
+                                                      colData = sam.df,
+                                                      sampleMap = map.df)
+      
+    }
+  
   }
+  
+  # Printing
   
   methods::validObject(x)
   
-  if (report.c != "none")
+  if (report.c != "none") {
+    
+    if (class(x) %in% c("MultiDataSet", "MultiAssayExperiment")) {
+    cat("Discrepancies between the sampleMetadata from the datasets:\n\n")
+    print(disagree.mc)
+    }
+    
     print(x)
+  }
   
   if (!(report.c %in% c("none", "interactive")))
     sink()
+  
+  
+  # Returning
   
   return(invisible(x))
   
@@ -251,6 +353,7 @@ reading <- function(dir.c,
                      dataMatrix = NA,
                      sampleMetadata = NA,
                      variableMetadata = NA,
+                     output.c = "exp",
                      report.c = "interactive") {
   
   if (!is.na(dir.c) && !is.na(dataMatrix))
@@ -300,38 +403,38 @@ reading <- function(dir.c,
            dir.c, call. = FALSE)
     }
     
-    tabFilVc <- c(dataMatrix = dataMatrixFileC,
-                  sampleMetadata = sampleMetadataFileC,
-                  variableMetadata = variableMetadataFileC)
+    tab_file.vc <- c(dataMatrix = dataMatrixFileC,
+                     sampleMetadata = sampleMetadataFileC,
+                     variableMetadata = variableMetadataFileC)
     
   } else {
     
-    tabFilVc <- c(dataMatrix = dataMatrix,
-                  sampleMetadata = sampleMetadata,
-                  variableMetadata = variableMetadata)
+    tab_file.vc <- c(dataMatrix = dataMatrix,
+                     sampleMetadata = sampleMetadata,
+                     variableMetadata = variableMetadata)
     
-    for (tabC in names(tabFilVc)) {
+    for (tab.c in names(tab_file.vc)) {
       
-      tabFilC <- tabFilVc[tabC]
+      tab_file.c <- tab_file.vc[tab.c]
       
-      if (!file.exists(tabFilC)) {
+      if (!file.exists(tab_file.c)) {
         
-        if (tabC == "dataMatrix") {
+        if (tab.c == "dataMatrix") {
           
           stop("The provided dataMatrix file was not found:\n",
-               tabFilC, call. = FALSE)
+               tab_file.c, call. = FALSE)
           
-        } else if (!file.exists(tabFilC)) {
+        } else if (!file.exists(tab_file.c)) {
           
           if (report.c != "none")
-            warning("The following '", tabC,
-                    "' file was not found:\n", tabFilC,
+            warning("The following '", tab.c,
+                    "' file was not found:\n", tab_file.c,
                     "\nThe corresponding '",
-                    ifelse(tabC == "sampleMetadata", 'phenoData', 'featureData'),
+                    ifelse(tab.c == "sampleMetadata", 'phenoData', 'featureData'),
                     "' slot will be empty.",
                     immediate. = TRUE, call. = FALSE)
           
-          tabFilVc[tabC] <- NA
+          tab_file.vc[tab.c] <- NA
           
         }
       }
@@ -339,16 +442,16 @@ reading <- function(dir.c,
     
   }
   
-  for (tabC in names(tabFilVc)) {
+  for (tab.c in names(tab_file.vc)) {
     
-    tabFilC <- tabFilVc[tabC]
+    tab_file.c <- tab_file.vc[tab.c]
     
-    if (!is.na(tabFilC)) {
+    if (!is.na(tab_file.c)) {
       
       ## R standards for row and column names in matrices and data frames
-      .checkRformat(tabFilC)
+      .checkRformat(tab_file.c)
       
-      tabDF <- data.frame(data.table::fread(tabFilC,
+      tab.df <- data.frame(data.table::fread(tab_file.c,
                                             header = TRUE,
                                             sep = "\t"),
                           check.names = FALSE,
@@ -356,56 +459,65 @@ reading <- function(dir.c,
                           stringsAsFactors = FALSE)
       
       # looking for duplicates in column names
-      colname_dup.vi <- which(duplicated(colnames(tabDF)))
+      colname_dup.vi <- which(duplicated(colnames(tab.df)))
       if (length(colname_dup.vi))
-        stop("The '", tabC, "' file has several columns named: '",
-             paste(colnames(tabDF[colname_dup.vi]), collapse = "', '"), "'",
+        stop("The '", tab.c, "' file has several columns named: '",
+             paste(colnames(tab.df[colname_dup.vi]), collapse = "', '"), "'",
              call. = FALSE)
       
-      switch(tabC,
+      switch(tab.c,
              dataMatrix = {
-               tdatMN <- as.matrix(tabDF)
+               tdat.mn <- as.matrix(tab.df)
              },
              sampleMetadata = {
-               samDF <- tabDF
+               sam.df <- tab.df
              },
              variableMetadata = {
-               varDF <- tabDF
+               var.df <- tab.df
              })
       
     } else {
       
-      switch(tabC,
+      switch(tab.c,
              sampleMetadata = {
-               samDF <- data.frame(row.names = colnames(tdatMN))
+               sam.df <- data.frame(row.names = colnames(tdat.mn))
              },
              variableMetadata = {
-               varDF <- data.frame(row.names = rownames(tdatMN))
+               var.df <- data.frame(row.names = rownames(tdat.mn))
              })
       
     }
   }
   
-  chkLs <- .checkW4Mformat(t(tdatMN), samDF, varDF,
+  chkLs <- .checkW4Mformat(t(tdat.mn), sam.df, var.df,
                            infCw = report.c)
   
   if (!chkLs[["chkL"]]) {
     stop("Sample and/or variable names do not match between your tables. Use the 'report.c = NA' argument to get more feedback.",
          call. = FALSE)
   } else if (chkLs[["ordL"]]) {
-    tdatMN <- t(chkLs[["datMN"]])
+    tdat.mn <- t(chkLs[["dat.mn"]])
   }
   
-  eset <- Biobase::ExpressionSet(assayData = tdatMN,
-                                 phenoData = Biobase::AnnotatedDataFrame(data = samDF),
-                                 featureData = Biobase::AnnotatedDataFrame(data = varDF),
-                                 experimentData = Biobase::MIAME(title = ifelse(!is.na(dir.c),
-                                                                                basename(dir.c),
-                                                                                "")))
+  # Building the ExpressionSet
   
-  methods::validObject(eset)
+  x <- Biobase::ExpressionSet(assayData = tdat.mn,
+                              phenoData = Biobase::AnnotatedDataFrame(data = sam.df),
+                              featureData = Biobase::AnnotatedDataFrame(data = var.df),
+                              experimentData = Biobase::MIAME(title = ifelse(!is.na(dir.c),
+                                                                             basename(dir.c),
+                                                                             "")))
+  # Optional: converting to SummarizedExperiment
   
-  return(eset)
+  if (output.c == "exp") {
+    
+   x <- as(x, "SummarizedExperiment")
+    
+  }
+ 
+  methods::validObject(x)
+  
+  return(x)
   
 }
 
@@ -432,19 +544,19 @@ setMethod("writing", "MultiDataSet",
             
             if (!is.na(dir.c)) {
               
-              setDirVc <- file.path(dir.c, setVc)
-              names(setDirVc) <- setVc
+              set_dir.vc <- file.path(dir.c, setVc)
+              names(set_dir.vc) <- setVc
               
               if (file.exists(dir.c) && file.info(dir.c)[, "isdir"]) {
                 
-                dirVc <- dir(dir.c, full.names = TRUE)
+                dir.vc <- dir(dir.c, full.names = TRUE)
                 
-                dirVl <- file.info(dirVc)[, "isdir"]
+                dir.vl <- file.info(dir.vc)[, "isdir"]
                 
-                subDirVc <- dirVc[dirVl]
+                subdir.vc <- dir.vc[dir.vl]
                 
-                subDupVc <- intersect(setDirVc,
-                                      subDirVc)
+                subDupVc <- intersect(set_dir.vc,
+                                      subdir.vc)
                 
                 if (length(subDupVc) && !overwrite.l)
                   stop("The following subfolder(s) were detected in your directory, please remove them or specify another parent directory to avoid overwriting:\n",
@@ -457,19 +569,19 @@ setMethod("writing", "MultiDataSet",
                 
               }
               
-              for (setC in names(setDirVc)) {
+              for (set.c in names(set_dir.vc)) {
                 
                 if (report.c != "none")
-                  message("Writing the '", setC, "' dataset...")
+                  message("Writing the '", set.c, "' dataset...")
                 
-                set_dir.c <- setDirVc[setC]
+                set_dir.c <- set_dir.vc[set.c]
                 
                 if (!(file.exists(set_dir.c) &&
                       file.info(set_dir.c)[, "isdir"]))
                   dir.create(set_dir.c,
                              showWarnings = report.c != "none")
                 
-                phenomis::writing(x[[setC]],
+                phenomis::writing(x[[set.c]],
                                   set_dir.c,
                                   prefix.c = prefix.c,
                                   overwrite.l = overwrite.l,
@@ -504,30 +616,30 @@ setMethod("writing", "MultiDataSet",
                      paste(names(filLisVl), collapse = ", "),
                      call. = FALSE)
               
-              for (setC in setVc) {
+              for (set.c in setVc) {
                 
-                filLs <- files.ls[[setC]]
+                filLs <- files.ls[[set.c]]
                 
                 if (length(filLs) != 3 ||
                     !identical(names(filLs), c("dataMatrix",
                                                "sampleMetadata",
                                                "variableMetadata")))
-                  stop("The names of the '", setC,
+                  stop("The names of the '", set.c,
                        "' sublist of 'files.ls are not identical to 'dataMatrix', 'sampleMetadata' and 'variableMetadata'.")
                 
                 if (is.na(filLs[["dataMatrix"]]))
-                  stop("The 'dataMatrix' file name from the '", setC,
+                  stop("The 'dataMatrix' file name from the '", set.c,
                        "' sublist is missing (ie set to NA).")
                 
-                for (filC in names(filLs)) {
+                for (file.c in names(filLs)) {
                   
-                  filFulNamC <- filLs[[filC]]
+                  filFulNamC <- filLs[[file.c]]
                   
                   if (!is.na(filFulNamC)
                       && file.exists(filFulNamC)
                       && !overwrite.l)
                     stop("The following file from the '",
-                         setC, "' sublist already exists:\n",
+                         set.c, "' sublist already exists:\n",
                          filFulNamC,
                          "\nPlease remove it or choose another name to avoid overwriting.")
                   
@@ -535,14 +647,14 @@ setMethod("writing", "MultiDataSet",
                 
               }
               
-              for (setC in setVc) {
+              for (set.c in setVc) {
                 
-                filLs <- files.ls[[setC]]
+                filLs <- files.ls[[set.c]]
                 
                 if (report.c != "none")
-                  message("Writing the '", setC, "' dataset")
+                  message("Writing the '", set.c, "' dataset")
                 
-                phenomis::writing(x[[setC]],
+                phenomis::writing(x[[set.c]],
                                   NA,
                                   files.ls = list(dataMatrix = filLs[["dataMatrix"]],
                                                   sampleMetadata = filLs[["sampleMetadata"]],
@@ -583,12 +695,12 @@ setMethod("writing", "ExpressionSet",
               if (prefix.c != "")
                 prefix.c <- paste0(prefix.c, "_")
               
-              tabFilVc <- c(dataMatrix = file.path(dir.c,
-                                                   paste0(prefix.c, "dataMatrix.tsv")),
-                            sampleMetadata = file.path(dir.c,
-                                                       paste0(prefix.c, "sampleMetadata.tsv")),
-                            variableMetadata = file.path(dir.c,
-                                                         paste0(prefix.c, "variableMetadata.tsv")))
+              tab_file.vc <- c(dataMatrix = file.path(dir.c,
+                                                      paste0(prefix.c, "dataMatrix.tsv")),
+                               sampleMetadata = file.path(dir.c,
+                                                          paste0(prefix.c, "sampleMetadata.tsv")),
+                               variableMetadata = file.path(dir.c,
+                                                            paste0(prefix.c, "variableMetadata.tsv")))
               
             } else if (is.na(dir.c)) {
               
@@ -606,62 +718,62 @@ setMethod("writing", "ExpressionSet",
               if (is.na(files.ls[["dataMatrix"]]))
                 stop("The 'dataMatrix' file name from the 'files.ls' list is missing (ie set to NA).")
               
-              tabFilVc <- c(dataMatrix = files.ls[["dataMatrix"]],
-                            sampleMetadata = files.ls[["sampleMetadata"]],
-                            variableMetadata = files.ls[["variableMetadata"]])
+              tab_file.vc <- c(dataMatrix = files.ls[["dataMatrix"]],
+                               sampleMetadata = files.ls[["sampleMetadata"]],
+                               variableMetadata = files.ls[["variableMetadata"]])
               
             }
             
-            for (tabC in names(tabFilVc)) {
+            for (tab.c in names(tab_file.vc)) {
               
-              tabFilC <- tabFilVc[tabC]
+              tab_file.c <- tab_file.vc[tab.c]
               
-              if (!is.na(tabFilC) && file.exists(tabFilC) && !overwrite.l)
-                stop("The following file already exists:\n", tabFilC,
+              if (!is.na(tab_file.c) && file.exists(tab_file.c) && !overwrite.l)
+                stop("The following file already exists:\n", tab_file.c,
                      "\nPlease choose another file name.")
               
             }
             
             ## Writing
             
-            tdatMN <- Biobase::exprs(x)
-            samDF <- Biobase::pData(x)
-            varDF <- Biobase::fData(x)
-            chkLs <- .checkW4Mformat(t(tdatMN), samDF, varDF, infCw = report.c)
+            tdat.mn <- Biobase::exprs(x)
+            sam.df <- Biobase::pData(x)
+            var.df <- Biobase::fData(x)
+            chkLs <- .checkW4Mformat(t(tdat.mn), sam.df, var.df, infCw = report.c)
             
             if (!chkLs[["chkL"]]) {
               stop("Sample and/or variable names do not match between your tables. Use the report.c = 'interactive' argument to get more feedback.")
             } else if (chkLs[["ordL"]]) {
-              tdatMN <- t(chkLs[["datMN"]])
+              tdat.mn <- t(chkLs[["dat.mn"]])
             }
             
-            datDF <- cbind.data.frame(dataMatrix = rownames(tdatMN),
-                                      as.data.frame(tdatMN))
+            datDF <- cbind.data.frame(dataMatrix = rownames(tdat.mn),
+                                      as.data.frame(tdat.mn))
             
             utils::write.table(datDF,
-                               file = tabFilVc['dataMatrix'],
+                               file = tab_file.vc['dataMatrix'],
                                quote = FALSE,
                                row.names = FALSE,
                                sep = "\t")
             
-            if (!is.na(dir.c) || !is.na(tabFilVc["sampleMetadata"])) {
+            if (!is.na(dir.c) || !is.na(tab_file.vc["sampleMetadata"])) {
               
-              samDF <- cbind.data.frame(sampleMetadata = rownames(samDF),
-                                        samDF)
-              utils::write.table(samDF,
-                                 file = tabFilVc['sampleMetadata'],
+              sam.df <- cbind.data.frame(sampleMetadata = rownames(sam.df),
+                                         sam.df)
+              utils::write.table(sam.df,
+                                 file = tab_file.vc['sampleMetadata'],
                                  quote = FALSE,
                                  row.names = FALSE,
                                  sep = "\t")
               
             }
             
-            if (!is.na(dir.c) || !is.na(tabFilVc["variableMetadata"])) {
+            if (!is.na(dir.c) || !is.na(tab_file.vc["variableMetadata"])) {
               
-              varDF <- cbind.data.frame(variableMetadata = rownames(varDF),
-                                        varDF)
-              utils::write.table(varDF,
-                                 file = tabFilVc['variableMetadata'],
+              var.df <- cbind.data.frame(variableMetadata = rownames(var.df),
+                                         var.df)
+              utils::write.table(var.df,
+                                 file = tab_file.vc['variableMetadata'],
                                  quote = FALSE,
                                  row.names = FALSE,
                                  sep = "\t")
@@ -670,7 +782,7 @@ setMethod("writing", "ExpressionSet",
             
             if (report.c != "none")
               message("The following file(s) have been written:\n",
-                      paste(tabFilVc[!is.na(basename(tabFilVc))], collapse = "\n"))
+                      paste(tab_file.vc[!is.na(basename(tab_file.vc))], collapse = "\n"))
             
             if (!(report.c %in% c("none", "interactive")))
               sink()
@@ -708,118 +820,118 @@ setMethod("writing", "ExpressionSet",
 }
 
 
-.checkW4Mformat <- function(datMNw, samDFw, varDFw,
+.checkW4Mformat <- function(dat.mnw, sam.dfw, var.dfw,
                             infCw = "interactive") {
   
   chkL <- TRUE
   ordL <- FALSE
   
-  if (mode(datMNw) != "numeric") {
+  if (mode(dat.mnw) != "numeric") {
     message("The dataMatrix is not of the 'numeric' type.")
     chkL <- FALSE
   }
   
-  if (!identical(rownames(datMNw), rownames(samDFw))) {
+  if (!identical(rownames(dat.mnw), rownames(sam.dfw))) {
     ## checking sample names
     
-    datSamDifVc <- setdiff(rownames(datMNw), rownames(samDFw))
+    datSamDifVc <- setdiff(rownames(dat.mnw), rownames(sam.dfw))
     
     if (length(datSamDifVc)) {
       if (infCw != "none") {
         message("The following samples were found in the dataMatrix column names but not in the sampleMetadata row names:\n")
         print(cbind.data.frame(col = as.numeric(sapply(datSamDifVc,
-                                                       function(samC) which(rownames(datMNw) == samC))),
+                                                       function(samC) which(rownames(dat.mnw) == samC))),
                                name = datSamDifVc))
       }
       chkL <- FALSE
     }
     
-    samDatDifVc <- setdiff(rownames(samDFw), rownames(datMNw))
+    samDatDifVc <- setdiff(rownames(sam.dfw), rownames(dat.mnw))
     
     if (length(samDatDifVc)) {
       if (infCw != "none") {
         message("The following samples were found in the sampleMetadata row names but not in the dataMatrix column names:\n")
-        print(cbind.data.frame(row = as.numeric(sapply(samDatDifVc, function(samC) which(rownames(samDFw) == samC))),
+        print(cbind.data.frame(row = as.numeric(sapply(samDatDifVc, function(samC) which(rownames(sam.dfw) == samC))),
                                name = samDatDifVc))
       }
       chkL <- FALSE
     }
     
-    if (nrow(datMNw) != nrow(samDFw)) {
+    if (nrow(dat.mnw) != nrow(sam.dfw)) {
       if (infCw != "none")
-        message("The dataMatrix has ", nrow(datMNw), " columns (ie samples) whereas the sampleMetadata has ", nrow(samDFw), " rows.")
+        message("The dataMatrix has ", nrow(dat.mnw), " columns (ie samples) whereas the sampleMetadata has ", nrow(sam.dfw), " rows.")
       chkL <- FALSE
-    } else if (identical(gsub("^X", "", rownames(datMNw)), rownames(samDFw))) {
+    } else if (identical(gsub("^X", "", rownames(dat.mnw)), rownames(sam.dfw))) {
       if (infCw != "none")
         message("The dataMatrix column names start with an 'X' but not the sampleMetadata row names.")
       chkL <- FALSE
-    } else if (identical(gsub("^X", "", rownames(samDFw)), rownames(datMNw))) {
+    } else if (identical(gsub("^X", "", rownames(sam.dfw)), rownames(dat.mnw))) {
       if (infCw != "none")
         message("The sampleMetadata row names start with an 'X' but not the dataMatrix column names.")
       chkL <- FALSE
-    } else if (identical(sort(rownames(datMNw)), sort(rownames(samDFw)))) {
+    } else if (identical(sort(rownames(dat.mnw)), sort(rownames(sam.dfw)))) {
       if (infCw != "none")
         message("Re-ordering dataMatrix sample names to match sampleMetadata.")
-      datMNw <- datMNw[rownames(samDFw), , drop = FALSE]
-      stopifnot(identical(sort(rownames(datMNw)), sort(rownames(samDFw))))
+      dat.mnw <- dat.mnw[rownames(sam.dfw), , drop = FALSE]
+      stopifnot(identical(sort(rownames(dat.mnw)), sort(rownames(sam.dfw))))
       ordL <- TRUE
     } else {
       if (infCw != "none") {
         message("The dataMatrix column names and the sampleMetadata row names are not identical:\n")
-        print(cbind.data.frame(indice = 1:nrow(datMNw),
-                               dataMatrix_columnnames = rownames(datMNw),
-                               sampleMetadata_rownames = rownames(samDFw))[rownames(datMNw) != rownames(samDFw), , drop = FALSE])
+        print(cbind.data.frame(indice = 1:nrow(dat.mnw),
+                               dataMatrix_columnnames = rownames(dat.mnw),
+                               sampleMetadata_rownames = rownames(sam.dfw))[rownames(dat.mnw) != rownames(sam.dfw), , drop = FALSE])
       }
       chkL <- FALSE
     }
     
   }
   
-  if (!identical(colnames(datMNw), rownames(varDFw))) {
+  if (!identical(colnames(dat.mnw), rownames(var.dfw))) {
     ## checking variable names
     
-    datVarDifVc <- setdiff(colnames(datMNw), rownames(varDFw))
+    datVarDifVc <- setdiff(colnames(dat.mnw), rownames(var.dfw))
     
     if (length(datVarDifVc)) {
       if (infCw != "none") {
         message("The following variables were found in the dataMatrix row names but not in the variableMetadata row names:\n")
-        print(cbind.data.frame(row = as.numeric(sapply(datVarDifVc, function(varC) which(colnames(datMNw) == varC))),
+        print(cbind.data.frame(row = as.numeric(sapply(datVarDifVc, function(varC) which(colnames(dat.mnw) == varC))),
                                name = datVarDifVc))
       }
       chkL <- FALSE
     }
     
-    varDatDifVc <- setdiff(rownames(varDFw), colnames(datMNw))
+    varDatDifVc <- setdiff(rownames(var.dfw), colnames(dat.mnw))
     
     if (length(varDatDifVc)) {
       if (infCw != "none") {
         message("The following variables were found in the variableMetadata row names but not in the dataMatrix row names:\n")
-        print(cbind.data.frame(row = as.numeric(sapply(varDatDifVc, function(varC) which(rownames(varDFw) == varC))),
+        print(cbind.data.frame(row = as.numeric(sapply(varDatDifVc, function(varC) which(rownames(var.dfw) == varC))),
                                name = varDatDifVc))
       }
       chkL <- FALSE
     }
     
-    if (ncol(datMNw) != nrow(varDFw)) {
+    if (ncol(dat.mnw) != nrow(var.dfw)) {
       if (infCw != "none")
         message("The dataMatrix has ",
-                nrow(datMNw),
+                nrow(dat.mnw),
                 " rows (ie variables) whereas the variableMetadata has ",
-                nrow(varDFw),
+                nrow(var.dfw),
                 " rows.")
       chkL <- FALSE
-    } else if (identical(sort(colnames(datMNw)), sort(rownames(varDFw)))) {
+    } else if (identical(sort(colnames(dat.mnw)), sort(rownames(var.dfw)))) {
       if (infCw != "none")
         message("Re-ordering dataMatrix variable names to match variableMetadata.")
-      datMNw <- datMNw[, rownames(varDFw), drop = FALSE]
-      stopifnot(identical(sort(colnames(datMNw)), sort(rownames(varDFw))))
+      dat.mnw <- dat.mnw[, rownames(var.dfw), drop = FALSE]
+      stopifnot(identical(sort(colnames(dat.mnw)), sort(rownames(var.dfw))))
       ordL <- TRUE
     } else {
       if (infCw != "none") {
         message("The dataMatrix row names and the variableMetadata row names are not identical:\n")
-        print(cbind.data.frame(row = 1:ncol(datMNw),
-                               dataMatrix_rownames = colnames(datMNw),
-                               variableMetadata_rownames = rownames(varDFw))[colnames(datMNw) != rownames(varDFw), , drop = FALSE])
+        print(cbind.data.frame(row = 1:ncol(dat.mnw),
+                               dataMatrix_rownames = colnames(dat.mnw),
+                               variableMetadata_rownames = rownames(var.dfw))[colnames(dat.mnw) != rownames(var.dfw), , drop = FALSE])
       }
       chkL <- FALSE
     }
@@ -827,7 +939,7 @@ setMethod("writing", "ExpressionSet",
   
   return(list(chkL = chkL,
               ordL = ordL,
-              datMN = datMNw))
+              dat.mn = dat.mnw))
   
 }
 

@@ -252,7 +252,7 @@ annotating_parameters <- function(database.c = c("chebi", "local.ms", "kegg")[1]
   if (sum(!queriableVl))
     fdataTempDF[!queriableVl, param.ls[["query.col"]]] <- -c(1:sum(!queriableVl))
   
-  mybiodb <- biodb::Biodb$new()
+  mybiodb <- biodb::newInst()
   
   if (param.ls[["query.type"]] == "mz") {
     
@@ -317,7 +317,7 @@ annotating_parameters <- function(database.c = c("chebi", "local.ms", "kegg")[1]
   
   queryVn <- queryVn[!missingVl]
   
-  mybiodb <- biodb::Biodb$new()
+  mybiodb <- biodb::newInst()
   
   conn <- mybiodb$getFactory()$createConn('mass.csv.file')
   conn$setDb(param.ls[["local.ms.db"]])
