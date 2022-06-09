@@ -8,59 +8,59 @@ reading(
   dir.c,
   files.ls = NULL,
   subsets.vc = NA,
-  output.c = c("exp", "set")[2],
+  output.c = c("exp", "set")[1],
   report.c = c("none", "interactive", "myfile.txt")[2]
 )
 }
 \arguments{
-\item{dir.c}{Character: directory containing the 3 tabular files (single
+\item{dir.c}{character(1): directory containing the 3 tabular files (single
 dataset), or containing several subdirectories with 3 tabular files
 (multiple datasets)}
 
-\item{files.ls}{List: if dir.c is set to NA, the full names of the
-individual files can be provided; in case of an ExpressionSet, the
+\item{files.ls}{list: if dir.c is set to NA, the full names of the
+individual files can be provided; in case of a SummarizedExperiment, the
 names of the list must be 'dataMatrix', 'sampleMetadata',
 and 'variableMetadata' with the corresponding file full names;
-in case of a MultiDataSet, the list must consists of one such sublist
+in case of a MultiAssayExperiment, the list must consists of one such sublist
 per dataset}
 
-\item{subsets.vc}{Vector of characters: specifying a subset of the
-subdirectories to be included in the MultiDataSet (by default, all
+\item{subsets.vc}{character(): specifying a subset of the
+subdirectories to be included in the MultiAssayExperiment (by default, all
 subdirectories containing the 3 tables will be considered as datasets)}
 
-\item{output.c}{Character: Either 'exp' for SummarizedExperiment (or MultiAssayExperiment), or 'set' for ExpressionSet (or MultiDataSet) output formats}
+\item{output.c}{character(1): Either 'exp' for SummarizedExperiment (or MultiAssayExperiment), or 'set' for ExpressionSet (or MultiDataSet) output formats (the latter are deprecated)}
 
-\item{report.c}{Character: File name for the printed results (call to
+\item{report.c}{character(1): File name for the printed results (call to
 'sink()'); if NA (default), messages will be printed on the screen; if NULL,
 no verbose will be generated}
 }
 \value{
-\code{ExpressionSet} (one dataset) or \code{MultiDataSet} (multiple
+\code{SummarizedExperiment} (one dataset) or \code{MultiAssayExperiment} (multiple
 datasets) instance containing the dataset(s)
 }
 \description{
 Reading dataset(s) in the 3 tables 'dataMatrix' (or 'DM'), sampleMetadata'
 (or 'SM') and variableMetadata' (or 'VM') tabular format. In case of a single
-dataset (3 tables in the specified directory), an ExpressionSet instance is
+dataset (3 tables in the specified directory), a SummarizedExperiment instance is
 returned. In case of a multiple dataset (several subfolders containing 3
-tables), a MultiDataSet instance is created.
+tables), a MultiAssayExperiment instance is created.
 }
 \examples{
 data_dir.c <- system.file("extdata", package = "phenomis")
 ## 1) Single set
 sacurine_dir.c <- file.path(data_dir.c, "W4M00001_Sacurine-statistics")
-sacurine.eset <- reading(sacurine_dir.c)
+sacurine.se <- reading(sacurine_dir.c)
 # or
-sacurine.eset <- reading(NA,
+sacurine.se <- reading(NA,
                   files.ls = list(dataMatrix = file.path(sacurine_dir.c, "Galaxy1_dataMatrix.tabular"),
                                   sampleMetadata = file.path(sacurine_dir.c, "Galaxy2_sampleMetadata.tabular"),
                                   variableMetadata = file.path(sacurine_dir.c, "Galaxy3_variableMetadata.tabular")))
 ## 2) Multiple sets
 prometis_dir.c <- file.path(data_dir.c, "prometis")
-prometis.mset <- reading(prometis_dir.c)
-metabo.mset <- reading(prometis_dir.c, subsets.vc = "metabolomics")
+prometis.mae <- reading(prometis_dir.c)
+metabo.mae <- reading(prometis_dir.c, subsets.vc = "metabolomics")
 # or
-prometis.mset <- reading(NA,
+prometis.mae <- reading(NA,
                        files.ls = list(metabolomics = list(dataMatrix = file.path(prometis_dir.c, "metabolomics", "dataMatrix.tsv"),
                                                            sampleMetadata = file.path(prometis_dir.c, "metabolomics", "sampleMetadata.tsv"),
                                                            variableMetadata = file.path(prometis_dir.c, "metabolomics", "variableMetadata.tsv")),

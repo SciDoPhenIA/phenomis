@@ -2,51 +2,64 @@
 % Please edit documentation in R/allGenerics.R, R/transforming.R
 \name{transforming}
 \alias{transforming}
+\alias{transforming,MultiAssayExperiment-method}
+\alias{transforming,SummarizedExperiment-method}
 \alias{transforming,MultiDataSet-method}
 \alias{transforming,ExpressionSet-method}
 \title{Transformation of the dataMatrix}
 \usage{
 transforming(
   x,
-  method.c = c("log2", "log10", "sqrt")[1],
+  method.vc = c("log2", "log10", "sqrt")[1],
+  report.c = c("none", "interactive", "myfile.txt")[2]
+)
+
+\S4method{transforming}{MultiAssayExperiment}(
+  x,
+  method.vc = c("log2", "log10", "sqrt")[1],
+  report.c = c("none", "interactive", "myfile.txt")[2]
+)
+
+\S4method{transforming}{SummarizedExperiment}(
+  x,
+  method.vc = c("log2", "log10", "sqrt")[1],
   report.c = c("none", "interactive", "myfile.txt")[2]
 )
 
 \S4method{transforming}{MultiDataSet}(
   x,
-  method.c = c("log2", "log10", "sqrt")[1],
+  method.vc = c("log2", "log10", "sqrt")[1],
   report.c = c("none", "interactive", "myfile.txt")[2]
 )
 
 \S4method{transforming}{ExpressionSet}(
   x,
-  method.c = c("log2", "log10", "sqrt")[1],
+  method.vc = c("log2", "log10", "sqrt")[1],
   report.c = c("none", "interactive", "myfile.txt")[2]
 )
 }
 \arguments{
-\item{x}{An S4 object of class \code{ExpressionSet} or \code{MultiDataSet}}
+\item{x}{An S4 object of class \code{SummarizedExperiment} or \code{MultiAssayExperiment} (\code{ExpressionSet} and \code{MultiDataSet} are deprecated)}
 
-\item{method.c}{Character: Factor of interest (name of a column from the
-pData(x))}
+\item{method.vc}{character(): type of transformation (either 'log2', 'log10', or 'sqrt'); in case of a MultiAssayExperiment, distinct methods may be provided for each dataset}
 
 \item{report.c}{Character: File name with '.txt' extension for the printed
 results (call to sink()'); if 'interactive' (default), messages will be
 printed on the screen; if 'none', no verbose will be generated}
 }
 \value{
-\code{ExpressionSet} or \code{MultiDataSet} including the exprs matrix
-(list of matrices) with transformed intensities
+\code{SummarizedExperiment} (or \code{MultiAssayExperiment}) including the (list of) matrix 
+with transformed intensities
 }
 \description{
 Transformation of the dataMatrix intensities
 }
 \examples{
-sacurine.eset <- phenomis::reading(system.file("extdata/W4M00001_Sacurine-statistics", package = "phenomis"))
-sacurine.eset <- phenomis::correcting(sacurine.eset)
-sacurine.eset <- sacurine.eset[, Biobase::pData(sacurine.eset)[, "sampleType"] != "pool"]
-sacurine.eset <- phenomis::transforming(sacurine.eset)
+sacurine.se <- reading(system.file("extdata/W4M00001_Sacurine-statistics", package = "phenomis"))
+sacurine.se <- correcting(sacurine.se)
+sacurine.se <- sacurine.se[, colData(sacurine.se)[, "sampleType"] != "pool"]
+sacurine.se <- transforming(sacurine.se)
 # MultiDataSet
-prometis.mset <- phenomis::reading(system.file("extdata/prometis", package="phenomis"))
-prometis.mset <- phenomis::transforming(prometis.mset)
+prometis.mae <- reading(system.file("extdata/prometis", package = "phenomis"))
+prometis.mset <- transforming(prometis.mset)
 }

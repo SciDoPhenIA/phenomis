@@ -2,6 +2,8 @@
 % Please edit documentation in R/allGenerics.R, R/inspecting.R
 \name{inspecting}
 \alias{inspecting}
+\alias{inspecting,MultiAssayExperiment-method}
+\alias{inspecting,SummarizedExperiment-method}
 \alias{inspecting,MultiDataSet-method}
 \alias{inspecting,ExpressionSet-method}
 \title{Inspecting}
@@ -10,7 +12,37 @@ inspecting(
   x,
   pool_as_pool1.l = FALSE,
   pool_cv.n = 0.3,
-  span.n = 1,
+  loess_span.n = 1,
+  sample_intensity.c = c("median", "mean", "sum")[2],
+  title.c = NA,
+  plot_dims.l = TRUE,
+  col_batch.c = "batch",
+  col_injectionOrder.c = "injectionOrder",
+  col_sampleType.c = "sampleType",
+  figure.c = c("none", "interactive", "myfile.pdf")[2],
+  report.c = c("none", "interactive", "myfile.txt")[2]
+)
+
+\S4method{inspecting}{MultiAssayExperiment}(
+  x,
+  pool_as_pool1.l = FALSE,
+  pool_cv.n = 0.3,
+  loess_span.n = 1,
+  sample_intensity.c = c("median", "mean", "sum")[2],
+  title.c = NA,
+  plot_dims.l = TRUE,
+  col_batch.c = "batch",
+  col_injectionOrder.c = "injectionOrder",
+  col_sampleType.c = "sampleType",
+  figure.c = c("none", "interactive", "myfile.pdf")[2],
+  report.c = c("none", "interactive", "myfile.txt")[2]
+)
+
+\S4method{inspecting}{SummarizedExperiment}(
+  x,
+  pool_as_pool1.l = FALSE,
+  pool_cv.n = 0.3,
+  loess_span.n = 1,
   sample_intensity.c = c("median", "mean", "sum")[2],
   title.c = NA,
   plot_dims.l = TRUE,
@@ -25,7 +57,7 @@ inspecting(
   x,
   pool_as_pool1.l = FALSE,
   pool_cv.n = 0.3,
-  span.n = 1,
+  loess_span.n = 1,
   sample_intensity.c = c("median", "mean", "sum")[2],
   title.c = NA,
   plot_dims.l = TRUE,
@@ -40,7 +72,7 @@ inspecting(
   x,
   pool_as_pool1.l = FALSE,
   pool_cv.n = 0.3,
-  span.n = 1,
+  loess_span.n = 1,
   sample_intensity.c = c("median", "mean", "sum")[2],
   title.c = NA,
   plot_dims.l = TRUE,
@@ -52,33 +84,33 @@ inspecting(
 )
 }
 \arguments{
-\item{x}{An S4 object of class \code{ExpressionSet} or \code{MultiDataSet}}
+\item{x}{An S4 object of class \code{SummarizedExperiment} or \code{MultiAssayExperiment}}
 
 \item{pool_as_pool1.l}{Logical: should pool be included (as pool1) in the correlation
 with the dilution factor?}
 
 \item{pool_cv.n}{Numeric: threshold for the coefficient of variation of the pools}
 
-\item{span.n}{Numeric: span parameter used in the loess trend estimation}
+\item{loess_span.n}{Numeric: span parameter used in the loess trend estimation}
 
 \item{sample_intensity.c}{Character: function to be used to display the global
 sample intensity; default: 'mean'}
 
-\item{title.c}{Character: MultiDataSet: title of the barplot showing the number
+\item{title.c}{Character: MultiAssayExperiment: title of the barplot showing the number
 of samples and variables in each dataset; ExpressionSet: title of the multipanel
 graphic displaying the metrics (if NA -default- the title slot from the experimentData
 will be used)}
 
-\item{plot_dims.l}{(MultiDataSet) Logical: should an overview of the number of samples and
+\item{plot_dims.l}{(MultiAssayExperiment) Logical: should an overview of the number of samples and
 variables in all datasets be barplotted?}
 
-\item{col_batch.c}{Character: name of the column from pData(x) containing
+\item{col_batch.c}{Character: name of the column from colData(x) containing
 the batch information (encoded as characters)}
 
-\item{col_injectionOrder.c}{Character: name of the column from pData(x)
+\item{col_injectionOrder.c}{Character: name of the column from colData(x)
 containing the injection order information (encoded as numerics)}
 
-\item{col_sampleType.c}{Character:  name of the column from pData(x)
+\item{col_sampleType.c}{Character:  name of the column from colData(x)
 containing the sample type information (encoded as characters)}
 
 \item{figure.c}{Character: File name with '.pdf' extension for the figure;
@@ -90,25 +122,25 @@ results (call to sink()'); if 'interactive' (default), messages will be
 printed on the screen; if 'none', no verbose will be generated}
 }
 \value{
-\code{ExpressionSet} or \code{MultiDataSet} including the computed
-in pData and fData sample and variable metrics
+\code{SummarizedExperiment} or \code{MultiAssayExperiment} including the computed
+in rowData and colData sample and variable metrics
 }
 \description{
 Provides numerical metrics and graphical overview of an ExpressionSet or MultiDataSet instance
 Please note that all variables with a proportion of missing values > 'max_na_prop.n'
 or a variance of 0 will be filtered out at the beginning of the method and
-therefore in the output ExpressionSet(s)
+therefore in the output SummarizedExperiments(s)
 }
 \examples{
-sacurine.eset <- reading(system.file("extdata/W4M00001_Sacurine-statistics", package = "phenomis"))
-sacurine.eset <- inspecting(sacurine.eset)
-sacurine.eset <- correcting(sacurine.eset)
-sacurine.eset <- inspecting(sacurine.eset)
-sacurine.eset <- transforming(sacurine.eset)
-sacurine.eset <- inspecting(sacurine.eset)
-# MultiDataSet
-prometis.mset <- reading(system.file("extdata/prometis", package = "phenomis"))
+sacurine.se <- reading(system.file("extdata/W4M00001_Sacurine-statistics", package = "phenomis"))
+sacurine.se <- inspecting(sacurine.se)
+sacurine.se <- correcting(sacurine.se)
+sacurine.se <- inspecting(sacurine.se)
+sacurine.se <- transforming(sacurine.se)
+sacurine.se <- inspecting(sacurine.se)
+# MultiAssayExperiment
+prometis.mae <- reading(system.file("extdata/prometis", package = "phenomis"))
 \dontrun{
-prometis.mset <- inspecting(prometis.mset)
+prometis.mae <- inspecting(prometis.mae)
 }
 }

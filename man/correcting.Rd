@@ -2,14 +2,48 @@
 % Please edit documentation in R/allGenerics.R, R/correcting.R
 \name{correcting}
 \alias{correcting}
+\alias{correcting,MultiAssayExperiment-method}
+\alias{correcting,SummarizedExperiment-method}
 \alias{correcting,MultiDataSet-method}
 \alias{correcting,ExpressionSet-method}
 \title{correcting}
 \usage{
 correcting(
   x,
-  reference.c = c("pool", "sample")[1],
-  span.n = 1,
+  method.vc = c("loess", "serrf")[1],
+  reference.vc = c("pool", "sample")[1],
+  loess_span.vn = 1,
+  serrf_corvar.vi = 10,
+  sample_intensity.c = c("median", "mean", "sum")[2],
+  title.c = NA,
+  col_batch.c = "batch",
+  col_injectionOrder.c = "injectionOrder",
+  col_sampleType.c = "sampleType",
+  figure.c = c("none", "interactive", "myfile.pdf")[2],
+  report.c = c("none", "interactive", "myfile.txt")[2]
+)
+
+\S4method{correcting}{MultiAssayExperiment}(
+  x,
+  method.vc = c("loess", "serrf")[1],
+  reference.vc = c("pool", "sample")[1],
+  loess_span.vn = 1,
+  serrf_corvar.vi = 10,
+  sample_intensity.c = c("median", "mean", "sum")[2],
+  title.c = NA,
+  col_batch.c = "batch",
+  col_injectionOrder.c = "injectionOrder",
+  col_sampleType.c = "sampleType",
+  figure.c = c("none", "interactive", "myfile.pdf")[2],
+  report.c = c("none", "interactive", "myfile.txt")[2]
+)
+
+\S4method{correcting}{SummarizedExperiment}(
+  x,
+  method.vc = c("loess", "serrf")[1],
+  reference.vc = c("pool", "sample")[1],
+  loess_span.vn = 1,
+  serrf_corvar.vi = 10,
   sample_intensity.c = c("median", "mean", "sum")[2],
   title.c = NA,
   col_batch.c = "batch",
@@ -21,8 +55,10 @@ correcting(
 
 \S4method{correcting}{MultiDataSet}(
   x,
-  reference.c = c("pool", "sample")[1],
-  span.n = 1,
+  method.vc = c("loess", "serrf")[1],
+  reference.vc = c("pool", "sample")[1],
+  loess_span.vn = 1,
+  serrf_corvar.vi = 10,
   sample_intensity.c = c("median", "mean", "sum")[2],
   title.c = NA,
   col_batch.c = "batch",
@@ -34,8 +70,10 @@ correcting(
 
 \S4method{correcting}{ExpressionSet}(
   x,
-  reference.c = c("pool", "sample")[1],
-  span.n = 1,
+  method.vc = c("loess", "serrf")[1],
+  reference.vc = c("pool", "sample")[1],
+  loess_span.vn = 1,
+  serrf_corvar.vi = 10,
   sample_intensity.c = c("median", "mean", "sum")[2],
   title.c = NA,
   col_batch.c = "batch",
@@ -46,27 +84,31 @@ correcting(
 )
 }
 \arguments{
-\item{x}{An S4 object of class \code{ExpressionSet} or \code{MultiDataSet}}
+\item{x}{An S4 object of class \code{SummarizedExperiment} or \code{MultiAssayExperiment}}
 
-\item{reference.c}{Character: sample type to be used as reference for
-the correction (as indicated in the 'colnameSampleType' column from the
-pData(x); e.g. 'pool')}
+\item{method.vc}{character of length 1 or the total number of datasets: method(s) to be used for each dataset (either 'serrf' or 'loess'); in case the parameter is of length 1 and x contains multiple datasets, the same method will be used for all datasets}
 
-\item{span.n}{Numeric: smoothing parameter for the loess regression;
-between 0 and 1; (default set to 1)}
+\item{reference.vc}{character of length 1 or the total number of datasets: sample type to be used as reference for
+the correction (as indicated in the 'sampleType' column from the
+colData(x); e.g. 'pool' [default]); should be set to 'pool' for the 'serrf' method; in case the parameter is of length 1 and x contains multiple datasets, the same reference sample type will be used for all datasets}
+
+\item{loess_span.vn}{character of length 1 or the total number of datasets: smoothing parameter for the loess regression;
+between 0 and 1; (default set to 1); in case the parameter is of length 1 and x contains multiple datasets, the same span value will be used for all datasets}
+
+\item{serrf_corvar.vi}{character of length 1 or the total number of datasets: number of correlated features for the random forest regression; (default set to 10); in case the parameter is of length 1 and x contains multiple datasets, the same value will be used for all datasets}
 
 \item{sample_intensity.c}{Character: metric to be used when displaying the sample intensities}
 
-\item{title.c}{Character (ExpressionSet): Graphic title: if NA [default] the
-title slot from the experimentData will be used}
+\item{title.c}{Character: Graphic title: if NA [default] the
+'title' slot from the experimentData will be used (metadata)}
 
-\item{col_batch.c}{Character: name of the column from pData(x) containing
+\item{col_batch.c}{Character: name of the column from colData(x) containing
 the batch information (encoded as characters)}
 
-\item{col_injectionOrder.c}{Character: name of the column from pData(x)
+\item{col_injectionOrder.c}{Character: name of the column from colData(x)
 containing the injection order information (encoded as numerics)}
 
-\item{col_sampleType.c}{Character:  name of the column from pData(x)
+\item{col_sampleType.c}{Character:  name of the column from colData(x)
 containing the sample type information (encoded as characters)}
 
 \item{figure.c}{Character: File name with '.pdf' extension for the figure;
@@ -78,14 +120,14 @@ results (call to sink()'); if 'interactive' (default), messages will be
 printed on the screen; if 'none', no verbose will be generated}
 }
 \value{
-\code{ExpressionSet} or \code{MultiDataSet} including the corrected
-intensities in the expr matrix (matrices)
+\code{SummarizedExperiment} or \code{MultiAssayExperiment} including the corrected
+intensities in the assay matrix (matrices)
 }
 \description{
 Signal drift and batch effect correction
 }
 \examples{
-sacurine.eset <- phenomis::reading(system.file("extdata/W4M00001_Sacurine-statistics", package = "phenomis"))
-sacurine.eset <- phenomis::correcting(sacurine.eset)
+sacurine.se <- reading(system.file("extdata/W4M00001_Sacurine-statistics", package = "phenomis"))
+sacurine.se <- correcting(sacurine.se)
 # MultiDataSet (to be done)
 }

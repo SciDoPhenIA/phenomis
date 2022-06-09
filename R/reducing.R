@@ -1,3 +1,127 @@
+#### reducing (MultiAssayExperiment) ####
+
+#' @rdname reducing
+#' @export
+setMethod("reducing", signature(x = "MultiAssayExperiment"),
+          function(x,
+                   cor_method.c = "pearson",
+                   cor_threshold.n = 0.9,
+                   rt_tol.n = 6,
+                   rt_colname.c = "rt",
+                   mzdiff_tol.n = 0.005,
+                   mz_colname.c = "mz",
+                   return_adjacency.l = FALSE,
+                   report.c = c("none", "interactive", "myfile.txt")[2]) {
+            
+            if (!(report.c %in% c("none", "interactive")))
+              sink(report.c, append = TRUE)
+            
+            report_set.c <- report.c
+            if (report_set.c != "none")
+              report_set.c <- "interactive"
+            
+            if (return_adjacency.l)
+              adjacency.ls <- list()
+            
+            for (set.c in names(x)) {
+              
+              if (report.c != "none")
+                message("Reducing the '", set.c, "' dataset...")
+              
+              reduce_res <- reducing(x = x[[set.c]],
+                                     cor_method.c = cor_method.c,
+                                     cor_threshold.n = cor_threshold.n,
+                                     rt_tol.n = rt_tol.n,
+                                     rt_colname.c = rt_colname.c,
+                                     mzdiff_tol.n = mzdiff_tol.n,
+                                     mz_colname.c = mz_colname.c,
+                                     return_adjacency.l = return_adjacency.l,
+                                     report.c = report_set.c)
+              
+              if (!return_adjacency.l) {
+                
+                x[[set.c]] <- reduce_res
+                
+              } else {
+                
+                x[[set.c]] <- reduce_res[["se"]]
+                
+                adjacency.ls[[set.c]] <- reduce_res[["adjacency.mi"]]
+                
+              }
+              
+            }
+            
+            if (!(report.c %in% c("none", "interactive")))
+              sink()
+            
+            methods::validObject(x)
+            
+            if (return_adjacency.l) {
+              
+              return(invisible(list(mae = x,
+                                    adjacency.ls = adjacency.ls)))
+              
+            } else {
+              
+              return(invisible(x))
+              
+            }
+            
+          })
+
+#### reducing (SummarizedExperiment) ####
+
+#' @rdname reducing
+#' @export
+setMethod("reducing", signature(x = "SummarizedExperiment"),
+          function(x,
+                   cor_method.c = "pearson",
+                   cor_threshold.n = 0.9,
+                   rt_tol.n = 6,
+                   rt_colname.c = "rt",
+                   mzdiff_tol.n = 0.005,
+                   mz_colname.c = "mz",
+                   return_adjacency.l = FALSE,
+                   report.c = c("none", "interactive", "myfile.txt")[2]) {
+            
+            if (!(report.c %in% c("none", "interactive")))
+              sink(report.c, append = TRUE)
+            
+            redund.ls <- .reducing(data.mn = t(assay(x)),
+                                   feat.df = rowData(x),
+                                   cor_method.c = cor_method.c,
+                                   cor_threshold.n = cor_threshold.n,
+                                   rt_tol.n = rt_tol.n,
+                                   rt_colname.c = rt_colname.c,
+                                   mzdiff_tol.n = mzdiff_tol.n,
+                                   mz_colname.c = mz_colname.c)
+            
+            # re-ordering features
+            x <- x[colnames(redund.ls[["data.mn"]]), ]
+            assay(x) <- t(redund.ls[["data.mn"]])
+            rowData(x) <- redund.ls[["feat.df"]]
+            adjacency.mi <- redund.ls[["corrtmz.mi"]]
+ 
+            if (!(report.c %in% c("none", "interactive")))
+              sink()
+            
+            methods::validObject(x)
+            
+            if (return_adjacency.l) {
+              
+              return(invisible(list(se = x,
+                                    adjacency.mi = adjacency.mi)))
+              
+            } else {
+              
+              return(invisible(x))
+              
+            }
+            
+          })
+
+
 #### reducing (MultiDataSet) ####
 
 #' @rdname reducing
@@ -16,9 +140,9 @@ setMethod("reducing", signature(x = "MultiDataSet"),
             if (!(report.c %in% c("none", "interactive")))
               sink(report.c, append = TRUE)
             
-            infTxtC <- report.c
-            if (infTxtC != "none")
-              infTxtC <- "interactive"
+            report_set.c <- report.c
+            if (report_set.c != "none")
+              report_set.c <- "interactive"
             
             if (return_adjacency.l)
               adjacency.ls <- list()
@@ -36,7 +160,7 @@ setMethod("reducing", signature(x = "MultiDataSet"),
                                                mzdiff_tol.n = mzdiff_tol.n,
                                                mz_colname.c = mz_colname.c,
                                                return_adjacency.l = return_adjacency.l,
-                                               report.c = infTxtC)
+                                               report.c = report_set.c)
               
               if (!return_adjacency.l) {
                 
@@ -64,6 +188,8 @@ setMethod("reducing", signature(x = "MultiDataSet"),
             
             if (!(report.c %in% c("none", "interactive")))
               sink()
+            
+            methods::validObject(x)
             
             if (return_adjacency.l) {
               
@@ -97,8 +223,8 @@ setMethod("reducing", signature(x = "ExpressionSet"),
             if (!(report.c %in% c("none", "interactive")))
               sink(report.c, append = TRUE)
             
-            redund.ls <- .reducing(exprs.mn = Biobase::exprs(x),
-                                   fdata.df = Biobase::fData(x),
+            redund.ls <- .reducing(data.mn = t(Biobase::exprs(x)),
+                                   feat.df = Biobase::fData(x),
                                    cor_method.c = cor_method.c,
                                    cor_threshold.n = cor_threshold.n,
                                    rt_tol.n = rt_tol.n,
@@ -106,15 +232,16 @@ setMethod("reducing", signature(x = "ExpressionSet"),
                                    mzdiff_tol.n = mzdiff_tol.n,
                                    mz_colname.c = mz_colname.c)
             
-            x <- x[rownames(redund.ls[["exprs.mn"]]), ]
-            Biobase::exprs(x) <- redund.ls[["exprs.mn"]]
-            Biobase::fData(x) <- redund.ls[["fdata.df"]]
+            # re-ordering features
+            x <- x[colnames(redund.ls[["data.mn"]]), ]
+            Biobase::exprs(x) <- t(redund.ls[["data.mn"]])
+            Biobase::fData(x) <- redund.ls[["feat.df"]]
             adjacency.mi <- redund.ls[["corrtmz.mi"]]
-            
-            methods::validObject(x)
             
             if (!(report.c %in% c("none", "interactive")))
               sink()
+            
+            methods::validObject(x)
             
             if (return_adjacency.l) {
               
@@ -129,8 +256,8 @@ setMethod("reducing", signature(x = "ExpressionSet"),
             
           })
 
-.reducing <- function(exprs.mn,
-                      fdata.df,
+.reducing <- function(data.mn, ## data (matrix of numerics; samples x variables)
+                      feat.df, ## feature metadata (dataframe; features x metadata)
                       cor_method.c = "pearson",
                       cor_threshold.n = 0.9,
                       rt_tol.n = 6,
@@ -140,7 +267,7 @@ setMethod("reducing", signature(x = "ExpressionSet"),
   
   # table of referenced losses (fragments, adducts, isotopes)
   
-  mzdiff_db.df <- phenomis:::.mzdiff_db()
+  mzdiff_db.df <- .mzdiff_db()
   
   mzdiff_db.df[, "delta_mass"] <- abs(mzdiff_db.df[, "delta_mass"])
   
@@ -148,16 +275,16 @@ setMethod("reducing", signature(x = "ExpressionSet"),
   
   # mean intensity for each feature
   
-  fdata.df[, "redund_samp_mean"] <- rowMeans(exprs.mn, na.rm = TRUE)
+  feat.df[, "redund_samp_mean"] <- colMeans(data.mn, na.rm = TRUE)
   
   # correlation between features
   
-  if (any(is.na(exprs.mn))) {
-    cor.mn <- stats::cor(t(exprs.mn),
+  if (any(is.na(data.mn))) {
+    cor.mn <- stats::cor(data.mn,
                          method = cor_method.c,
                          use = "pairwise.complete.obs")
   } else {
-    cor.mn <- stats::cor(t(exprs.mn),
+    cor.mn <- stats::cor(data.mn,
                          method = cor_method.c) 
   }
   
@@ -174,12 +301,12 @@ setMethod("reducing", signature(x = "ExpressionSet"),
   
   # RT difference
   
-  if (!(rt_colname.c %in% colnames(fdata.df)))
+  if (!(rt_colname.c %in% colnames(feat.df)))
     stop("The 'rt_colname.c' value '", rt_colname.c,
          "' was not found in the columns from the variable metadata:\n",
-         paste(colnames(fdata.df), collapse = ", "))
+         paste(colnames(feat.df), collapse = ", "))
   
-  rt.vn <- fdata.df[rownames(cor.mi), rt_colname.c]
+  rt.vn <- feat.df[rownames(cor.mi), rt_colname.c]
   if (any(is.na(rt.vn)))
     stop("The '", rt_colname.c, "' column contains missing values")
   
@@ -206,13 +333,13 @@ setMethod("reducing", signature(x = "ExpressionSet"),
   
   # known m/z loss
   
-  if (!(mz_colname.c %in% colnames(fdata.df)))
+  if (!(mz_colname.c %in% colnames(feat.df)))
     stop("The 'mz_colname.c' value '", mz_colname.c,
          "' was not found in the columns from the variable metadata:\n",
-         paste(colnames(fdata.df), collapse = ", "))
+         paste(colnames(feat.df), collapse = ", "))
   
   ## annotation of all pairwise differences of corrt.mi features
-  mz.vn <- fdata.df[rownames(corrt.mi), mz_colname.c]
+  mz.vn <- feat.df[rownames(corrt.mi), mz_colname.c]
   if (any(is.na(mz.vn)))
     stop("The '", mz_colname.c, "' column contains missing values")
   
@@ -223,7 +350,7 @@ setMethod("reducing", signature(x = "ExpressionSet"),
   
   mzdiff.vn <- mzdiff.mn[mzdiff_upper.mi]
   
-  mzmin.vn <- fdata.df[rownames(mzdiff.mn), mz_colname.c]
+  mzmin.vn <- feat.df[rownames(mzdiff.mn), mz_colname.c]
   
   mzannot_upper.mc <- vapply(seq_along(mzdiff.vn),
                              function(mzdiff.i) {
@@ -255,12 +382,12 @@ setMethod("reducing", signature(x = "ExpressionSet"),
   
   components.ls <- igraph::components(corrtmz.igraph)
   
-  group.vi <- rep(NA_integer_, nrow(fdata.df))
-  names(group.vi) <- rownames(fdata.df)
+  group.vi <- rep(NA_integer_, nrow(feat.df))
+  names(group.vi) <- rownames(feat.df)
   group.vi[names(components.ls[["membership"]])] <- components.ls[["membership"]]
   
-  repres.vc <- character(nrow(fdata.df))
-  names(repres.vc) <- rownames(fdata.df)
+  repres.vc <- character(nrow(feat.df))
+  names(repres.vc) <- rownames(feat.df)
   
   isoadfra.vc <- relat.vc <- repres.vc
   
@@ -272,7 +399,7 @@ setMethod("reducing", signature(x = "ExpressionSet"),
     ## features from the component
     group_feat.vc <- names(group.vi)[which(group.vi == group.i)]
     
-    ion_sel.c <- group_feat.vc[which.max(fdata.df[group_feat.vc, "redund_samp_mean"])]
+    ion_sel.c <- group_feat.vc[which.max(feat.df[group_feat.vc, "redund_samp_mean"])]
     
     repres.vc[group_feat.vc] <- ion_sel.c
     
@@ -302,11 +429,11 @@ setMethod("reducing", signature(x = "ExpressionSet"),
                                         
                                         if (sign.i > 0) {
                                           
-                                          code.c <- paste0("+(", floor(fdata.df[linked.c, mz_colname.c] * 1e4) / 1e4, ")")
+                                          code.c <- paste0("+(", floor(feat.df[linked.c, mz_colname.c] * 1e4) / 1e4, ")")
                                           
                                         } else {
                                           
-                                          code.c <- paste0("-(", floor(fdata.df[group_feat.c, mz_colname.c] * 1e4) / 1e4, ")")
+                                          code.c <- paste0("-(", floor(feat.df[group_feat.c, mz_colname.c] * 1e4) / 1e4, ")")
                                           
                                         }
                                         
@@ -481,18 +608,18 @@ setMethod("reducing", signature(x = "ExpressionSet"),
     
   }
   
-  fdata.df[, "redund_is"] <- as.numeric(!(relat.vc %in% c("", "M")))
-  fdata.df[, "redund_group"] <- group.vi
-  fdata.df[, "redund_iso_add_frag"] <- isoadfra.vc
-  fdata.df[, "redund_repres"] <- repres.vc
-  fdata.df[, "redund_relative"] <- relat.vc
+  feat.df[, "redund_is"] <- as.numeric(!(relat.vc %in% c("", "M")))
+  feat.df[, "redund_group"] <- group.vi
+  feat.df[, "redund_iso_add_frag"] <- isoadfra.vc
+  feat.df[, "redund_repres"] <- repres.vc
+  feat.df[, "redund_relative"] <- relat.vc
   
   # ordering the features according to the component
   
-  exprs.mn <- exprs.mn[order(group.vi), , drop = FALSE]
-  fdata.df <- fdata.df[order(group.vi), , drop = FALSE]
+  data.mn <- data.mn[, order(group.vi), drop = FALSE]
+  feat.df <- feat.df[order(group.vi), , drop = FALSE]
   
-  group.vi <- fdata.df[, "redund_group"]
+  group.vi <- feat.df[, "redund_group"]
   group_na.vi <- which(is.na(group.vi))
   
   if (length(group_na.vi) > 1) {
@@ -501,20 +628,20 @@ setMethod("reducing", signature(x = "ExpressionSet"),
     group_order.vi <- c(seq_len(group_na_min.i - 1),
                         rep(group_na_min.i, length(group.vi) - group_na_min.i + 1))
     feat_order.vi <- order(group_order.vi,
-                           fdata.df[, mz_colname.c],
-                           fdata.df[, rt_colname.c])
-    exprs.mn <- exprs.mn[feat_order.vi, , drop = FALSE]
-    fdata.df <- fdata.df[feat_order.vi, , drop = FALSE]
+                           feat.df[, mz_colname.c],
+                           feat.df[, rt_colname.c])
+    data.mn <- data.mn[, feat_order.vi, drop = FALSE]
+    feat.df <- feat.df[feat_order.vi, , drop = FALSE]
     
   }
   
-  message(length(table(fdata.df[, "redund_group"])), " groups")
+  message(length(table(feat.df[, "redund_group"])), " groups")
   
-  message(sum(fdata.df[, "redund_is"]), " chemically redundant features (",
-          round(sum(fdata.df[, "redund_is"]) / nrow(fdata.df) * 100), "%)")
+  message(sum(feat.df[, "redund_is"]), " chemically redundant features (",
+          round(sum(feat.df[, "redund_is"]) / nrow(feat.df) * 100), "%)")
   
-  list(exprs.mn = exprs.mn,
-       fdata.df = fdata.df,
+  list(data.mn = data.mn,
+       feat.df = feat.df,
        adjacency.mi = corrtmz.mi)
   
 }

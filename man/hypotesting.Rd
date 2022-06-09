@@ -2,6 +2,8 @@
 % Please edit documentation in R/allGenerics.R, R/hypotesting.R
 \name{hypotesting}
 \alias{hypotesting}
+\alias{hypotesting,MultiAssayExperiment-method}
+\alias{hypotesting,SummarizedExperiment-method}
 \alias{hypotesting,MultiDataSet-method}
 \alias{hypotesting,ExpressionSet-method}
 \title{Univariate hypothesis testing}
@@ -12,6 +14,40 @@ hypotesting(
     "limma2ways", "limma2waysInter", "anova2ways", "anova2waysInter")[2],
   factor_names.vc,
   factor_levels.ls = list(factor1Vc = "default", factor2Vc = "default"),
+  adjust.c = c("holm", "hochberg", "hommel", "bonferroni", "BH", "BY", "fdr",
+    "none")[5],
+  adjust_thresh.n = 0.05,
+  signif_maxprint.i = NA,
+  title.c = NA,
+  display_signif.l = FALSE,
+  prefix.c = "",
+  figure.c = c("none", "interactive", "interactive_plotly", "myfile.pdf")[2],
+  report.c = c("none", "interactive", "myfile.txt")[2]
+)
+
+\S4method{hypotesting}{MultiAssayExperiment}(
+  x,
+  test.c = c("ttest", "limma", "wilcoxon", "anova", "kruskal", "pearson", "spearman",
+    "limma2ways", "limma2waysInter", "anova2ways", "anova2waysInter")[2],
+  factor_names.vc,
+  factor_levels.ls = list(factor1.vc = "default", factor2.vc = "default"),
+  adjust.c = c("holm", "hochberg", "hommel", "bonferroni", "BH", "BY", "fdr",
+    "none")[5],
+  adjust_thresh.n = 0.05,
+  signif_maxprint.i = NA,
+  title.c = NA,
+  display_signif.l = FALSE,
+  prefix.c = "",
+  figure.c = c("none", "interactive", "interactive_plotly", "myfile.pdf")[2],
+  report.c = c("none", "interactive", "myfile.txt")[2]
+)
+
+\S4method{hypotesting}{SummarizedExperiment}(
+  x,
+  test.c = c("ttest", "limma", "wilcoxon", "anova", "kruskal", "pearson", "spearman",
+    "limma2ways", "limma2waysInter", "anova2ways", "anova2waysInter")[2],
+  factor_names.vc,
+  factor_levels.ls = list(factor1.vc = "default", factor2.vc = "default"),
   adjust.c = c("holm", "hochberg", "hommel", "bonferroni", "BH", "BY", "fdr",
     "none")[5],
   adjust_thresh.n = 0.05,
@@ -58,7 +94,7 @@ hypotesting(
 )
 }
 \arguments{
-\item{x}{An S4 object of class \code{ExpressionSet} or \code{MultiDataSet}}
+\item{x}{An S4 object of class \code{SummarizedExperiment} or \code{MultiAssayExperiment}}
 
 \item{test.c}{Character: One of the 9 available hypothesis tests can be selected
 (either 'ttest', 'limma', 'wilcoxon', 'anova', 'kruskal', 'pearson', 'spearman',
@@ -101,24 +137,24 @@ results (call to sink()'); if 'interactive' (default), messages will be
 printed on the screen; if 'none', no verbose will be generated}
 }
 \value{
-\code{ExpressionSet} or \code{MultiDataSet} including the difference in
-means/medians or correlations and the adjusted p-values in fData
+\code{SummarizedExperiment} or \code{MultiAssayExperiment} including the difference in
+means/medians or correlations and the adjusted p-values in feature metadata
 }
 \description{
-Provides numerical metrics and graphical overview of an ExpressionSet or MultiDataSet instance
+Univariate hypothesis testing
 }
 \examples{
-sacurine.eset <- phenomis::reading(system.file("extdata/W4M00001_Sacurine-statistics", package = "phenomis"))
-sacurine.eset <- phenomis::correcting(sacurine.eset, figure.c = 'none')
-sacurine.eset <- sacurine.eset[, Biobase::pData(sacurine.eset)[, "sampleType"] != "pool"]
-sacurine.eset <- phenomis::transforming(sacurine.eset)
-sacurine.eset <- sacurine.eset[, Biobase::sampleNames(sacurine.eset) != "HU_neg_096_b2"]
+sacurine.se <- reading(system.file("extdata/W4M00001_Sacurine-statistics", package = "phenomis"))
+sacurine.se <- correcting(sacurine.se, figure.c = 'none')
+sacurine.se <- sacurine.se[, colData(sacurine.se)[, "sampleType"] != "pool"]
+sacurine.se <- transforming(sacurine.se)
+sacurine.se <- sacurine.se[, colnames(sacurine.se) != "HU_neg_096_b2"]
 # Student's T test
-sacurine.eset <- hypotesting(sacurine.eset, "ttest", "gender")
+sacurine.se <- hypotesting(sacurine.se, "ttest", "gender")
 # Pearson correlation test
-sacurine.eset <- hypotesting(sacurine.eset, "pearson", "age")
+sacurine.se <- hypotesting(sacurine.se, "pearson", "age")
 # ANOVA
-Biobase::pData(sacurine.eset)[, "ageGroup"] <- vapply(Biobase::pData(sacurine.eset)[, "age"],
+colData(sacurine.se)[, "ageGroup"] <- vapply(colData(sacurine.se)[, "age"],
                                                  function(x) {
                                                    if (x < 35) {
                                                      return("thirty")
@@ -127,7 +163,7 @@ Biobase::pData(sacurine.eset)[, "ageGroup"] <- vapply(Biobase::pData(sacurine.es
                                                    } else {
                                                      return("fifty")}},
                                                  FUN.VALUE = character(1))
-sacurine.eset <- phenomis::hypotesting(sacurine.eset, "anova", "ageGroup")
-prometis.mset <- phenomis::reading(system.file("extdata/prometis", package="phenomis"))
-prometis.mset <- phenomis::hypotesting(prometis.mset, "limma", "gene")
+sacurine.se <- hypotesting(sacurine.se, "anova", "ageGroup")
+prometis.mset <- reading(system.file("extdata/prometis", package="phenomis"))
+prometis.mset <- hypotesting(prometis.mset, "limma", "gene")
 }

@@ -2,49 +2,63 @@
 % Please edit documentation in R/allGenerics.R, R/normalizing.R
 \name{normalizing}
 \alias{normalizing}
+\alias{normalizing,MultiAssayExperiment-method}
+\alias{normalizing,SummarizedExperiment-method}
 \alias{normalizing,MultiDataSet-method}
 \alias{normalizing,ExpressionSet-method}
 \title{Normalization of the dataMatrix}
 \usage{
 normalizing(
   x,
-  method.c = "pqn",
+  method.vc = "pqn",
+  report.c = c("none", "interactive", "myfile.txt")[2]
+)
+
+\S4method{normalizing}{MultiAssayExperiment}(
+  x,
+  method.vc = "pqn",
+  report.c = c("none", "interactive", "myfile.txt")[2]
+)
+
+\S4method{normalizing}{SummarizedExperiment}(
+  x,
+  method.vc = "pqn",
   report.c = c("none", "interactive", "myfile.txt")[2]
 )
 
 \S4method{normalizing}{MultiDataSet}(
   x,
-  method.c = "pqn",
+  method.vc = "pqn",
   report.c = c("none", "interactive", "myfile.txt")[2]
 )
 
 \S4method{normalizing}{ExpressionSet}(
   x,
-  method.c = "pqn",
+  method.vc = "pqn",
   report.c = c("none", "interactive", "myfile.txt")[2]
 )
 }
 \arguments{
-\item{x}{An S4 object of class \code{ExpressionSet} or \code{MultiDataSet}}
+\item{x}{An S4 object of class \code{SummarizedExperiment} or \code{MultiAssayExperiment}}
 
-\item{method.c}{Character: Normalization method (default: "pqn")}
+\item{method.vc}{character of length 1 or the total number of datasets: method(s) to be used for each dataset (default is 'pqn'); in case the parameter is of length 1 and x contains multiple datasets, the same method will be used for all datasets}
 
-\item{report.c}{Character: File name with '.txt' extension for the printed
+\item{report.c}{character(1): File name with '.txt' extension for the printed
 results (call to sink()'); if 'interactive' (default), messages will be
 printed on the screen; if 'none', no verbose will be generated}
 }
 \value{
-\code{ExpressionSet} or \code{MultiDataSet} including the exprs matrix
-(list of matrices) with transformed intensities
+\code{SummarizedExperiment} or \code{MultiAssayExperiment} including the (list of) matrix
+with normalized intensities
 }
 \description{
 Normalization of the dataMatrix intensities
 }
 \examples{
-eset <- phenomis::reading(file.path(system.file(package = "phenomis"),
-                                    "extdata/W4M00001_Sacurine-statistics"))
-eset <- eset[, Biobase::sampleNames(eset) != 'HU_neg_096_b2']
-eset <- phenomis::transforming(eset, method.c = "log10")
-norm.eset <- phenomis::normalizing(eset, method.c = "pqn")
+sacurine.se <- reading(file.path(system.file(package = "phenomis"),
+                                 "extdata/W4M00001_Sacurine-statistics"))
+sacurine.se <- sacurine.se[, colnames(sacurine.se) != 'HU_neg_096_b2']
+sacurine.se <- transforming(sacurine.se, method.vc = "log10")
+norm.se <- normalizing(sacurine.se, method.vc = "pqn")
 # MultiDataSet
 }

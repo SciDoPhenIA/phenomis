@@ -2,12 +2,32 @@
 % Please edit documentation in R/allGenerics.R, R/reading-writing.R
 \name{writing}
 \alias{writing}
+\alias{writing,MultiAssayExperiment-method}
+\alias{writing,SummarizedExperiment-method}
 \alias{writing,MultiDataSet-method}
 \alias{writing,ExpressionSet-method}
-\title{Exporting an ExpressionSet (or MultiDataSet) instance into (subfolders with)
+\title{Exporting a SummarizedExperiment (or MultiAssayExperiment) instance into (subfolders with)
 the 3 tabulated files 'dataMatrix.tsv', sampleMetadata.tsv', 'variableMetadata.tsv'}
 \usage{
 writing(
+  x,
+  dir.c,
+  prefix.c = "",
+  files.ls = NULL,
+  overwrite.l = FALSE,
+  report.c = c("none", "interactive", "myfile.txt")[2]
+)
+
+\S4method{writing}{MultiAssayExperiment}(
+  x,
+  dir.c,
+  prefix.c = "",
+  files.ls = NULL,
+  overwrite.l = FALSE,
+  report.c = c("none", "interactive", "myfile.txt")[2]
+)
+
+\S4method{writing}{SummarizedExperiment}(
   x,
   dir.c,
   prefix.c = "",
@@ -35,7 +55,7 @@ writing(
 )
 }
 \arguments{
-\item{x}{An S4 object of class \code{ExpressionSet} or \code{MultiDataSet}}
+\item{x}{An S4 object of class \code{SummarizedExperiment} or \code{MultiAssayExperiment}}
 
 \item{dir.c}{character(1): directory where each dataset should be written}
 
@@ -58,16 +78,16 @@ Note that the \code{dataMatrix} is transposed before export (e.g., the samples
 are written column wise in the 'dataMatrix.tsv' exported file).
 }
 \examples{
-metabo.eset <- phenomis::reading(system.file("extdata/prometis/metabolomics", package="phenomis"))
+metabo.se <- reading(system.file("extdata/prometis/metabolomics", package="phenomis"))
 \dontrun{
-writing(metabo.eset, dir.c = file.path(getwd(), "metabolomics"))
+writing(metabo.se, dir.c = file.path(getwd(), "metabolomics"))
 }
-# MultiDataSet
-prometis.mset <- reading(system.file("extdata/prometis",package="phenomis"))
+# MultiAssayExperiment
+prometis.mae <- reading(system.file("extdata/prometis",package="phenomis"))
 \dontrun{
-writing(prometis.mset, dir.c = file.path(getwd(), "prometis"))
+writing(prometis.mae, dir.c = file.path(getwd(), "prometis"))
 # alternatively
-writing(prometis.mset,
+writing(prometis.mae,
          dir.c = NA,
          files.ls = list(metabolomics = list(dataMatrix.tsvC = file.path(getwd(), "met_dataMatrix.tsv"),
                                       sampleMetadata.tsvC = file.path(getwd(), "met_sampleMetadata.tsv"),

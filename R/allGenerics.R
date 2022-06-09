@@ -4,34 +4,35 @@
 #'
 #' Annotation with chemical and biological databases
 #' 
-#' @param x An S4 object of class \code{ExpressionSet} or \code{MultiDataSet}
+#' @param x An S4 object of class \code{SummarizedExperiment} or \code{MultiAssayExperiment}
 #' @param database.c character: database to be used for annotation
 #' @param param.ls list: parameters for database query; see the example below for
 #' the name and related database of each of them
 #' @param report.c Character: File name with '.txt' extension for the printed
 #' results (call to sink()'); if 'interactive' (default), messages will be
 #' printed on the screen; if 'none', no verbose will be generated
-#' @return \code{ExpressionSet} or \code{MultiDataSet} including the appended fData
+#' @return \code{SummarizedExperiment} or \code{MultiAssayExperiment} including the appended rowData
 #' data frame(s)
 #' @rdname annotating
 #' @export
 #' @examples
-#' sacurine.eset <- phenomis::reading(system.file("extdata/W4M00001_Sacurine-statistics", package = "phenomis"))
+#' sacurine.se <- reading(system.file("extdata/W4M00001_Sacurine-statistics", package = "phenomis"))
 #' # see the (default) parameters (e.g. for ChEBI query)
-#' phenomis::annotating_parameters("chebi")
+#' annotating_parameters("chebi")
 #' # mz annotation with ChEBI
-#' sacurine.eset <- phenomis::annotating(sacurine.eset, database.c = "chebi", param.ls = list(query.type = "mz", query.col = "mass_to_charge", ms.mode = "neg", prefix = "chebiMZ."))
+#' sacurine.se <- annotating(sacurine.se, database.c = "chebi", param.ls = list(query.type = "mz", query.col = "mass_to_charge", ms.mode = "neg", prefix = "chebiMZ."))
 #' # mz annotation with local database
 #' msdbDF <- read.table(system.file("extdata/local_ms_db.tsv", package = "phenomis"),
 #' header = TRUE, sep = "\t", stringsAsFactors = FALSE)
-#' sacurine.eset <- phenomis::annotating(sacurine.eset, database.c = "local.ms",
+#' sacurine.se <- annotating(sacurine.se, database.c = "local.ms",
 #' param.ls = list(query.type = "mz", query.col = "mass_to_charge", ms.mode = "neg",
 #' mz.tol = 5, mz.tol.unit = "ppm", local.ms.db = msdbDF, prefix = "localMS."))
-#' Biobase::fData(sacurine.eset)[!is.na(Biobase::fData(sacurine.eset)[, "localMS.accession"]), ]
+#' rowData(sacurine.se)[!is.na(rowData(sacurine.se)[, "localMS.accession"]), ]
 #' # annotation from ChEBI identifiers
-#' sacurine.eset <- phenomis::annotating(sacurine.eset, database.c = "chebi",
+#' sacurine.se <- annotating(sacurine.se, database.c = "chebi",
 #' param.ls = list(query.type = "chebi.id", query.col = "database_identifier",
 #' prefix = "chebiID."))
+#' head(rowData(sacurine.se))
 setGeneric("annotating",
            function(x,
                     database.c = c("chebi", "local.ms")[1],
@@ -57,7 +58,7 @@ setGeneric("annotating",
 #'
 #' Hierarchical clustering of both samples and variables
 #'
-#' @param x An S4 object of class \code{ExpressionSet} or \code{MultiDataSet}
+#' @param x An S4 object of class \code{SummarizedExperiment} or \code{MultiAssayExperiment}
 #' @param dissym.c character: [hclust]
 #' @param correl.c character: correlation coefficient (in case
 #' '1-cor' or '1-abs(cor)' are selected as dissymilarity)
@@ -74,21 +75,21 @@ setGeneric("annotating",
 #' @param report.c character: File name with '.txt' extension for the printed
 #' results (call to sink()'); if 'interactive' (default), messages will be
 #' printed on the screen; if 'none', no verbose will be generated
-#' @return \code{ExpressionSet} or \code{MultiDataSet} including columns indicating
-#' the clusters in pData and fData if 'clusters.vi' has been specified
+#' @return \code{SummarizedExperiment} or \code{MultiAssayExperiment} including columns indicating
+#' the clusters in rowData and colData if 'clusters.vi' has been specified
 #' @rdname clustering
 #' @export
 #' @examples
-#' sacurine.eset <- phenomis::reading(system.file("extdata/W4M00001_Sacurine-statistics", package = "phenomis"))
-#' sacurine.eset <- phenomis::correcting(sacurine.eset)
-#' sacurine.eset <- sacurine.eset[, Biobase::pData(sacurine.eset)[, "sampleType"] != "pool"]
-#' sacurine.eset <- phenomis::transforming(sacurine.eset)
-#' sacurine.eset <- sacurine.eset[, Biobase::sampleNames(sacurine.eset) != "HU_neg_096_b2"]
-#' sacurine.eset <- phenomis::clustering(sacurine.eset)
-#' utils::head(Biobase::fData(sacurine.eset))
+#' sacurine.se <- reading(system.file("extdata/W4M00001_Sacurine-statistics", package = "phenomis"))
+#' sacurine.se <- correcting(sacurine.se)
+#' sacurine.se <- sacurine.se[, pData(sacurine.se)[, "sampleType"] != "pool"]
+#' sacurine.se <- transforming(sacurine.se)
+#' sacurine.se <- sacurine.se[, sampleNames(sacurine.se) != "HU_neg_096_b2"]
+#' sacurine.se <- clustering(sacurine.se)
+#' utils::head(fData(sacurine.se))
 #' # MultiDataSet
-#' prometis.mset <- phenomis::reading(system.file("extdata/prometis/", package="phenomis"))
-#' prometis.mset <- phenomis::clustering(prometis.mset, clusters.vi = c(3, 3))
+#' prometis.mset <- reading(system.file("extdata/prometis/", package="phenomis"))
+#' prometis.mset <- clustering(prometis.mset, clusters.vi = c(3, 3))
 setGeneric("clustering",
            function(x,
                     dissym.c = c("euclidean",
@@ -127,20 +128,22 @@ setGeneric("clustering",
 #'
 #' Signal drift and batch effect correction
 #'
-#' @param x An S4 object of class \code{ExpressionSet} or \code{MultiDataSet}
-#' @param reference.c Character: sample type to be used as reference for
-#' the correction (as indicated in the 'colnameSampleType' column from the
-#' pData(x); e.g. 'pool')
-#' @param span.n Numeric: smoothing parameter for the loess regression;
-#' between 0 and 1; (default set to 1)
+#' @param x An S4 object of class \code{SummarizedExperiment} or \code{MultiAssayExperiment}
+#' @param method.vc character of length 1 or the total number of datasets: method(s) to be used for each dataset (either 'serrf' or 'loess'); for the 'serrf' approach, the seed is internally set to 123 for reproducibility; in case the parameter is of length 1 and x contains multiple datasets, the same method will be used for all datasets
+#' @param reference.vc character of length 1 or the total number of datasets: sample type to be used as reference for
+#' the correction (as indicated in the 'sampleType' column from the
+#' colData(x); e.g. 'pool' [default]); should be set to 'pool' for the 'serrf' method; in case the parameter is of length 1 and x contains multiple datasets, the same reference sample type will be used for all datasets
+#' @param loess_span.vn character of length 1 or the total number of datasets: smoothing parameter for the loess regression;
+#' between 0 and 1; (default set to 1); in case the parameter is of length 1 and x contains multiple datasets, the same span value will be used for all datasets
+#' @param serrf_corvar.vi character of length 1 or the total number of datasets: number of correlated features for the random forest regression; (default set to 10); in case the parameter is of length 1 and x contains multiple datasets, the same value will be used for all datasets
 #' @param sample_intensity.c Character: metric to be used when displaying the sample intensities
-#' @param title.c Character (ExpressionSet): Graphic title: if NA [default] the
-#' title slot from the experimentData will be used
-#' @param col_batch.c Character: name of the column from pData(x) containing
+#' @param title.c Character: Graphic title: if NA [default] the
+#' 'title' slot from the experimentData will be used (metadata)
+#' @param col_batch.c Character: name of the column from colData(x) containing
 #' the batch information (encoded as characters)
-#' @param col_injectionOrder.c Character: name of the column from pData(x)
+#' @param col_injectionOrder.c Character: name of the column from colData(x)
 #' containing the injection order information (encoded as numerics)
-#' @param col_sampleType.c Character:  name of the column from pData(x)
+#' @param col_sampleType.c Character:  name of the column from colData(x)
 #' containing the sample type information (encoded as characters)
 #' @param figure.c Character: File name with '.pdf' extension for the figure;
 #' if 'interactive' (default), figures will be displayed interactively; if 'none',
@@ -148,18 +151,20 @@ setGeneric("clustering",
 #' @param report.c Character: File name with '.txt' extension for the printed
 #' results (call to sink()'); if 'interactive' (default), messages will be
 #' printed on the screen; if 'none', no verbose will be generated
-#' @return \code{ExpressionSet} or \code{MultiDataSet} including the corrected
-#' intensities in the expr matrix (matrices)
+#' @return \code{SummarizedExperiment} or \code{MultiAssayExperiment} including the corrected
+#' intensities in the assay matrix (matrices)
 #' @rdname correcting
 #' @export
 #' @examples
-#' sacurine.eset <- phenomis::reading(system.file("extdata/W4M00001_Sacurine-statistics", package = "phenomis"))
-#' sacurine.eset <- phenomis::correcting(sacurine.eset)
+#' sacurine.se <- reading(system.file("extdata/W4M00001_Sacurine-statistics", package = "phenomis"))
+#' sacurine.se <- correcting(sacurine.se)
 #' # MultiDataSet (to be done)
 setGeneric("correcting",
            function(x,
-                    reference.c = c("pool", "sample")[1],
-                    span.n = 1,
+                    method.vc = c("loess", "serrf")[1],
+                    reference.vc = c("pool", "sample")[1],
+                    loess_span.vn = 1,
+                    serrf_corvar.vi = 10,
                     sample_intensity.c = c("median", "mean", "sum")[2],
                     title.c = NA,
                     col_batch.c = "batch",
@@ -175,7 +180,7 @@ setGeneric("correcting",
 #'
 #' Filtering of the features (or samples) with a high proportion of NAs or a low variance
 #'
-#' @param x An S4 object of class \code{ExpressionSet} or \code{MultiDataSet}
+#' @param x An S4 object of class \code{SummarizedExperiment} or \code{MultiAssayExperiment}
 #' @param class.c character(1): name of the column of the sample metadata giving
 #' the classification groups: the filtering will be applied on each class
 #' (default: "" meaning that there are no specific classes to consider)
@@ -190,24 +195,23 @@ setGeneric("correcting",
 #' @param report.c character(1): File name with '.txt' extension for the printed
 #' results (call to sink()'); if 'interactive' (default), messages will be
 #' printed on the screen; if 'none', no verbose will be generated
-#' @return \code{ExpressionSet} or \code{MultiDataSet} including the exprs matrix
-#' (list of matrices) with transformed intensities
+#' @return \code{SummarizedExperiment} or \code{MultiAssayExperiment} including the filtered data and metadata
 #' @rdname filtering
 #' @export
 #' @examples
-#' sacurine.eset <- phenomis::reading(system.file("extdata/W4M00001_Sacurine-statistics", package = "phenomis"))
-#' exprs.mn <- Biobase::exprs(sacurine.eset)
-#' ropls::view(exprs.mn)
-#' phenomis::filtering(sacurine.eset)
-#' exprs.mn[exprs.mn < 1e5] <- NA
-#' ropls::view(exprs.mn)
-#' Biobase::exprs(sacurine.eset) <- exprs.mn
-#' phenomis::filtering(sacurine.eset)
-#' phenomis::filtering(sacurine.eset, class.c = "gender")
-#' phenomis::filtering(sacurine.eset, class.c = "sampleType")
+#' sacurine.se <- reading(system.file("extdata/W4M00001_Sacurine-statistics", package = "phenomis"))
+#' assay.mn <- assay(sacurine.se)
+#' ropls::view(assay.mn)
+#' filtering(sacurine.se)
+#' assay.mn[assay.mn < 1e5] <- NA
+#' ropls::view(assay.mn)
+#' assay(sacurine.se) <- assay.mn
+#' filtering(sacurine.se)
+#' filtering(sacurine.se, class.c = "gender")
+#' filtering(sacurine.se, class.c = "sampleType")
 #' # MultiDataSet
-#' prometis.mset <- phenomis::reading(system.file("extdata/prometis", package="phenomis"))
-#' phenomis::filtering(prometis.mset)
+#' prometis.mset <- reading(system.file("extdata/prometis", package="phenomis"))
+#' filtering(prometis.mset)
 #' for (set.c in names(prometis.mset)) {
 #' eset <- prometis.mset[[set.c]]
 #' exprs.mn <- Biobase::exprs(eset)
@@ -216,7 +220,7 @@ setGeneric("correcting",
 #' prometis.mset <- MultiDataSet::add_eset(prometis.mset, eset, dataset.type = set.c,
 #'                                         GRanges = NA, overwrite = TRUE, warnings = FALSE)
 #' }
-#' phenomis::filtering(prometis.mset)
+#' filtering(prometis.mset)
 setGeneric("filtering",
            function(x,
                     class.c = "",
@@ -231,9 +235,9 @@ setGeneric("filtering",
 
 #' Univariate hypothesis testing
 #'
-#' Provides numerical metrics and graphical overview of an ExpressionSet or MultiDataSet instance
+#' Univariate hypothesis testing
 #'
-#' @param x An S4 object of class \code{ExpressionSet} or \code{MultiDataSet}
+#' @param x An S4 object of class \code{SummarizedExperiment} or \code{MultiAssayExperiment}
 #' @param test.c Character: One of the 9 available hypothesis tests can be selected
 #' (either 'ttest', 'limma', 'wilcoxon', 'anova', 'kruskal', 'pearson', 'spearman',
 #' 'limma2ways', 'limma2waysInter', 'anova2ways', 'anova2waysInter')
@@ -263,22 +267,22 @@ setGeneric("filtering",
 #' @param report.c Character: File name with '.txt' extension for the printed
 #' results (call to sink()'); if 'interactive' (default), messages will be
 #' printed on the screen; if 'none', no verbose will be generated
-#' @return \code{ExpressionSet} or \code{MultiDataSet} including the difference in
-#' means/medians or correlations and the adjusted p-values in fData
+#' @return \code{SummarizedExperiment} or \code{MultiAssayExperiment} including the difference in
+#' means/medians or correlations and the adjusted p-values in feature metadata
 #' @rdname hypotesting
 #' @export
 #' @examples
-#' sacurine.eset <- phenomis::reading(system.file("extdata/W4M00001_Sacurine-statistics", package = "phenomis"))
-#' sacurine.eset <- phenomis::correcting(sacurine.eset, figure.c = 'none')
-#' sacurine.eset <- sacurine.eset[, Biobase::pData(sacurine.eset)[, "sampleType"] != "pool"]
-#' sacurine.eset <- phenomis::transforming(sacurine.eset)
-#' sacurine.eset <- sacurine.eset[, Biobase::sampleNames(sacurine.eset) != "HU_neg_096_b2"]
+#' sacurine.se <- reading(system.file("extdata/W4M00001_Sacurine-statistics", package = "phenomis"))
+#' sacurine.se <- correcting(sacurine.se, figure.c = 'none')
+#' sacurine.se <- sacurine.se[, colData(sacurine.se)[, "sampleType"] != "pool"]
+#' sacurine.se <- transforming(sacurine.se)
+#' sacurine.se <- sacurine.se[, colnames(sacurine.se) != "HU_neg_096_b2"]
 #' # Student's T test
-#' sacurine.eset <- hypotesting(sacurine.eset, "ttest", "gender")
+#' sacurine.se <- hypotesting(sacurine.se, "ttest", "gender")
 #' # Pearson correlation test
-#' sacurine.eset <- hypotesting(sacurine.eset, "pearson", "age")
+#' sacurine.se <- hypotesting(sacurine.se, "pearson", "age")
 #' # ANOVA
-#' Biobase::pData(sacurine.eset)[, "ageGroup"] <- vapply(Biobase::pData(sacurine.eset)[, "age"],
+#' colData(sacurine.se)[, "ageGroup"] <- vapply(colData(sacurine.se)[, "age"],
 #'                                                  function(x) {
 #'                                                    if (x < 35) {
 #'                                                      return("thirty")
@@ -287,9 +291,9 @@ setGeneric("filtering",
 #'                                                    } else {
 #'                                                      return("fifty")}},
 #'                                                  FUN.VALUE = character(1))
-#' sacurine.eset <- phenomis::hypotesting(sacurine.eset, "anova", "ageGroup")
-#' prometis.mset <- phenomis::reading(system.file("extdata/prometis", package="phenomis"))
-#' prometis.mset <- phenomis::hypotesting(prometis.mset, "limma", "gene")
+#' sacurine.se <- hypotesting(sacurine.se, "anova", "ageGroup")
+#' prometis.mset <- reading(system.file("extdata/prometis", package="phenomis"))
+#' prometis.mset <- hypotesting(prometis.mset, "limma", "gene")
 setGeneric("hypotesting",
            function(x,
                     test.c = c("ttest", "limma", "wilcoxon",
@@ -318,26 +322,26 @@ setGeneric("hypotesting",
 #' Provides numerical metrics and graphical overview of an ExpressionSet or MultiDataSet instance
 #' Please note that all variables with a proportion of missing values > 'max_na_prop.n'
 #' or a variance of 0 will be filtered out at the beginning of the method and
-#' therefore in the output ExpressionSet(s)
+#' therefore in the output SummarizedExperiments(s)
 #'
-#' @param x An S4 object of class \code{ExpressionSet} or \code{MultiDataSet}
+#' @param x An S4 object of class \code{SummarizedExperiment} or \code{MultiAssayExperiment}
 #' @param pool_as_pool1.l Logical: should pool be included (as pool1) in the correlation
 #' with the dilution factor?
 #' @param pool_cv.n Numeric: threshold for the coefficient of variation of the pools
-#' @param span.n Numeric: span parameter used in the loess trend estimation
+#' @param loess_span.n Numeric: span parameter used in the loess trend estimation
 #' @param sample_intensity.c Character: function to be used to display the global
 #' sample intensity; default: 'mean'
-#' @param title.c Character: MultiDataSet: title of the barplot showing the number
+#' @param title.c Character: MultiAssayExperiment: title of the barplot showing the number
 #' of samples and variables in each dataset; ExpressionSet: title of the multipanel
 #' graphic displaying the metrics (if NA -default- the title slot from the experimentData
 #' will be used)
-#' @param plot_dims.l (MultiDataSet) Logical: should an overview of the number of samples and
+#' @param plot_dims.l (MultiAssayExperiment) Logical: should an overview of the number of samples and
 #' variables in all datasets be barplotted?
-#' @param col_batch.c Character: name of the column from pData(x) containing
+#' @param col_batch.c Character: name of the column from colData(x) containing
 #' the batch information (encoded as characters)
-#' @param col_injectionOrder.c Character: name of the column from pData(x)
+#' @param col_injectionOrder.c Character: name of the column from colData(x)
 #' containing the injection order information (encoded as numerics)
-#' @param col_sampleType.c Character:  name of the column from pData(x)
+#' @param col_sampleType.c Character:  name of the column from colData(x)
 #' containing the sample type information (encoded as characters)
 #' @param figure.c Character: File name with '.pdf' extension for the figure;
 #' if 'interactive' (default), figures will be displayed interactively; if 'none',
@@ -345,26 +349,26 @@ setGeneric("hypotesting",
 #' @param report.c Character: File name with '.txt' extension for the printed
 #' results (call to sink()'); if 'interactive' (default), messages will be
 #' printed on the screen; if 'none', no verbose will be generated
-#' @return \code{ExpressionSet} or \code{MultiDataSet} including the computed
-#' in pData and fData sample and variable metrics
+#' @return \code{SummarizedExperiment} or \code{MultiAssayExperiment} including the computed
+#' in rowData and colData sample and variable metrics
 #' @rdname inspecting
 #' @examples
-#' sacurine.eset <- reading(system.file("extdata/W4M00001_Sacurine-statistics", package = "phenomis"))
-#' sacurine.eset <- inspecting(sacurine.eset)
-#' sacurine.eset <- correcting(sacurine.eset)
-#' sacurine.eset <- inspecting(sacurine.eset)
-#' sacurine.eset <- transforming(sacurine.eset)
-#' sacurine.eset <- inspecting(sacurine.eset)
-#' # MultiDataSet
-#' prometis.mset <- reading(system.file("extdata/prometis", package = "phenomis"))
+#' sacurine.se <- reading(system.file("extdata/W4M00001_Sacurine-statistics", package = "phenomis"))
+#' sacurine.se <- inspecting(sacurine.se)
+#' sacurine.se <- correcting(sacurine.se)
+#' sacurine.se <- inspecting(sacurine.se)
+#' sacurine.se <- transforming(sacurine.se)
+#' sacurine.se <- inspecting(sacurine.se)
+#' # MultiAssayExperiment
+#' prometis.mae <- reading(system.file("extdata/prometis", package = "phenomis"))
 #'\dontrun{
-#' prometis.mset <- inspecting(prometis.mset)
+#' prometis.mae <- inspecting(prometis.mae)
 #'}
 setGeneric("inspecting",
            function(x,
                     pool_as_pool1.l = FALSE,
                     pool_cv.n = 0.3,
-                    span.n = 1,
+                    loess_span.n = 1,
                     sample_intensity.c = c("median", "mean", "sum")[2],
                     title.c = NA,
                     plot_dims.l = TRUE,
@@ -382,26 +386,26 @@ setGeneric("inspecting",
 #'
 #' Normalization of the dataMatrix intensities
 #'
-#' @param x An S4 object of class \code{ExpressionSet} or \code{MultiDataSet}
-#' @param method.c Character: Normalization method (default: "pqn")
-#' @param report.c Character: File name with '.txt' extension for the printed
+#' @param x An S4 object of class \code{SummarizedExperiment} or \code{MultiAssayExperiment}
+#' @param method.vc character of length 1 or the total number of datasets: method(s) to be used for each dataset (default is 'pqn'); in case the parameter is of length 1 and x contains multiple datasets, the same method will be used for all datasets
+#' @param report.c character(1): File name with '.txt' extension for the printed
 #' results (call to sink()'); if 'interactive' (default), messages will be
 #' printed on the screen; if 'none', no verbose will be generated
-#' @return \code{ExpressionSet} or \code{MultiDataSet} including the exprs matrix
-#' (list of matrices) with transformed intensities
+#' @return \code{SummarizedExperiment} or \code{MultiAssayExperiment} including the (list of) matrix
+#' with normalized intensities
 #' @rdname normalizing
 #' @export
 #' @examples
-#' eset <- phenomis::reading(file.path(system.file(package = "phenomis"),
-#'                                     "extdata/W4M00001_Sacurine-statistics"))
-#' eset <- eset[, Biobase::sampleNames(eset) != 'HU_neg_096_b2']
-#' eset <- phenomis::transforming(eset, method.c = "log10")
-#' norm.eset <- phenomis::normalizing(eset, method.c = "pqn")
+#' sacurine.se <- reading(file.path(system.file(package = "phenomis"),
+#'                                  "extdata/W4M00001_Sacurine-statistics"))
+#' sacurine.se <- sacurine.se[, colnames(sacurine.se) != 'HU_neg_096_b2']
+#' sacurine.se <- transforming(sacurine.se, method.vc = "log10")
+#' norm.se <- normalizing(sacurine.se, method.vc = "pqn")
 #' # MultiDataSet
 
 setGeneric("normalizing",
            function(x,
-                    method.c = "pqn",
+                    method.vc = "pqn",
                     report.c = c("none", "interactive", "myfile.txt")[2])
              standardGeneric("normalizing"))
 
@@ -426,7 +430,7 @@ setGeneric("normalizing",
 #' Note: the algorithm relies on the 'mzdiff_db.tsv' file referencing the known adducts,
 #' isotopes, and fragments.
 #'
-#' @param x An S4 object of class \code{ExpressionSet} or \code{MultiDataSet}:
+#' @param x An S4 object of class \code{SummarizedExperiment} or \code{MultiAssayExperiment}:
 #' the dataset(s) must contain the dataMatrix and the variableMetadata (with the
 #' 'mz' and 'rt' columns)
 #' @param cor_method.c character(1): correlation method (default: 'pearson')
@@ -442,8 +446,8 @@ setGeneric("normalizing",
 #' @param report.c character(1): File name with '.txt' extension for the printed
 #' results (call to sink()'); if 'interactive' (default), messages will be
 #' printed on the screen; if 'none', no verbose will be generated
-#' @return updated \code{ExpressionSet} or \code{MultiDataSet}: the ExpressionSet(s)
-#' now include(s) 5 new columns in the fData: 'redund_samp_mean', 'redund_is',
+#' @return updated \code{SummarizedExperiment} or \code{MultiAssayExperiment}: the summarized experiment(s)
+#' now include(s) 5 new columns in the rowData: 'redund_samp_mean', 'redund_is',
 #' 'redund_group', redund_iso_add_frag', 'redund_repres' and 'redund_relative'
 #' containing, respectively, the redundant features (coded by 1; i.e. features with
 #' a relative annotation distinct from '' and 'M'), the connected components,
@@ -451,12 +455,12 @@ setGeneric("normalizing",
 #' the annotations relative to this representative ion within each group
 #' @export
 #' @examples
-#' sac.eset <- phenomis::reading(system.file("extdata/W4M00002_Sacurine-comprehensive",
+#' sacurine.se <- reading(system.file("extdata/W4M00002_Sacurine-comprehensive",
 #'                                           package = "phenomis"),
-#'                               report.c = "none")
-#' sac.eset <- phenomis::reducing(sac.eset,
-#'                                rt_tol.n = 6)
-#' table(Biobase::fData(sac.eset)[, "redund_group"])
+#'                       report.c = "none")
+#' sacurine.se <- reducing(sacurine.se,
+#'                         rt_tol.n = 6)
+#' table(rowData(sacurine.se)[, "redund_group"])
 setGeneric("reducing",
            function(x,
                     cor_method.c = "pearson",
@@ -476,40 +480,39 @@ setGeneric("reducing",
 #'
 #' Transformation of the dataMatrix intensities
 #'
-#' @param x An S4 object of class \code{ExpressionSet} or \code{MultiDataSet}
-#' @param method.c Character: Factor of interest (name of a column from the
-#' pData(x))
+#' @param x An S4 object of class \code{SummarizedExperiment} or \code{MultiAssayExperiment} (\code{ExpressionSet} and \code{MultiDataSet} are deprecated)
+#' @param method.vc character(): type of transformation (either 'log2', 'log10', or 'sqrt'); in case of a MultiAssayExperiment, distinct methods may be provided for each dataset
 #' @param report.c Character: File name with '.txt' extension for the printed
 #' results (call to sink()'); if 'interactive' (default), messages will be
 #' printed on the screen; if 'none', no verbose will be generated
-#' @return \code{ExpressionSet} or \code{MultiDataSet} including the exprs matrix
-#' (list of matrices) with transformed intensities
+#' @return \code{SummarizedExperiment} (or \code{MultiAssayExperiment}) including the (list of) matrix 
+#' with transformed intensities
 #' @rdname transforming
 #' @export
 #' @examples
-#' sacurine.eset <- phenomis::reading(system.file("extdata/W4M00001_Sacurine-statistics", package = "phenomis"))
-#' sacurine.eset <- phenomis::correcting(sacurine.eset)
-#' sacurine.eset <- sacurine.eset[, Biobase::pData(sacurine.eset)[, "sampleType"] != "pool"]
-#' sacurine.eset <- phenomis::transforming(sacurine.eset)
+#' sacurine.se <- reading(system.file("extdata/W4M00001_Sacurine-statistics", package = "phenomis"))
+#' sacurine.se <- correcting(sacurine.se)
+#' sacurine.se <- sacurine.se[, colData(sacurine.se)[, "sampleType"] != "pool"]
+#' sacurine.se <- transforming(sacurine.se)
 #' # MultiDataSet
-#' prometis.mset <- phenomis::reading(system.file("extdata/prometis", package="phenomis"))
-#' prometis.mset <- phenomis::transforming(prometis.mset)
+#' prometis.mae <- reading(system.file("extdata/prometis", package = "phenomis"))
+#' prometis.mset <- transforming(prometis.mset)
 setGeneric("transforming",
            function(x,
-                    method.c = c("log2", "log10", "sqrt")[1],
+                    method.vc = c("log2", "log10", "sqrt")[1],
                     report.c = c("none", "interactive", "myfile.txt")[2])
              standardGeneric("transforming"))
 
 
 #### writing ####
 
-#' Exporting an ExpressionSet (or MultiDataSet) instance into (subfolders with)
+#' Exporting a SummarizedExperiment (or MultiAssayExperiment) instance into (subfolders with)
 #' the 3 tabulated files 'dataMatrix.tsv', sampleMetadata.tsv', 'variableMetadata.tsv'
 #'
 #' Note that the \code{dataMatrix} is transposed before export (e.g., the samples
 #' are written column wise in the 'dataMatrix.tsv' exported file).
 #'
-#' @param x An S4 object of class \code{ExpressionSet} or \code{MultiDataSet}
+#' @param x An S4 object of class \code{SummarizedExperiment} or \code{MultiAssayExperiment}
 #' @param dir.c character(1): directory where each dataset should be written
 #' @param prefix.c character(1): prefix to be used (followed by '_') in the
 #' 'dataMatrix.tsv', 'sampleMetadata.tsv', and 'variableMetadata.tsv' file names
@@ -522,16 +525,16 @@ setGeneric("transforming",
 #' @rdname writing
 #' @export
 #' @examples
-#' metabo.eset <- phenomis::reading(system.file("extdata/prometis/metabolomics", package="phenomis"))
+#' metabo.se <- reading(system.file("extdata/prometis/metabolomics", package="phenomis"))
 #'\dontrun{
-#' writing(metabo.eset, dir.c = file.path(getwd(), "metabolomics"))
+#' writing(metabo.se, dir.c = file.path(getwd(), "metabolomics"))
 #'}
-#'# MultiDataSet
-#' prometis.mset <- reading(system.file("extdata/prometis",package="phenomis"))
+#'# MultiAssayExperiment
+#' prometis.mae <- reading(system.file("extdata/prometis",package="phenomis"))
 #'\dontrun{
-#' writing(prometis.mset, dir.c = file.path(getwd(), "prometis"))
+#' writing(prometis.mae, dir.c = file.path(getwd(), "prometis"))
 #' # alternatively
-#' writing(prometis.mset,
+#' writing(prometis.mae,
 #'          dir.c = NA,
 #'          files.ls = list(metabolomics = list(dataMatrix.tsvC = file.path(getwd(), "met_dataMatrix.tsv"),
 #'                                       sampleMetadata.tsvC = file.path(getwd(), "met_sampleMetadata.tsv"),

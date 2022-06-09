@@ -1,3 +1,159 @@
+#### annotating (MultiAssayExperiment) ####
+#' @rdname annotating
+#' @export
+setMethod("annotating", signature(x = "MultiAssayExperiment"),
+          function(x,
+                   database.c = c("chebi", "local.ms")[1],
+                   param.ls = list(query.type = c("mz", "chebi.id", "kegg.id")[1],
+                                   query.col = "mz",
+                                   ms.mode = "pos",
+                                   mz.tol = 10,
+                                   mz.tol.unit = "ppm",
+                                   fields = c("chebi.id", "name", "formula", "molecular.mass", "monoisotopic.mass"),
+                                   fieldsLimit = 1,
+                                   max.results = 3,
+                                   local.ms.db = data.frame(),
+                                   organism = "hsa",
+                                   prefix = paste0(database.c, "."),
+                                   sep = "|"),
+                   report.c = c("none", "interactive", "myfile.txt")[2]) {
+            
+            if (!(report.c %in% c("none", "interactive")))
+              sink(report.c, append = TRUE)
+            
+            report_set.c <- report.c
+            if (report_set.c != "none")
+              report_set.c <- "interactive"
+            
+            for (set.c in names(x)) {
+              
+              if (report.c != "none")
+                message("Annotating the '", set.c, "' dataset:")
+              
+              se <- x[[set.c]]
+              
+              SummarizedExperiment::rowData(se) <- .annotating(SummarizedExperiment::rowData(se),
+                                                               database.c = database.c,
+                                                               param.ls = param.ls,
+                                                               report_set.c != "none")
+              
+              x[[set.c]] <- se
+              
+            }
+            
+            if (!(report.c %in% c("none", "interactive")))
+              sink()
+            
+            methods::validObject(x)
+            
+            return(invisible(x))
+            
+          })
+
+#### annotating (SummarizedExperiment) ####
+#' @rdname annotating
+#' @export
+setMethod("annotating", signature(x = "SummarizedExperiment"),
+          function(x,
+                   database.c = c("chebi", "local.ms")[1],
+                   param.ls = list(query.type = c("mz", "chebi.id", "kegg.id")[1],
+                                   query.col = "mz",
+                                   ms.mode = "pos",
+                                   mz.tol = 10,
+                                   mz.tol.unit = "ppm",
+                                   fields = c("chebi.id", "name", "formula", "molecular.mass", "monoisotopic.mass"),
+                                   fieldsLimit = 1,
+                                   max.results = 3,
+                                   local.ms.db = data.frame(),
+                                   organism = "hsa",
+                                   prefix = paste0(database.c, "."),
+                                   sep = "|"),
+                   report.c = c("none", "interactive", "myfile.txt")[2]) {
+            
+            if (!(report.c %in% c("none", "interactive")))
+              sink(report.c, append = TRUE)
+            
+            if (length(database.c) != 1)
+              stop("'database.c' must be a character vector of length 1.",
+                   call. = FALSE)
+            
+            availableDatabasesVc <- c("chebi", "local.ms", "kegg")
+            if (!(database.c %in% availableDatabasesVc))
+              stop("'database.c' must be in either: '", paste(availableDatabasesVc,
+                                                              collapse = "', '"), "'.",
+                   call. = FALSE)
+            
+            SummarizedExperiment::rowData(x) <- .annotating(SummarizedExperiment::rowData(x),
+                                                            database.c = database.c,
+                                                            param.ls = param.ls,
+                                                            report.c != "none")
+            
+            if (!(report.c %in% c("none", "interactive")))
+              sink()
+            
+            methods::validObject(x)
+            
+            return(invisible(x))
+            
+          })
+
+#### annotating (MultiDataSet) ####
+#' @rdname annotating
+#' @export
+setMethod("annotating", signature(x = "MultiDataSet"),
+          function(x,
+                   database.c = c("chebi", "local.ms")[1],
+                   param.ls = list(query.type = c("mz", "chebi.id", "kegg.id")[1],
+                                   query.col = "mz",
+                                   ms.mode = "pos",
+                                   mz.tol = 10,
+                                   mz.tol.unit = "ppm",
+                                   fields = c("chebi.id", "name", "formula", "molecular.mass", "monoisotopic.mass"),
+                                   fieldsLimit = 1,
+                                   max.results = 3,
+                                   local.ms.db = data.frame(),
+                                   organism = "hsa",
+                                   prefix = paste0(database.c, "."),
+                                   sep = "|"),
+                   report.c = c("none", "interactive", "myfile.txt")[2]) {
+            
+            if (!(report.c %in% c("none", "interactive")))
+              sink(report.c, append = TRUE)
+            
+            report_set.c <- report.c
+            if (report_set.c != "none")
+              report_set.c <- "interactive"
+            
+            for (set.c in names(x)) {
+              
+              if (report.c != "none")
+                message("Annotating the '", set.c, "' dataset:")
+              
+              ese <- x[[set.c]]
+              
+              Biobase::fData(ese) <- .annotating(Biobase::fData(ese),
+                                                 database.c = database.c,
+                                                 param.ls = param.ls,
+                                                 report_set.c != "none")
+              
+              x <- MultiDataSet::add_eset(x,
+                                          ese,
+                                          dataset.type = set.c,
+                                          GRanges = NA,
+                                          overwrite = TRUE,
+                                          warnings = FALSE)
+              
+            }
+            
+            if (!(report.c %in% c("none", "interactive")))
+              sink()
+            
+            methods::validObject(x)
+            
+            return(invisible(x))
+            
+          })
+
 #### annotating (ExpressionSet) ####
 #' @rdname annotating
 #' @export
@@ -31,21 +187,21 @@ setMethod("annotating", signature(x = "ExpressionSet"),
                                                               collapse = "', '"), "'.",
                    call. = FALSE)
             
-            x <- .annotating(x,
-                             database.c = database.c,
-                             param.ls = param.ls,
-                             report.c != "none")
-            
-            methods::validObject(x)
+            Biobase::fData(x) <- .annotating(Biobase::fData(x),
+                                             database.c = database.c,
+                                             param.ls = param.ls,
+                                             report.c != "none")
             
             if (!(report.c %in% c("none", "interactive")))
               sink()
+            
+            methods::validObject(x)
             
             return(invisible(x))
             
           })
 
-#' Display the parameters from the 'annotating' method
+#' Displays the parameters from the 'annotating' method
 #'
 #' The parameters and their default values are printed for the selected database
 #' 
@@ -62,32 +218,28 @@ annotating_parameters <- function(database.c = c("chebi", "local.ms", "kegg")[1]
 }
 
 
-.annotating <- function(eset,
+.annotating <- function(feat.df, # variable metadata (dataframe or DataFrame; variables x variable metadata)
                         database.c,
                         param.ls,
                         verboseL) {
   
-  fdataDF <- Biobase::fData(eset)
-  
   paramDefaultLs <- .annot_param_check(database.c = database.c, param.ls = param.ls)
   
   switch(database.c,
-         chebi = {fdataDF <- .annot_chebi(fdataDF = fdataDF,
+         chebi = {feat.df <- .annot_chebi(feat.df = feat.df,
                                           param.ls = param.ls,
                                           paramDefaultLs = paramDefaultLs,
                                           verboseL = verboseL)},
-         local.ms = {fdataDF <- .annot_local.ms(fdataDF = fdataDF,
+         local.ms = {feat.df <- .annot_local.ms(feat.df = feat.df,
                                                 param.ls = param.ls,
                                                 paramDefaultLs = paramDefaultLs,
                                                 verboseL = verboseL)},
-         kegg = {fdataDF <- .annot_kegg(fdataDF = fdataDF,
+         kegg = {feat.df <- .annot_kegg(feat.df = feat.df,
                                         param.ls = param.ls,
                                         paramDefaultLs = paramDefaultLs,
                                         verboseL = verboseL)})
   
-  Biobase::fData(eset) <- fdataDF
-  
-  return(eset)
+  return(feat.df)
   
 }
 
@@ -216,17 +368,17 @@ annotating_parameters <- function(database.c = c("chebi", "local.ms", "kegg")[1]
 }
 
 
-.annot_chebi <- function(fdataDF, param.ls, paramDefaultLs, verboseL) {
+.annot_chebi <- function(feat.df, param.ls, paramDefaultLs, verboseL) {
   
   param.ls <- c(param.ls,
                 paramDefaultLs[setdiff(names(paramDefaultLs),
                                        names(param.ls))])
   
-  if (!(param.ls[["query.col"]] %in% colnames(fdataDF)))
+  if (!(param.ls[["query.col"]] %in% colnames(feat.df)))
     stop("The '", param.ls[["query.col"]], "' column could not be found in the fData.",
          call. = FALSE)
   
-  queryVcn <- fdataDF[, param.ls[["query.col"]]]
+  queryVcn <- feat.df[, param.ls[["query.col"]]]
   
   if (param.ls[["query.type"]] == "chebi.id")
     queryVcn <- gsub("CHEBI:", "", queryVcn)
@@ -244,8 +396,8 @@ annotating_parameters <- function(database.c = c("chebi", "local.ms", "kegg")[1]
   
   queryVn <- as.numeric(queryVcn[queriableVl])
   
-  fdataTempDF <- cbind.data.frame(.fdatarownames = rownames(fdataDF),
-                                  fdataDF,
+  fdataTempDF <- cbind.data.frame(.fdatarownames = rownames(feat.df),
+                                  feat.df,
                                   stringsAsFactors = FALSE)
   
   fdataTempDF[queriableVl, param.ls[["query.col"]]] <- queryVn
@@ -294,8 +446,8 @@ annotating_parameters <- function(database.c = c("chebi", "local.ms", "kegg")[1]
                         all.x = TRUE)
   rownames(fdataMergeDF) <- fdataMergeDF[, ".fdatarownames"]
   
-  fdataMergeDF <- fdataMergeDF[rownames(fdataDF), , drop = FALSE]
-  fdataMergeDF[, param.ls[["query.col"]]] <- fdataDF[, param.ls[["query.col"]]]
+  fdataMergeDF <- fdataMergeDF[rownames(feat.df), , drop = FALSE]
+  fdataMergeDF[, param.ls[["query.col"]]] <- feat.df[, param.ls[["query.col"]]]
   fdataMergeDF[[".fdatarownames"]] <- NULL
   
   return(fdataMergeDF)
@@ -303,13 +455,13 @@ annotating_parameters <- function(database.c = c("chebi", "local.ms", "kegg")[1]
 }
 
 
-.annot_local.ms <- function(fdataDF, param.ls, paramDefaultLs, verboseL) {
+.annot_local.ms <- function(feat.df, param.ls, paramDefaultLs, verboseL) {
   
   param.ls <- c(param.ls,
                 paramDefaultLs[setdiff(names(paramDefaultLs),
                                        names(param.ls))])
   
-  queryVn <- fdataDF[, param.ls[["query.col"]]]
+  queryVn <- feat.df[, param.ls[["query.col"]]]
   
   missingVl <- sapply(queryVn, function(mzN) {
     is.na(mzN) || mzN == ""
@@ -332,8 +484,8 @@ annotating_parameters <- function(database.c = c("chebi", "local.ms", "kegg")[1]
   
   resultDF <- stats::aggregate(.~mz, resultDF, paste0, collapse = param.ls[["sep"]])
   
-  fdataTempDF <- cbind.data.frame(.fdatarownames = rownames(fdataDF),
-                                  fdataDF,
+  fdataTempDF <- cbind.data.frame(.fdatarownames = rownames(feat.df),
+                                  feat.df,
                                   stringsAsFactors = FALSE)
   fdataTempDF[missingVl, param.ls[["query.col"]]] <- -c(1:sum(missingVl))
   
@@ -341,8 +493,8 @@ annotating_parameters <- function(database.c = c("chebi", "local.ms", "kegg")[1]
                         by.y = "mz", all.x = TRUE)
   rownames(fdataMergeDF) <- fdataMergeDF[, ".fdatarownames"]
   
-  fdataMergeDF <- fdataMergeDF[rownames(fdataDF), , drop = FALSE]
-  fdataMergeDF[, param.ls[["query.col"]]] <- fdataDF[, param.ls[["query.col"]]]
+  fdataMergeDF <- fdataMergeDF[rownames(feat.df), , drop = FALSE]
+  fdataMergeDF[, param.ls[["query.col"]]] <- feat.df[, param.ls[["query.col"]]]
   fdataMergeDF[[".fdatarownames"]] <- NULL
   
   return(fdataMergeDF)
@@ -350,7 +502,7 @@ annotating_parameters <- function(database.c = c("chebi", "local.ms", "kegg")[1]
 }
 
 
-.annot_kegg <- function(fdataDF, param.ls, paramDefaultLs, verboseL) {
+.annot_kegg <- function(feat.df, param.ls, paramDefaultLs, verboseL) {
   
   # param.ls <- list(query.col = "database_identifier", query.type = "chebi")
   # in progress

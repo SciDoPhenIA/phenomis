@@ -1,12 +1,12 @@
-#### inspecting (MultiDataSet) ####
+#### inspecting (MultiAssayExperiment) ####
 
 #' @rdname inspecting
 #' @export
-setMethod("inspecting", signature(x = "MultiDataSet"),
+setMethod("inspecting", signature(x = "MultiAssayExperiment"),
           function(x,
                    pool_as_pool1.l = FALSE,
                    pool_cv.n = 0.3,
-                   span.n = 1,
+                   loess_span.n = 1,
                    sample_intensity.c = c("median", "mean", "sum")[2],
                    title.c = NA,
                    plot_dims.l = TRUE,
@@ -26,12 +26,129 @@ setMethod("inspecting", signature(x = "MultiDataSet"),
             if (!(figure.c %in% c("none", "interactive")))
               grDevices::pdf(figure.c)
             
-            figPdfC <- figure.c
-            if (figPdfC != "none")
-              figPdfC <- "interactive"
+            figure_set.c <- figure.c
+            if (figure_set.c != "none")
+              figure_set.c <- "interactive"
             
             if (plot_dims.l)
-              .barplot_dims(x, ifelse(!is.na(title.c), title.c, ""))
+              .barplot_dims(as.list(MultiAssayExperiment::assays(x)), ifelse(!is.na(title.c), title.c, ""))
+            
+            for (set.c in names(x)) {
+              
+              if (report.c != "none")
+                message("Inspecting the '", set.c, "' dataset...")
+              
+              x[[set.c]] <- inspecting(x = x[[set.c]],
+                                       loess_span.n = loess_span.n,
+                                       pool_as_pool1.l = pool_as_pool1.l,
+                                       pool_cv.n = pool_cv.n,
+                                       sample_intensity.c = sample_intensity.c,
+                                       title.c = set.c,
+                                       figure.c = figure_set.c,
+                                       report.c = report_set.c)
+              
+            }
+            
+            if (!(figure.c %in% c("none", "interactive")))
+              grDevices::dev.off()
+            
+            if (!(report.c %in% c("none", "interactive")))
+              sink()
+            
+            methods::validObject(x)
+            
+            return(invisible(x))
+            
+          })
+
+
+#### inspecting (SummarizedExperiment) ----
+
+#' @rdname inspecting
+#' @export
+setMethod("inspecting", signature(x = "SummarizedExperiment"),
+          function(x,
+                   pool_as_pool1.l = FALSE,
+                   pool_cv.n = 0.3,
+                   loess_span.n = 1,
+                   sample_intensity.c = c("median", "mean", "sum")[2],
+                   title.c = NA,
+                   plot_dims.l = TRUE,
+                   col_batch.c = "batch",
+                   col_injectionOrder.c = "injectionOrder",
+                   col_sampleType.c = "sampleType",
+                   figure.c = c("none", "interactive", "myfile.pdf")[2],
+                   report.c = c("none", "interactive", "myfile.txt")[2]) {
+            
+            if (!(report.c %in% c("none", "interactive")))
+              sink(report.c, append = TRUE)
+            
+            if (is.na(title.c))
+              title.c <- x@metadata$experimentData@title
+            
+            
+            inspected.ls <- .inspecting(data.mn = t(SummarizedExperiment::assay(x)),
+                                        samp.df = SummarizedExperiment::colData(x),
+                                        feat.df = SummarizedExperiment::rowData(x),
+                                        pool_as_pool1.l = pool_as_pool1.l,
+                                        pool_cv.n = pool_cv.n,
+                                        loess_span.n = loess_span.n,
+                                        sample_intensity.c = sample_intensity.c,
+                                        title.c = title.c,
+                                        col_batch.c = col_batch.c,
+                                        col_injectionOrder.c = col_injectionOrder.c,
+                                        col_sampleType.c = col_sampleType.c,
+                                        figure.c = figure.c,
+                                        report.c = report.c)
+            
+            SummarizedExperiment::colData(x) <- inspected.ls[["samp.df"]]
+            SummarizedExperiment::rowData(x) <- inspected.ls[["feat.df"]]
+            
+            ## End
+            
+            if (!(report.c %in% c("none", "interactive")))
+              sink()
+            
+            methods::validObject(x)
+            
+            return(invisible(x))
+            
+          })
+
+#### inspecting (MultiDataSet) ####
+
+#' @rdname inspecting
+#' @export
+setMethod("inspecting", signature(x = "MultiDataSet"),
+          function(x,
+                   pool_as_pool1.l = FALSE,
+                   pool_cv.n = 0.3,
+                   loess_span.n = 1,
+                   sample_intensity.c = c("median", "mean", "sum")[2],
+                   title.c = NA,
+                   plot_dims.l = TRUE,
+                   col_batch.c = "batch",
+                   col_injectionOrder.c = "injectionOrder",
+                   col_sampleType.c = "sampleType",
+                   figure.c = c("none", "interactive", "myfile.pdf")[2],
+                   report.c = c("none", "interactive", "myfile.txt")[2]) {
+            
+            if (!(report.c %in% c("none", "interactive")))
+              sink(report.c, append = TRUE)
+            
+            report_set.c <- report.c
+            if (report_set.c != "none")
+              report_set.c <- "interactive"
+            
+            if (!(figure.c %in% c("none", "interactive")))
+              grDevices::pdf(figure.c)
+            
+            figure_set.c <- figure.c
+            if (figure_set.c != "none")
+              figure_set.c <- "interactive"
+            
+            if (plot_dims.l)
+              .barplot_dims(MultiDataSet::as.list(x), ifelse(!is.na(title.c), title.c, ""))
             
             for (set.c in names(x)) {
               
@@ -41,12 +158,12 @@ setMethod("inspecting", signature(x = "MultiDataSet"),
               ese <- x[[set.c]]
               
               ese <- inspecting(x = ese,
-                                span.n = span.n,
+                                loess_span.n = loess_span.n,
                                 pool_as_pool1.l = pool_as_pool1.l,
                                 pool_cv.n = pool_cv.n,
                                 sample_intensity.c = sample_intensity.c,
                                 title.c = set.c,
-                                figure.c = figPdfC,
+                                figure.c = figure_set.c,
                                 report.c = report_set.c)
               
               x <- MultiDataSet::add_eset(x, ese,
@@ -63,29 +180,25 @@ setMethod("inspecting", signature(x = "MultiDataSet"),
             if (!(report.c %in% c("none", "interactive")))
               sink()
             
+            methods::validObject(x)
+            
             return(invisible(x))
             
           })
 
-.barplot_dims <- function(mset,
+.barplot_dims <- function(data_mn.ls,
                           title.c = "Dataset dimensions",
                           cex_axis.i = 15,
                           cex_bar.i = 6,
                           bar_just.n = 0.8,
-                          cex_title.i = 25,
-                          set_names.vc = NA) {
+                          cex_title.i = 25) {
   
-  set.i <- length(mset)
+  set.i <- length(data_mn.ls)
 
-  dims.mn <- sapply(names(mset),
+  dims.mn <- sapply(names(data_mn.ls),
                     function(set.c)
-                      Biobase::dims(mset[[set.c]]))
-  
-  if (length(set_names.vc) > 1 || !is.na(set_names.vc)) {
-    stopifnot(length(set_names.vc) == set.i)
-    colnames(dims.mn) <- set_names.vc
-  }
-    
+                      dim(data_mn.ls[[set.c]]))
+
   dims.mn <- t(dims.mn)
   colnames(dims.mn) <- c("Features", "Samples")
   gg_barplot(dims.mn, title.c = title.c,
@@ -107,7 +220,7 @@ setMethod("inspecting", signature(x = "ExpressionSet"),
           function(x,
                    pool_as_pool1.l = FALSE,
                    pool_cv.n = 0.3,
-                   span.n = 1,
+                   loess_span.n = 1,
                    sample_intensity.c = c("median", "mean", "sum")[2],
                    title.c = NA,
                    plot_dims.l = TRUE,
@@ -123,410 +236,418 @@ setMethod("inspecting", signature(x = "ExpressionSet"),
             if (is.na(title.c))
               title.c <- Biobase::experimentData(x)@title
             
-            ## Checking
             
-            check.l <- TRUE
+            inspected.ls <- .inspecting(data.mn = t(Biobase::exprs(x)),
+                                        samp.df = Biobase::pData(x),
+                                        feat.df = Biobase::fData(x),
+                                        pool_as_pool1.l = pool_as_pool1.l,
+                                        pool_cv.n = pool_cv.n,
+                                        loess_span.n = loess_span.n,
+                                        sample_intensity.c = sample_intensity.c,
+                                        title.c = title.c,
+                                        col_batch.c = col_batch.c,
+                                        col_injectionOrder.c = col_injectionOrder.c,
+                                        col_sampleType.c = col_sampleType.c,
+                                        figure.c = figure.c,
+                                        report.c = report.c)
             
-            feat_allna.vl <- apply(Biobase::exprs(x), 1,
-                                    function(feat.vn) all(is.na(feat.vn)))
-            if (sum(feat_allna.vl, na.rm = TRUE)) {
-              warning("The following feature(s) have NA only",
-                      ifelse(!is.na(title.c) && title.c != "", paste0(" in the '", title.c, "' dataset"), ""),
-                      ":\n",
-                      paste(Biobase::featureNames(x)[feat_allna.vl], collapse = ", "))
-              check.l <- FALSE
-            }
-            
-            samp_allna.vl <- apply(Biobase::exprs(x), 2,
-                                    function(samp.vn) all(is.na(samp.vn)))
-            if (sum(samp_allna.vl, na.rm = TRUE)) {
-              warning("The following sample(s) have NA only",
-                      ifelse(!is.na(title.c) && title.c != "", paste0(" in the '", title.c, "' dataset"), ""),
-                      ":\n",
-                      paste(Biobase::sampleNames(x)[samp_allna.vl], collapse = ", "))
-              check.l <- FALSE
-            }
-            
-            feat_zerovar.vl <- apply(Biobase::exprs(x), 1,
-                                    function(feat.vn) stats::var(feat.vn, na.rm = TRUE) < .Machine$double.eps)
-            if (sum(feat_zerovar.vl, na.rm = TRUE)) {
-              warning("The following feature(s) have zero variance",
-                      ifelse(!is.na(title.c) && title.c != "", paste0(" in the '", title.c, "' dataset"), ""),
-                      ":\n",
-                      paste(Biobase::featureNames(x)[feat_zerovar.vl], collapse = ", "))
-              check.l <- FALSE
-            }
-            
-            samp_zerovar.vl <- apply(Biobase::exprs(x), 2,
-                                     function(samp.vn) stats::var(samp.vn, na.rm = TRUE) < .Machine$double.eps)
-            if (sum(samp_zerovar.vl, na.rm = TRUE)) {
-              warning("The following sample(s) have zero variance",
-                      ifelse(!is.na(title.c) && title.c != "", paste0(" in the '", title.c, "' dataset"), ""),
-                      ":\n",
-                      paste(Biobase::sampleNames(x)[samp_zerovar.vl], collapse = ", "))
-              check.l <- FALSE
-            }
-            
-            if (!check.l)
-              stop("Please remove the sample(s) and/or feature(s) with NA only or 0 variance by using the 'filtering' method, and apply the 'inspecting' function again on the filtered dataset.")
-            
-            ## Description
-            
-            if (report.c != "none") {
-              message("Data description:")
-              message("observations: ", ncol(Biobase::exprs(x)))
-              message("variables: ", nrow(Biobase::exprs(x)))
-              message("missing: ", format(sum(is.na(Biobase::exprs(x))), big.mark = ","),
-                      " (", round(sum(is.na(Biobase::exprs(x))) / cumprod(dim(Biobase::exprs(x)))[2] * 100), "%)")
-              message("0 values: ",
-                      format(sum(abs(Biobase::exprs(x)) < .Machine[["double.eps"]], na.rm = TRUE), big.mark = ","),
-                      " (", round(sum(abs(Biobase::exprs(x)) < .Machine[["double.eps"]],
-                                 na.rm = TRUE) / cumprod(dim(Biobase::exprs(x)))[2] * 100), "%)")
-              message("min: ", signif(min(Biobase::exprs(x), na.rm = TRUE), 2))
-              message("mean: ", signif(mean(Biobase::exprs(x), na.rm = TRUE), 2))
-              message("median: ", signif(stats::median(Biobase::exprs(x), na.rm = TRUE), 2))
-              message("max: ", signif(max(Biobase::exprs(x), na.rm = TRUE), 2))
-              
-              if (col_sampleType.c %in% colnames(Biobase::pData(x))) {
-                message("Sample types:")
-                print(table(Biobase::pData(x)[, col_sampleType.c]))
-              }
-            }
-            
-            ## Sample metrics
-            
-            sample_metrics.ls <- .sampleMetrics(eset = x)
-            x <- sample_metrics.ls[["eset"]]
-            pca_metrics.ls <- sample_metrics.ls[["pca_metrics.ls"]]
-            
-            ## Variable metrics
-            
-            x <- .variableMetrics(eset = x,
-                                  pool_as_pool1.l = pool_as_pool1.l,
-                                  col_sampleType.c = col_sampleType.c)
-            
-            ## Figure
-            
-            if (figure.c != "none") {
-              
-              if (figure.c != "interactive")
-                grDevices::pdf(figure.c)
-              
-              .plotMetrics(eset = x,
-                           pca_metrics.ls = pca_metrics.ls,
-                           pool_cv.n = pool_cv.n,
-                           span.n = span.n,
-                           sample_intensity.c = sample_intensity.c,
-                           col_batch.c = col_batch.c,
-                           col_injectionOrder.c = col_injectionOrder.c,
-                           col_sampleType.c = col_sampleType.c,
-                           title.c = title.c)
-              
-              if (figure.c != "interactive")
-                grDevices::dev.off()
-              
-            }
+            Biobase::pData(x) <- inspected.ls[["samp.df"]]
+            Biobase::fData(x) <- inspected.ls[["feat.df"]]
             
             ## End
             
             if (!(report.c %in% c("none", "interactive")))
               sink()
             
+            methods::validObject(x)
+            
             return(invisible(x))
             
           })
 
 
-.pca_metrics <- function(eset, pred.i = 2) {
+.inspecting <- function(data.mn, ## data (matrix of numerics; samples x variables)
+                        samp.df, ## sample metadata (dataframe; samples x metadata)
+                        feat.df, ## feature metadata (dataframe; features x metadata)
+                        pool_as_pool1.l,
+                        pool_cv.n,
+                        loess_span.n,
+                        sample_intensity.c,
+                        title.c = title.c,
+                        col_batch.c,
+                        col_injectionOrder.c,
+                        col_sampleType.c,
+                        figure.c,
+                        report.c) {
   
-  ## Hotelling: p-value associated to the distance from the center in the first PCA score plane
+  ## Checking sample(s) or feature(s) with NA only or 0 variance
   
-  pcaMod <- try(ropls::opls(t(Biobase::exprs(eset)), predI = pred.i,
-                            crossvalI = min(ncol(Biobase::exprs(eset)), 7),
-                            fig.pdfC = 'none', info.txtC = 'none'))
+  .sampfeat_nas_zerovar(data.mn = data.mn,
+                        set.c = title.c)
   
-  if (inherits(pcaMod, "try-error")) {
-    stop("The PCA could not be computed",
-         ifelse(Biobase::experimentData(eset)@title != "",
-                paste0(" for set '", Biobase::experimentData(eset)@title, "'"),
-                ""),
-         ". Check for the presence of features with a high proportion of NA or a low variance and discard them with the 'filtering' method before starting 'inspecting' again.")
+  ## Description
+  
+  if (report.c != "none") {
+    message("Data description:")
+    message("observations: ", nrow(data.mn))
+    message("variables: ", ncol(data.mn))
+    message("missing: ", format(sum(is.na(data.mn)), big.mark = ","),
+            " (", round(sum(is.na(data.mn)) / cumprod(dim(data.mn))[2] * 100), "%)")
+    message("0 values: ",
+            format(sum(abs(data.mn) < .Machine[["double.eps"]], na.rm = TRUE), big.mark = ","),
+            " (", round(sum(abs(data.mn) < .Machine[["double.eps"]],
+                            na.rm = TRUE) / cumprod(dim(data.mn))[2] * 100), "%)")
+    message("min: ", signif(min(data.mn, na.rm = TRUE), 2))
+    message("mean: ", signif(mean(data.mn, na.rm = TRUE), 2))
+    message("median: ", signif(stats::median(data.mn, na.rm = TRUE), 2))
+    message("max: ", signif(max(data.mn, na.rm = TRUE), 2))
+    
+    if (col_sampleType.c %in% colnames(samp.df)) {
+      message("Sample types:")
+      print(table(samp.df[, col_sampleType.c]))
+    }
   }
   
-  varRelVn <- ropls::getPcaVarVn(pcaMod) / nrow(Biobase::exprs(eset)) ## for plotting
+  ## Sample metrics
   
-  pcaScoreMN <- ropls::getScoreMN(pcaMod)
+  sample_metrics.ls <- .sample_metrics(data.mn = data.mn,
+                                       samp.df = samp.df,
+                                       set.c = title.c)
+  samp.df <- sample_metrics.ls[["samp.df"]]
+  pca_metrics.ls <- sample_metrics.ls[["pca_metrics.ls"]]
   
-  n <- ncol(Biobase::exprs(eset))
-  hotN <- 2 * (n - 1) * (n^2 - 1) / (n^2 * (n - 2))
+  ## Variable metrics
   
-  invCovSco12MN <- solve(stats::cov(pcaScoreMN[, 1:2]))
+  feat.df <- .variableMetrics(data.mn = data.mn,
+                              samp.df = samp.df,
+                              feat.df = feat.df,
+                              pool_as_pool1.l = pool_as_pool1.l,
+                              col_sampleType.c = col_sampleType.c)
   
-  hotPva12Vn <- apply(pcaScoreMN[, 1:2],
-                    1,
-                    function(x)
-                      1 - stats::pf(1 / hotN * t(as.matrix(x)) %*% invCovSco12MN %*% as.matrix(x), 2, n - 2))
+  ## Figure
   
-  list(hotN = hotN,
-       varRelVn = varRelVn,
-       pcaScoreMN = pcaScoreMN,
-       hotPva12Vn = hotPva12Vn)
+  if (figure.c != "none") {
+    
+    if (figure.c != "interactive")
+      grDevices::pdf(figure.c)
+    
+    .plotMetrics(data.mn = data.mn,
+                 samp.df = samp.df,
+                 feat.df = feat.df,
+                 pca_metrics.ls = pca_metrics.ls,
+                 pool_cv.n = pool_cv.n,
+                 loess_span.n = loess_span.n,
+                 sample_intensity.c = sample_intensity.c,
+                 col_batch.c = col_batch.c,
+                 col_injectionOrder.c = col_injectionOrder.c,
+                 col_sampleType.c = col_sampleType.c,
+                 title.c = title.c)
+    
+    if (figure.c != "interactive")
+      grDevices::dev.off()
+    
+  }
+  
+  return(invisible(list(samp.df = samp.df,
+                        feat.df = feat.df)))
+  
+}
+
+.sampfeat_nas_zerovar <- function(data.mn,
+                                  set.c) {
+  
+  check.l <- TRUE
+  
+  feat_allna.vl <- apply(data.mn, 2,
+                         function(feat.vn) all(is.na(feat.vn)))
+  if (sum(feat_allna.vl, na.rm = TRUE)) {
+    warning("The following feature(s) have NA only",
+            ifelse(!is.na(set.c) && set.c != "", paste0(" in the '", set.c, "' dataset"), ""),
+            ":\n",
+            paste(Biobase::featureNames(x)[feat_allna.vl], collapse = ", "))
+    check.l <- FALSE
+  }
+  
+  samp_allna.vl <- apply(data.mn, 1,
+                         function(samp.vn) all(is.na(samp.vn)))
+  if (sum(samp_allna.vl, na.rm = TRUE)) {
+    warning("The following sample(s) have NA only",
+            ifelse(!is.na(set.c) && set.c != "", paste0(" in the '", set.c, "' dataset"), ""),
+            ":\n",
+            paste(Biobase::sampleNames(x)[samp_allna.vl], collapse = ", "))
+    check.l <- FALSE
+  }
+  
+  feat_zerovar.vl <- apply(data.mn, 2,
+                           function(feat.vn) stats::var(feat.vn, na.rm = TRUE) < .Machine$double.eps)
+  if (sum(feat_zerovar.vl, na.rm = TRUE)) {
+    warning("The following feature(s) have zero variance",
+            ifelse(!is.na(set.c) && set.c != "", paste0(" in the '", set.c, "' dataset"), ""),
+            ":\n",
+            paste(Biobase::featureNames(x)[feat_zerovar.vl], collapse = ", "))
+    check.l <- FALSE
+  }
+  
+  samp_zerovar.vl <- apply(data.mn, 1,
+                           function(samp.vn) stats::var(samp.vn, na.rm = TRUE) < .Machine$double.eps)
+  if (sum(samp_zerovar.vl, na.rm = TRUE)) {
+    warning("The following sample(s) have zero variance",
+            ifelse(!is.na(set.c) && set.c != "", paste0(" in the '", set.c, "' dataset"), ""),
+            ":\n",
+            paste(Biobase::sampleNames(x)[samp_zerovar.vl], collapse = ", "))
+    check.l <- FALSE
+  }
+  
+  if (!check.l)
+    stop("Please remove the sample(s) and/or feature(s) with NA only or 0 variance by using the 'filtering' method, and apply the 'inspecting' function again on the filtered dataset.")
   
 }
 
 
-.sampleMetrics <- function(eset) {
+.pca_metrics <- function(data.mn,
+                         samp.df,
+                         pred.i = 2,
+                         set.c = "") {
   
-  pca_metrics.ls <- .pca_metrics(eset = eset, pred.i = 2)
+  nsamp.i <- nrow(data.mn)
+  nfeat.i <- ncol(data.mn)
   
-  pdaDF <- Biobase::pData(eset)
+  ## Hotelling: p-value associated to the distance from the center in the first PCA score plane
+  
+  set.pca <- try(ropls::opls(data.mn, predI = pred.i,
+                             crossvalI = min(nsamp.i, 7),
+                             fig.pdfC = 'none', info.txtC = 'none'))
+  
+  if (inherits(set.pca, "try-error")) {
+    stop("The PCA could not be computed",
+         ifelse(set.c != "",
+                paste0(" for set '", set.c, "'"),
+                ""),
+         ". Check for the presence of features with a high proportion of NA or a low variance and discard them with the 'filtering' method before starting 'inspecting' again.")
+  }
+  
+  relative_var.vn <- ropls::getPcaVarVn(set.pca) / ncol(data.mn) ## for plotting
+  
+  score_pca.mn <- ropls::getScoreMN(set.pca)
+  
+  hotelling_df.i <- 2 * (nsamp.i - 1) * (nsamp.i^2 - 1) / (nsamp.i^2 * (nsamp.i - 2))
+  
+  inverse_covariance.mn <- solve(stats::cov(score_pca.mn[, 1:2]))
+  
+  hotelling_pval.vn <- apply(score_pca.mn[, 1:2],
+                      1,
+                      function(x)
+                        1 - stats::pf(1 / hotelling_df.i * t(as.matrix(x)) %*% inverse_covariance.mn %*% as.matrix(x), 2, nsamp.i - 2))
+  
+  list(hotelling_df.i = hotelling_df.i,
+       relative_var.vn = relative_var.vn,
+       score_pca.mn = score_pca.mn,
+       hotelling_pval.vn = hotelling_pval.vn)
+  
+}
 
-  pdaDF[, "pca_sco1"] <- pca_metrics.ls[["pcaScoreMN"]][, 1]
-  pdaDF[, "pca_sco2"] <- pca_metrics.ls[["pcaScoreMN"]][, 2]
+
+.sample_metrics <- function(data.mn,
+                            samp.df,
+                            set.c) {
   
-  pdaDF[, "hotel_pval"] <- pca_metrics.ls[["hotPva12Vn"]]
+  pca_metrics.ls <- .pca_metrics(data.mn = data.mn,
+                                 samp.df = samp.df,
+                                 pred.i = 2,
+                                 set.c = set.c)
+
+  samp.df[, "pca_sco1"] <- pca_metrics.ls[["score_pca.mn"]][, 1]
+  samp.df[, "pca_sco2"] <- pca_metrics.ls[["score_pca.mn"]][, 2]
+  
+  samp.df[, "hotel_pval"] <- pca_metrics.ls[["hotelling_pval.vn"]]
   
   ## p-value associated to number of missing values
   
-  missZscoVn <- .zscore(apply(t(Biobase::exprs(eset)),
+  missing_zscore.vn <- .zscore(apply(data.mn,
                               1,
-                              function(rowVn) {
-                                sum(is.na(rowVn))
+                              function(samp.vn) {
+                                sum(is.na(samp.vn))
                               }))
   
-  pdaDF[, "miss_pval"] <- sapply(missZscoVn, function(zscoN) 2 * (1 - stats::pnorm(abs(zscoN))))
+  samp.df[, "miss_pval"] <- sapply(missing_zscore.vn, function(zsco.n) 2 * (1 - stats::pnorm(abs(zsco.n))))
   
   ## p-value associated to the deciles of the profiles
   
-  deciMN <- t(as.matrix(apply(t(Biobase::exprs(eset)),
+  decile.mn <- t(as.matrix(apply(data.mn,
                               1,
                               function(x) stats::quantile(x, 0.1 * 1:9, na.rm = TRUE))))
   
-  deciZscoMN <- apply(deciMN, 2, .zscore)
+  decile_zscore.mn <- apply(decile.mn, 2, .zscore)
   
-  deciZscoMaxVn <- apply(deciZscoMN, 1, function(rowVn) rowVn[which.max(abs(rowVn))])
+  decile_zscore_max.vn <- apply(decile_zscore.mn, 1, function(samp.vn) samp.vn[which.max(abs(samp.vn))])
   
-  pdaDF[, "deci_pval"] <- sapply(deciZscoMaxVn, function(zscoN) 2 * (1 - stats::pnorm(abs(zscoN))))
+  samp.df[, "deci_pval"] <- sapply(decile_zscore_max.vn, function(zsco.n) 2 * (1 - stats::pnorm(abs(zsco.n))))
   
-  Biobase::pData(eset) <- pdaDF
-  
-  return(list(eset = eset,
+  return(list(samp.df = samp.df,
               pca_metrics.ls = pca_metrics.ls))
   
 }
 
 
-.variableMetrics <- function(eset,
+.variableMetrics <- function(data.mn,
+                             samp.df,
+                             feat.df,
                              pool_as_pool1.l,
                              col_sampleType.c) { ## for the call to 'univariate'
   
-  fdaDF <- Biobase::fData(eset)
-  
-  tmpDF <- fdaDF ## some of the intermediate metrics will not be included in fData
+  temp.df <- feat.df ## some of the intermediate metrics will not be included in feature metadata
   
   ## 'blank' observations
   
-  if (col_sampleType.c %in% Biobase::varLabels(eset) && "blank" %in% Biobase::pData(eset)[, col_sampleType.c]) {
+  if (col_sampleType.c %in% colnames(samp.df) && "blank" %in% samp.df[, col_sampleType.c]) {
     
-    blkVl <- Biobase::pData(eset)[, col_sampleType.c] == "blank"
+    blank.vl <- samp.df[, col_sampleType.c] == "blank"
     
-    if (sum(blkVl) == 1) {
-      tmpDF[, "blank_mean"] <- t(Biobase::exprs(eset))[blkVl, ]
+    if (sum(blank.vl) == 1) {
+      temp.df[, "blank_mean"] <- data.mn[blank.vl, ]
     } else {
-      tmpDF[, "blank_mean"] <- apply(t(Biobase::exprs(eset))[blkVl, , drop = FALSE],
+      temp.df[, "blank_mean"] <- apply(data.mn[blank.vl, , drop = FALSE],
                                      2,
-                                     function(varVn) mean(varVn, na.rm = TRUE))
+                                     function(feat.vn) mean(feat.vn, na.rm = TRUE))
     }
     
-    if (sum(blkVl) == 1) {
-      tmpDF[, "blank_sd"] <- rep(0, nrow(fdaDF))
+    if (sum(blank.vl) == 1) {
+      temp.df[, "blank_sd"] <- rep(0, nrow(feat.df))
     } else {
-      tmpDF[, "blank_sd"] <- apply(t(Biobase::exprs(eset))[blkVl, , drop = FALSE],
+      temp.df[, "blank_sd"] <- apply(data.mn[blank.vl, , drop = FALSE],
                                    2,
-                                   function(varVn) stats::sd(varVn, na.rm = TRUE))
+                                   function(feat.vn) stats::sd(feat.vn, na.rm = TRUE))
     }
     
-    tmpDF[, "blank_CV"] <- tmpDF[, "blank_sd"] / tmpDF[, "blank_mean"]
+    temp.df[, "blank_CV"] <- temp.df[, "blank_sd"] / temp.df[, "blank_mean"]
     
   }
   
   ## 'sample' observations
   
-  if (col_sampleType.c %in% Biobase::varLabels(eset) &&
-      "sample" %in% Biobase::pData(eset)[, col_sampleType.c]) {
+  if (col_sampleType.c %in% colnames(samp.df) &&
+      "sample" %in% samp.df[, col_sampleType.c]) {
     
-    samVl <- Biobase::pData(eset)[, col_sampleType.c] == "sample"
+    samp.vl <- samp.df[, col_sampleType.c] == "sample"
     
-    if (sum(samVl) == 1) {
-      tmpDF[, "sample_mean"] <- t(Biobase::exprs(eset))[samVl, ]
+    if (sum(samp.vl) == 1) {
+      temp.df[, "sample_mean"] <- data.mn[samp.vl, ]
     } else {
-      tmpDF[, "sample_mean"] <- apply(t(Biobase::exprs(eset))[samVl, , drop = FALSE], 2,
-                                      function(varVn) mean(varVn, na.rm = TRUE))
+      temp.df[, "sample_mean"] <- apply(data.mn[samp.vl, , drop = FALSE], 2,
+                                      function(feat.vn) mean(feat.vn, na.rm = TRUE))
     }
     
-    if (sum(samVl) == 1) {
-      tmpDF[, "sample_sd"] <- rep(0, nrow(fdaDF))
+    if (sum(samp.vl) == 1) {
+      temp.df[, "sample_sd"] <- rep(0, nrow(feat.df))
     } else {
-      tmpDF[, "sample_sd"] <- apply(t(Biobase::exprs(eset))[samVl, , drop = FALSE], 2,
-                                    function(varVn) stats::sd(varVn, na.rm = TRUE))
+      temp.df[, "sample_sd"] <- apply(data.mn[samp.vl, , drop = FALSE], 2,
+                                    function(feat.vn) stats::sd(feat.vn, na.rm = TRUE))
     }
     
-    tmpDF[, "sample_CV"] <- tmpDF[, "sample_sd"] / tmpDF[, "sample_mean"]
+    temp.df[, "sample_CV"] <- temp.df[, "sample_sd"] / temp.df[, "sample_mean"]
     
   }
   
   ## 'blank' mean / 'sample' mean ratio
   
-  if (all(c("blank_mean", "sample_mean") %in% colnames(tmpDF)))
-    fdaDF[, "blankMean_over_sampleMean"] <- tmpDF[, "blank_mean"] / tmpDF[, "sample_mean"]
+  if (all(c("blank_mean", "sample_mean") %in% colnames(temp.df)))
+    feat.df[, "blankMean_over_sampleMean"] <- temp.df[, "blank_mean"] / temp.df[, "sample_mean"]
   
   ## 'pool' observations
   
-  if (col_sampleType.c %in% Biobase::varLabels(eset) &&
-      "pool" %in% Biobase::pData(eset)[, col_sampleType.c]) {
+  if (col_sampleType.c %in% colnames(samp.df) &&
+      "pool" %in% samp.df[, col_sampleType.c]) {
     
-    pooVl <- Biobase::pData(eset)[, col_sampleType.c] == "pool"
+    pool.vl <- samp.df[, col_sampleType.c] == "pool"
     
-    if (sum(pooVl) == 1) {
-      tmpDF[, "pool_mean"] <- t(Biobase::exprs(eset))[pooVl, ]
+    if (sum(pool.vl) == 1) {
+      temp.df[, "pool_mean"] <- data.mn[pool.vl, ]
     } else {
-      tmpDF[, "pool_mean"] <- apply(t(Biobase::exprs(eset))[pooVl, , drop = FALSE], 2,
-                                    function(varVn) mean(varVn, na.rm = TRUE))
+      temp.df[, "pool_mean"] <- apply(data.mn[pool.vl, , drop = FALSE], 2,
+                                    function(feat.vn) mean(feat.vn, na.rm = TRUE))
     }
     
-    if (sum(pooVl) == 1) {
-      tmpDF[, "pool_sd"] <- rep(0, nrow(fdaDF))
+    if (sum(pool.vl) == 1) {
+      temp.df[, "pool_sd"] <- rep(0, nrow(feat.df))
     } else {
-      tmpDF[, "pool_sd"] <- apply(t(Biobase::exprs(eset))[pooVl, , drop = FALSE], 2,
-                                  function(varVn) stats::sd(varVn, na.rm = TRUE))
+      temp.df[, "pool_sd"] <- apply(data.mn[pool.vl, , drop = FALSE], 2,
+                                  function(feat.vn) stats::sd(feat.vn, na.rm = TRUE))
     }
     
-    fdaDF[, "pool_CV"] <- tmpDF[, "pool_sd"] / tmpDF[, "pool_mean"]
+    feat.df[, "pool_CV"] <- temp.df[, "pool_sd"] / temp.df[, "pool_mean"]
     
   }
   
   ## 'pool' CV / 'sample' CV ratio
   
-  if ("pool_CV" %in% colnames(fdaDF) && "sample_CV" %in% colnames(tmpDF))
-    fdaDF[, "poolCV_over_sampleCV"] <- fdaDF[, "pool_CV"] / tmpDF[, "sample_CV"]
+  if ("pool_CV" %in% colnames(feat.df) && "sample_CV" %in% colnames(temp.df))
+    feat.df[, "poolCV_over_sampleCV"] <- feat.df[, "pool_CV"] / temp.df[, "sample_CV"]
   
   ## 'pool' dilutions
   
-  if (col_sampleType.c %in% Biobase::varLabels(eset) &&
-      any(grepl("pool.+", Biobase::pData(eset)[, col_sampleType.c]))) {
+  if (col_sampleType.c %in% colnames(samp.df) &&
+      any(grepl("pool.+", samp.df[, col_sampleType.c]))) {
     
-    pooVi <- grep("pool.*", Biobase::pData(eset)[, col_sampleType.c]) ## pool, pool2, pool4, poolInter, ...
+    pool.vi <- grep("pool.*", samp.df[, col_sampleType.c]) ## pool, pool2, pool4, poolInter, ...
     
-    pooNamVc <- Biobase::pData(eset)[pooVi, col_sampleType.c]
+    pool_name.vc <- samp.df[pool.vi, col_sampleType.c]
     
     if (pool_as_pool1.l) {
       
-      pooNamVc[pooNamVc == "pool"] <- "pool1" ## 'pool' -> 'pool1'
+      pool_name.vc[pool_name.vc == "pool"] <- "pool1" ## 'pool' -> 'pool1'
       
     } else {
       
-      pooVl <- pooNamVc == "pool"
-      pooVi <- pooVi[!pooVl]
-      pooNamVc <- pooNamVc[!pooVl]
+      pool.vl <- pool_name.vc == "pool"
+      pool.vi <- pool.vi[!pool.vl]
+      pool_name.vc <- pool_name.vc[!pool.vl]
       
     }
     
-    pooDilVc <- gsub("pool", "", pooNamVc)
+    pool_dil.vc <- gsub("pool", "", pool_name.vc)
     
-    pooDilVl <- sapply(pooDilVc, .allDigits)
+    pool_dil.vl <- sapply(pool_dil.vc, .allDigits)
     
-    if (sum(pooDilVl)) {
+    if (sum(pool_dil.vl)) {
       
-      pooNamVc <- pooNamVc[pooDilVl]
+      pool_name.vc <- pool_name.vc[pool_dil.vl]
       
-      pooVi <- pooVi[pooDilVl]
+      pool.vi <- pool.vi[pool_dil.vl]
       
-      dilVn <- 1 / as.numeric(pooDilVc[pooDilVl])
+      dilVn <- 1 / as.numeric(pool_dil.vc[pool_dil.vl])
       
-      var.vn <- apply(t(Biobase::exprs(eset))[pooVi, , drop = FALSE], 2,
-                      function(varVn) stats::var(varVn))
+      var.vn <- apply(data.mn[pool.vi, , drop = FALSE], 2,
+                      function(feat.vn) stats::var(feat.vn))
       
       var.vl <- !is.na(var.vn) & var.vn > 0
       
       poolDil_pval.vn <- poolDil_cor.vn <- rep(NA, length(var.vn))
       
-      poolDil_cor.vn[var.vl] <- apply(t(Biobase::exprs(eset))[pooVi, var.vl, drop = FALSE], 2,
-                                       function(varVn) stats::cor(dilVn, varVn))
+      poolDil_cor.vn[var.vl] <- apply(data.mn[pool.vi, var.vl, drop = FALSE], 2,
+                                       function(feat.vn) stats::cor(dilVn, feat.vn))
       
-      fdaDF[, "poolDil_cor"] <- poolDil_cor.vn
+      feat.df[, "poolDil_cor"] <- poolDil_cor.vn
       
-      # fdaDF[, "poolDil_cor"] <- apply(t(Biobase::exprs(eset))[pooVi, , drop = FALSE], 2,
-      #                                 function(varVn) stats::cor(dilVn, varVn))
+      poolDil_pval.vn[var.vl] <- apply(data.mn[pool.vi, var.vl, drop = FALSE], 2,
+                                       function(feat.vn) stats::cor.test(dilVn, feat.vn)[["p.value"]])
       
-      poolDil_pval.vn[var.vl] <- apply(t(Biobase::exprs(eset))[pooVi, var.vl, drop = FALSE], 2,
-                                       function(varVn) stats::cor.test(dilVn, varVn)[["p.value"]])
-      
-      fdaDF[, "poolDil_pval"] <- poolDil_pval.vn
-      
-      # fdaDF[, "poolDil_pval"] <- apply(t(Biobase::exprs(eset))[pooVi, , drop = FALSE], 2,
-      #                                  function(varVn) {
-      #                                    pval.n <- try(stats::cor.test(dilVn, varVn)[["p.value"]], silent = TRUE)
-      #                                    if (!inherits(pval.n, "try-error")) {
-      #                                      return(pval.n)
-      #                                    } else {
-      #                                      return(NA)
-      #                                    }
-      #                                  })
+      feat.df[, "poolDil_pval"] <- poolDil_pval.vn
       
     }
     
   }
   
-  Biobase::fData(eset) <- fdaDF
-  
-  return(eset)
+  return(feat.df)
   
 }
 
 
-.na_zerovar_filter <- function(eset,
-                               max_na_prop.n,
-                               report.c) {
-  
-  feat_init.vc <- Biobase::featureNames(eset)
-  
-  na_zerovar <- function(eset)
-    apply(Biobase::exprs(eset), 1,
-          function(var.vn)
-            sum(is.na(var.vn))/length(var.vn) > max_na_prop.n ||
-            stats::var(var.vn, na.rm = TRUE) < .Machine$double.eps)
-  
-  na_zero.vl <- na_zerovar(eset)
-  
-  while (sum(na_zero.vl)) {
-    
-    if (sum(!na_zero.vl) == 0)
-      stop("No more features left in the dataset.", call. = FALSE)
-    
-    eset <- eset[!na_zero.vl, ]
-    
-    na_zero.vl <- na_zerovar(eset)
-    
-  }
-  
-  feat_final.vc <- Biobase::featureNames(eset)
-  
-  feat_diff.vc <- setdiff(feat_init.vc, feat_final.vc)
-  
-  if (length(feat_diff.vc) && report.c != "none")
-    message(length(feat_diff.vc),
-            " feature(s) was/were discarded because of a proportion of NAs > ",
-            max_na_prop.n, " or a variance of 0.")
-  
-  eset
-  
-}
-
-
-.plotMetrics <- function(eset,
+.plotMetrics <- function(data.mn,
+                         samp.df,
+                         feat.df,
                          pca_metrics.ls,
                          pool_cv.n,
-                         span.n,
+                         loess_span.n,
                          sample_intensity.c,
                          col_batch.c,
                          col_injectionOrder.c,
@@ -559,8 +680,8 @@ setMethod("inspecting", signature(x = "ExpressionSet"),
   
   # Colors
   
-  sample_color.vc <- .sample_color_eset(eset = eset,
-                                        col_sampleType.c = col_sampleType.c)
+  sample_color.vc <- .sample_color(samp.df = samp.df,
+                                   col_sampleType.c = col_sampleType.c)
  
   ## tit: Title
   
@@ -568,37 +689,38 @@ setMethod("inspecting", signature(x = "ExpressionSet"),
   graphics::plot(0:1, bty = "n", type = "n", xaxt = "n", yaxt = "n", xlab = "", ylab = "")
   graphics::text(1, 0.95, adj = 0, cex = 1.2, labels = title.c)
   graphics::text(1, 0.75, adj = 0, labels = paste0("NAs: ",
-                                                   round(length(which(is.na(c(t(Biobase::exprs(eset)))))) / cumprod(dim(t(Biobase::exprs(eset))))[2] * 100), "%"))
+                                                   round(length(which(is.na(c(data.mn)))) / cumprod(dim(data.mn))[2] * 100), "%"))
   graphics::text(1, 0.68, adj = 0, labels = paste0("0 values: ",
-                                                   round(sum(abs(t(Biobase::exprs(eset))) < .Machine[["double.eps"]], na.rm = TRUE) / cumprod(dim(t(Biobase::exprs(eset))))[2] * 100, 2), "%"))
-  graphics::text(1, 0.61, adj = 0, labels = paste0("min: ", signif(min(t(Biobase::exprs(eset)), na.rm = TRUE), 2)))
-  graphics::text(1, 0.54, adj = 0, labels = paste0("median: ", signif(stats::median(t(Biobase::exprs(eset)), na.rm = TRUE), 2)))
-  graphics::text(1, 0.47, adj = 0, labels = paste0("mean: ", signif(mean(t(Biobase::exprs(eset)), na.rm = TRUE), 2)))
-  graphics::text(1, 0.40, adj = 0, labels = paste0("max: ", signif(max(t(Biobase::exprs(eset)), na.rm = TRUE), 2)))
-  if (col_sampleType.c %in% Biobase::varLabels(eset) &&
-      "pool" %in% Biobase::pData(eset)[, col_sampleType.c])
+                                                   round(sum(abs(data.mn) < .Machine[["double.eps"]], na.rm = TRUE) / cumprod(dim(data.mn))[2] * 100, 2), "%"))
+  graphics::text(1, 0.61, adj = 0, labels = paste0("min: ", signif(min(data.mn, na.rm = TRUE), 2)))
+  graphics::text(1, 0.54, adj = 0, labels = paste0("median: ", signif(stats::median(data.mn, na.rm = TRUE), 2)))
+  graphics::text(1, 0.47, adj = 0, labels = paste0("mean: ", signif(mean(data.mn, na.rm = TRUE), 2)))
+  graphics::text(1, 0.40, adj = 0, labels = paste0("max: ", signif(max(data.mn, na.rm = TRUE), 2)))
+  if (col_sampleType.c %in% colnames(samp.df) &&
+      "pool" %in% samp.df[, col_sampleType.c])
     graphics::text(1,
                    0.33,
                    adj = 0,
                    labels = paste0("CVpool<",
                                    round(pool_cv.n * 100), "%: ",
-                                   round(sum(Biobase::fData(eset)[, "pool_CV"] < pool_cv.n, na.rm = TRUE) / nrow(Biobase::exprs(eset)) * 100),
+                                   round(sum(feat.df[, "pool_CV"] < pool_cv.n, na.rm = TRUE) / ncol(data.mn) * 100),
                                    "%"))
   
   ## sca: Color scale
   
-  .plot_color_scale(eset = eset,
+  .plot_color_scale(data.mn = data.mn,
                     mar.vn = marLs[["sca"]])
   
   ## ima: Image
   
-  .plot_image(eset = eset,
+  .plot_image(data.mn = data.mn,
               mar.vn = marLs[["ima"]])
   
   ## dri: Analytical drift
   
-  .plot_drift(eset = eset,
-              span.n = span.n,
+  .plot_drift(data.mn = data.mn,
+              samp.df = samp.df,
+              loess_span.n = loess_span.n,
               sample_intensity.c = sample_intensity.c,
               col_batch.c = col_batch.c,
               col_injectionOrder.c = col_injectionOrder.c,
@@ -607,7 +729,8 @@ setMethod("inspecting", signature(x = "ExpressionSet"),
   
   ## pca: PCA and Hotelling ellipse
   
-  .plot_pca_metrics(eset = eset,
+  .plot_pca_metrics(data.mn = data.mn,
+                    samp.df = samp.df,
                     pca_metrics.ls = pca_metrics.ls,
                     col_sampleType.c = col_sampleType.c,
                     mar.vn = marLs[["pca"]])
@@ -656,7 +779,7 @@ setMethod("inspecting", signature(x = "ExpressionSet"),
   
 }
 
-.plot_color_scale <- function(eset,
+.plot_color_scale <- function(data.mn,
                               mar.vn = c(0.6, 3.1, 4.1, 0.6)) {
   
   palette.vc <- .palette("heat")
@@ -688,10 +811,10 @@ setMethod("inspecting", signature(x = "ExpressionSet"),
                  col = palette.vc,
                  border = NA)
   
-  eval(parse(text = paste0("axis(at = .plot_pretty_axis(c(ifelse(min(t(Biobase::exprs(eset)), na.rm = TRUE) == -Inf, yes = 0, no = min(t(Biobase::exprs(eset)), na.rm = TRUE)) , max(t(Biobase::exprs(eset)), na.rm = TRUE)), 256)$atVn,
+  eval(parse(text = paste0("axis(at = .plot_pretty_axis(c(ifelse(min(data.mn, na.rm = TRUE) == -Inf, yes = 0, no = min(data.mn, na.rm = TRUE)) , max(data.mn, na.rm = TRUE)), 256)$atVn,
                            font = 2,
                            font.axis = 2,
-                           labels = .plot_pretty_axis(c(ifelse(min(t(Biobase::exprs(eset)), na.rm = TRUE) == -Inf, yes = 0, no = min(t(Biobase::exprs(eset)), na.rm = TRUE)), max(t(Biobase::exprs(eset)), na.rm = TRUE)), 256)$labVn,
+                           labels = .plot_pretty_axis(c(ifelse(min(data.mn, na.rm = TRUE) == -Inf, yes = 0, no = min(data.mn, na.rm = TRUE)), max(data.mn, na.rm = TRUE)), 256)$labVn,
                            las = 1,
                            lwd = 2,
                            lwd.ticks = 2,
@@ -711,14 +834,14 @@ setMethod("inspecting", signature(x = "ExpressionSet"),
 }
 
 
-.plot_image <- function(eset,
+.plot_image <- function(data.mn,
                         mar.vn = c(0.6, 2.6, 4.1, 0.9)) {
   
   palette.vc <- .palette("heat")
   
   graphics::par(mar = mar.vn)
   
-  image.mn <- Biobase::exprs(eset)[, rev(1:ncol(Biobase::exprs(eset))), drop = FALSE]
+  image.mn <- data.mn[rev(1:nrow(data.mn)), , drop = FALSE]
   
   graphics::image(x = 1:nrow(image.mn),
                   y = 1:ncol(image.mn),
@@ -731,15 +854,15 @@ setMethod("inspecting", signature(x = "ExpressionSet"),
                   xlab = "",
                   ylab = "")
   
-  if (length(rownames(t(Biobase::exprs(eset)))) == 0) {
-    rowNamVc <- rep("", times = ncol(Biobase::exprs(eset)))
+  if (length(rownames(data.mn)) == 0) {
+    rowNamVc <- rep("", times = nrow(data.mn))
   } else
-    rowNamVc <- rownames(t(Biobase::exprs(eset)))
+    rowNamVc <- rownames(data.mn)
   
-  if (length(colnames(t(Biobase::exprs(eset)))) == 0) {
-    colNamVc <- rep("", times = nrow(Biobase::exprs(eset)))
+  if (length(colnames(data.mn)) == 0) {
+    colNamVc <- rep("", times = ncol(data.mn))
   } else
-    colNamVc <- colnames(t(Biobase::exprs(eset)))
+    colNamVc <- colnames(data.mn)
   
   xlaVc <- paste(paste(rep("[", 2),
                        c(1, nrow(image.mn)),
@@ -785,59 +908,57 @@ setMethod("inspecting", signature(x = "ExpressionSet"),
 }
 
 
-.plot_drift <- function(eset,
-                        span.n = 1,
+.plot_drift <- function(data.mn,
+                        samp.df,
+                        loess_span.n = 1,
                         sample_intensity.c = "mean",
                         col_batch.c = "batch",
                         col_injectionOrder.c = "injectionOrder",
                         col_sampleType.c = "sampleType",
                         mar.vn = c(3.5, 3.6, 1.1, 0.6)) {
   
-  sample_color.vc <- .sample_color_eset(eset = eset,
-                                        col_sampleType.c = col_sampleType.c)
+  sample_color.vc <- .sample_color(samp.df = samp.df,
+                                   col_sampleType.c = col_sampleType.c)
   
   graphics::par(mar = mar.vn)
   
   ## ordering
+
+  samp.df[, "ordIniVi"] <- 1:nrow(data.mn)
   
-  texprs.mn <- t(Biobase::exprs(eset))
-  pdata.df <- Biobase::pData(eset)
-  
-  pdata.df[, "ordIniVi"] <- 1:nrow(texprs.mn)
-  
-  if (col_injectionOrder.c %in% colnames(pdata.df)) {
+  if (col_injectionOrder.c %in% colnames(samp.df)) {
     ordNamC <- "Injection Order"
-    if (col_batch.c %in% colnames(pdata.df)) {
-      ordVi <- order(pdata.df[, col_batch.c],
-                     pdata.df[, col_injectionOrder.c])
+    if (col_batch.c %in% colnames(samp.df)) {
+      ordVi <- order(samp.df[, col_batch.c],
+                     samp.df[, col_injectionOrder.c])
     } else
-      ordVi <- order(pdata.df[, col_injectionOrder.c])
+      ordVi <- order(samp.df[, col_injectionOrder.c])
   } else {
     ordNamC <- "Samples"
-    ordVi <- 1:nrow(texprs.mn)
+    ordVi <- 1:nrow(data.mn)
   }
   
-  texprs.mn <- texprs.mn[ordVi, , drop = FALSE]
-  pdata.df <- pdata.df[ordVi, ]
+  data.mn <- data.mn[ordVi, , drop = FALSE]
+  samp.df <- samp.df[ordVi, ]
   sample_color_ordered.vc <- sample_color.vc[ordVi]
   
-  if (col_batch.c %in% colnames(pdata.df))
-    batch.table <- table(pdata.df[, col_batch.c])
+  if (col_batch.c %in% colnames(samp.df))
+    batch.table <- table(samp.df[, col_batch.c])
   
-  sample_means.vn <- eval(parse(text = paste0("apply(texprs.mn, 1, function(obsVn) ",
+  sample_means.vn <- eval(parse(text = paste0("apply(data.mn, 1, function(obsVn) ",
                                               sample_intensity.c, "(obsVn, na.rm = TRUE))")))
   
   graphics::plot(sample_means.vn,
                  col = sample_color_ordered.vc,
                  pch = 18,
-                 # ylim = range(texprs.mn, na.rm = TRUE),
+                 # ylim = range(data.mn, na.rm = TRUE),
                  type = "n",
                  xaxs = "i",
                  xlab = "",
                  ylab = "")
   
-  # for (samI in 1:nrow(texprs.mn))
-  #   graphics::boxplot(texprs.mn[samI, ],
+  # for (samI in 1:nrow(data.mn))
+  #   graphics::boxplot(data.mn[samI, ],
   #                     at = samI,
   #                     add = TRUE)
   
@@ -855,7 +976,7 @@ setMethod("inspecting", signature(x = "ExpressionSet"),
                   line = 2,
                   side = 2)
   
-  if (col_batch.c %in% colnames(pdata.df) && length(unique(pdata.df[, "batch"])) > 1) {
+  if (col_batch.c %in% colnames(samp.df) && length(unique(samp.df[, "batch"])) > 1) {
     
     graphics::abline(v = cumsum(batch.table) + 0.5,
                      col = "red")
@@ -866,27 +987,27 @@ setMethod("inspecting", signature(x = "ExpressionSet"),
     
     for (batC in names(batch.table)) {
       
-      batch_seq.vi <- which(pdata.df[, col_batch.c] == batC)
+      batch_seq.vi <- which(samp.df[, col_batch.c] == batC)
       
-      if (col_sampleType.c %in% colnames(pdata.df)) {
+      if (col_sampleType.c %in% colnames(samp.df)) {
         batch_sample.vi <- intersect(batch_seq.vi,
-                                     grep("sample", pdata.df[, col_sampleType.c]))
+                                     grep("sample", samp.df[, col_sampleType.c]))
       } else
         batch_sample.vi <- batch_seq.vi
       
       graphics::lines(batch_seq.vi,
-                      .loess(sample_means.vn, batch_sample.vi, batch_seq.vi, span.n),
-                      col = .sample_color_vector("sample"))
+                      .loess(sample_means.vn, batch_sample.vi, batch_seq.vi, loess_span.n),
+                      col = .sample_palette("sample"))
       
-      if (col_sampleType.c %in% colnames(pdata.df) &&
-          "pool" %in% pdata.df[, col_sampleType.c]) {
+      if (col_sampleType.c %in% colnames(samp.df) &&
+          "pool" %in% samp.df[, col_sampleType.c]) {
         
         batch_pool.vi <- intersect(batch_seq.vi,
-                                   grep("^pool$", pdata.df[, col_sampleType.c]))
+                                   grep("^pool$", samp.df[, col_sampleType.c]))
         
         graphics::lines(batch_seq.vi,
-                        .loess(sample_means.vn, batch_pool.vi, batch_seq.vi, span.n),
-                        col = .sample_color_vector("pool"))
+                        .loess(sample_means.vn, batch_pool.vi, batch_seq.vi, loess_span.n),
+                        col = .sample_palette("pool"))
         
       }
       
@@ -894,27 +1015,27 @@ setMethod("inspecting", signature(x = "ExpressionSet"),
     
   } else {
     
-    batch_seq.vi <- 1:nrow(pdata.df)
+    batch_seq.vi <- 1:nrow(samp.df)
     
-    if (col_sampleType.c %in% colnames(pdata.df)) {
+    if (col_sampleType.c %in% colnames(samp.df)) {
       batch_sample.vi <- intersect(batch_seq.vi,
-                                   grep("sample", pdata.df[, col_sampleType.c]))
+                                   grep("sample", samp.df[, col_sampleType.c]))
     } else
       batch_sample.vi <- batch_seq.vi
     
     graphics::lines(batch_seq.vi,
-                    .loess(sample_means.vn, batch_sample.vi, batch_seq.vi, span.n),
-                    col = .sample_color_vector("sample"))
+                    .loess(sample_means.vn, batch_sample.vi, batch_seq.vi, loess_span.n),
+                    col = .sample_palette("sample"))
     
-    if (col_sampleType.c %in% colnames(pdata.df) &&
-        "pool" %in% pdata.df[, col_sampleType.c]) {
+    if (col_sampleType.c %in% colnames(samp.df) &&
+        "pool" %in% samp.df[, col_sampleType.c]) {
       
       batch_pool.vi <- intersect(batch_seq.vi,
-                                 grep("^pool$", pdata.df[, col_sampleType.c]))
+                                 grep("^pool$", samp.df[, col_sampleType.c]))
       
       graphics::lines(batch_seq.vi,
-                      .loess(sample_means.vn, batch_pool.vi, batch_seq.vi, span.n),
-                      col = .sample_color_vector("pool"))
+                      .loess(sample_means.vn, batch_pool.vi, batch_seq.vi, loess_span.n),
+                      col = .sample_palette("pool"))
       
       
     }
@@ -923,7 +1044,7 @@ setMethod("inspecting", signature(x = "ExpressionSet"),
   
   # legend
   
-  if (col_sampleType.c %in% colnames(pdata.df)) {
+  if (col_sampleType.c %in% colnames(samp.df)) {
     obsColVuc <- sample_color_ordered.vc[sort(unique(names(sample_color_ordered.vc)))]
     legOrdVc <- c("blank", paste0("pool", 8:1), "pool", "other", "sample")
     obsColVuc <- obsColVuc[legOrdVc[legOrdVc %in% names(obsColVuc)]]
@@ -940,7 +1061,8 @@ setMethod("inspecting", signature(x = "ExpressionSet"),
 }
 
 
-.plot_pca_metrics <- function(eset,
+.plot_pca_metrics <- function(data.mn,
+                              samp.df,
                               pred.i = 2,
                               show_pred.vi = c(1, 2),
                               pca_metrics.ls = NULL,
@@ -949,24 +1071,26 @@ setMethod("inspecting", signature(x = "ExpressionSet"),
                               mar.vn = c(3.5, 3.6, 1.1, 0.9)) {
   
   if (is.null(pca_metrics.ls))
-    pca_metrics.ls <- phenomis:::.pca_metrics(eset = eset, pred.i = pred.i)
+    pca_metrics.ls <- .pca_metrics(data.mn = data.mn,
+                                   samp.df = samp.df,
+                                   pred.i = pred.i)
   
-  pcaScoreMN <- pca_metrics.ls[["pcaScoreMN"]]
+  score_pca.mn <- pca_metrics.ls[["score_pca.mn"]]
   
-  if (ncol(pcaScoreMN) < max(show_pred.vi))
+  if (ncol(score_pca.mn) < max(show_pred.vi))
     stop("Not enough pca components computed")
   
-  sample_color.vc <- phenomis:::.sample_color_eset(eset = eset, col_sampleType.c = col_sampleType.c)
-  if ("injectionOrder" %in% Biobase::varLabels(eset) &&
-      "sampleType" %in% Biobase::varLabels(eset)) {
+  sample_color.vc <- .sample_color(samp.df = samp.df, col_sampleType.c = col_sampleType.c)
+  if ("injectionOrder" %in% colnames(samp.df) &&
+      "sampleType" %in% colnames(samp.df)) {
     palette.vc <- rev(rainbow(100, end = 4/6))
-    inj_rank.vi <- rank(Biobase::pData(eset)[, "injectionOrder"])
+    inj_rank.vi <- rank(samp.df[, "injectionOrder"])
     sample_color.vc <- palette.vc[round((inj_rank.vi - 1) / diff(range(inj_rank.vi)) * 99) + 1]
   }
   
-  sample_label.vc <- Biobase::sampleNames(eset)
-  if ("sampleType" %in% Biobase::varLabels(eset)) {
-    sample_label.vc <- Biobase::pData(eset)[, "sampleType"]
+  sample_label.vc <- rownames(data.mn)
+  if ("sampleType" %in% colnames(samp.df)) {
+    sample_label.vc <- samp.df[, "sampleType"]
     sample_label.vc[sample_label.vc == "sample"] <- "s"
     sample_label.vc[sample_label.vc == "pool"] <- "QC"
   }
@@ -974,21 +1098,21 @@ setMethod("inspecting", signature(x = "ExpressionSet"),
   
   graphics::par(mar = mar.vn)
   
-  graphics::plot(pcaScoreMN[, show_pred.vi],
+  graphics::plot(score_pca.mn[, show_pred.vi],
                  type = "n",
                  xlab = "",
                  ylab = "")
   graphics::mtext(paste0("t",
                          show_pred.vi[1],
                          " (",
-                         round(pca_metrics.ls[["varRelVn"]][show_pred.vi[1]] * 100), "%)"),
+                         round(pca_metrics.ls[["relative_var.vn"]][show_pred.vi[1]] * 100), "%)"),
                   cex = 0.7,
                   line = 2,
                   side = 1)
   graphics::mtext(paste0("t",
                          show_pred.vi[2],
                          " (",
-                         round(pca_metrics.ls[["varRelVn"]][show_pred.vi[2]] * 100), "%)"),
+                         round(pca_metrics.ls[["relative_var.vn"]][show_pred.vi[2]] * 100), "%)"),
                   cex = 0.7,
                   las = 0,
                   line = 2,
@@ -997,23 +1121,23 @@ setMethod("inspecting", signature(x = "ExpressionSet"),
   graphics::abline(v = 0, lty = "dashed")
   radVn <- seq(0, 2 * pi, length.out = 100)
   
-  hotFisN <- pca_metrics.ls[["hotN"]] * stats::qf(0.95, 2, Biobase::dims(eset)["Samples", 1] - 2)
+  hotFisN <- pca_metrics.ls[["hotelling_df.i"]] * stats::qf(0.95, 2, nrow(data.mn) - 2)
   
-  graphics::lines(sqrt(stats::var(pcaScoreMN[, show_pred.vi[1]]) * hotFisN) * cos(radVn),
-                  sqrt(stats::var(pcaScoreMN[, show_pred.vi[2]]) * hotFisN) * sin(radVn))
+  graphics::lines(sqrt(stats::var(score_pca.mn[, show_pred.vi[1]]) * hotFisN) * cos(radVn),
+                  sqrt(stats::var(score_pca.mn[, show_pred.vi[2]]) * hotFisN) * sin(radVn))
   
   if (identical(show_pred.vi, c(1, 2))) {
     
-    hotVn <- pca_metrics.ls[["hotPva12Vn"]]
+    hotVn <- pca_metrics.ls[["hotelling_pval.vn"]]
     
   } else if (identical(show_pred.vi, c(3, 4))) {
     
-    invCovSco34MN <- solve(stats::cov(pcaScoreMN[, 3:4]))
+    invCovSco34MN <- solve(stats::cov(score_pca.mn[, 3:4]))
     
-    hotVn <- apply(pcaScoreMN[, 3:4],
+    hotVn <- apply(score_pca.mn[, 3:4],
                    1,
                    function(x)
-                     1 - stats::pf(1 / pca_metrics.ls[["hotN"]] * t(as.matrix(x)) %*% invCovSco34MN %*% as.matrix(x), 2, Biobase::dims(eset)["Samples", 1] - 2))
+                     1 - stats::pf(1 / pca_metrics.ls[["hotelling_df.i"]] * t(as.matrix(x)) %*% invCovSco34MN %*% as.matrix(x), 2, nrow(data.mn) - 2))
     
   } else
     stop("'show_pred.vi' must be either 'c(1, 2)' or 'c(3, 4)'")
@@ -1022,42 +1146,42 @@ setMethod("inspecting", signature(x = "ExpressionSet"),
   
   if (labels.l) {
     if (length(obsHotVi))
-      graphics::text(pcaScoreMN[obsHotVi, show_pred.vi[1]],
-                     pcaScoreMN[obsHotVi, show_pred.vi[2]],
+      graphics::text(score_pca.mn[obsHotVi, show_pred.vi[1]],
+                     score_pca.mn[obsHotVi, show_pred.vi[2]],
                      cex = 0.7,
                      col = sample_color.vc[obsHotVi],
-                     labels = Biobase::sampleNames(eset)[obsHotVi])
-    graphics::text(pcaScoreMN[setdiff(1:nrow(pcaScoreMN), obsHotVi), show_pred.vi[1]],
-                     pcaScoreMN[setdiff(1:nrow(pcaScoreMN), obsHotVi), show_pred.vi[2]],
-                     col = sample_color.vc[setdiff(1:nrow(pcaScoreMN), obsHotVi)],
-                     labels = sample_label.vc[setdiff(1:nrow(pcaScoreMN), obsHotVi)])
+                     labels = rownames(data.mn)[obsHotVi])
+    graphics::text(score_pca.mn[setdiff(1:nrow(score_pca.mn), obsHotVi), show_pred.vi[1]],
+                     score_pca.mn[setdiff(1:nrow(score_pca.mn), obsHotVi), show_pred.vi[2]],
+                     col = sample_color.vc[setdiff(1:nrow(score_pca.mn), obsHotVi)],
+                     labels = sample_label.vc[setdiff(1:nrow(score_pca.mn), obsHotVi)])
   } else
-    graphics::text(pcaScoreMN[, show_pred.vi[1]],
-                     pcaScoreMN[, show_pred.vi[2]],
+    graphics::text(score_pca.mn[, show_pred.vi[1]],
+                     score_pca.mn[, show_pred.vi[2]],
                      col = sample_color.vc,
                      labels = sample_label.vc)
   
 }
 
 
-.sample_color_eset <- function(eset,
-                               col_sampleType.c = "sampleType") {
+.sample_color <- function(samp.df,
+                          col_sampleType.c = "sampleType") {
   
-  if (col_sampleType.c %in% Biobase::varLabels(eset)) {
+  if (col_sampleType.c %in% colnames(samp.df)) {
     
-    sample_types.vc <- Biobase::pData(eset)[, col_sampleType.c]
+    sample_types.vc <- samp.df[, col_sampleType.c]
     
   } else {
     
-    sample_types.vc <- rep("other", Biobase::dims(eset)["Samples", 1])
+    sample_types.vc <- rep("other", nrow(samp.df))
     
   }
   
-  .sample_color_vector(sample_types.vc = sample_types.vc)
+  .sample_palette(sample_types.vc = sample_types.vc)
   
 }
 
-.sample_color_vector <- function(sample_types.vc) {
+.sample_palette <- function(sample_types.vc) {
   
   type_colors.vc <- c(sample = "green4",
                       pool = RColorBrewer::brewer.pal(9, "Reds")[7],

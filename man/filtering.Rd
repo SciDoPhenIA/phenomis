@@ -2,11 +2,31 @@
 % Please edit documentation in R/allGenerics.R, R/filtering.R
 \name{filtering}
 \alias{filtering}
+\alias{filtering,MultiAssayExperiment-method}
+\alias{filtering,SummarizedExperiment-method}
 \alias{filtering,MultiDataSet-method}
 \alias{filtering,ExpressionSet-method}
 \title{Filtering of the features (or samples) with a high proportion of NAs or a low variance}
 \usage{
 filtering(
+  x,
+  class.c = "",
+  max_na_prop.n = 0.2,
+  min_variance.n = .Machine$double.eps,
+  dims.vc = c("features", "samples"),
+  report.c = c("none", "interactive", "myfile.txt")[2]
+)
+
+\S4method{filtering}{MultiAssayExperiment}(
+  x,
+  class.c = "",
+  max_na_prop.n = 0.2,
+  min_variance.n = .Machine$double.eps,
+  dims.vc = c("features", "samples"),
+  report.c = c("none", "interactive", "myfile.txt")[2]
+)
+
+\S4method{filtering}{SummarizedExperiment}(
   x,
   class.c = "",
   max_na_prop.n = 0.2,
@@ -34,7 +54,7 @@ filtering(
 )
 }
 \arguments{
-\item{x}{An S4 object of class \code{ExpressionSet} or \code{MultiDataSet}}
+\item{x}{An S4 object of class \code{SummarizedExperiment} or \code{MultiAssayExperiment}}
 
 \item{class.c}{character(1): name of the column of the sample metadata giving
 the classification groups: the filtering will be applied on each class
@@ -56,26 +76,25 @@ results (call to sink()'); if 'interactive' (default), messages will be
 printed on the screen; if 'none', no verbose will be generated}
 }
 \value{
-\code{ExpressionSet} or \code{MultiDataSet} including the exprs matrix
-(list of matrices) with transformed intensities
+\code{SummarizedExperiment} or \code{MultiAssayExperiment} including the filtered data and metadata
 }
 \description{
 Filtering of the features (or samples) with a high proportion of NAs or a low variance
 }
 \examples{
-sacurine.eset <- phenomis::reading(system.file("extdata/W4M00001_Sacurine-statistics", package = "phenomis"))
-exprs.mn <- Biobase::exprs(sacurine.eset)
-ropls::view(exprs.mn)
-phenomis::filtering(sacurine.eset)
-exprs.mn[exprs.mn < 1e5] <- NA
-ropls::view(exprs.mn)
-Biobase::exprs(sacurine.eset) <- exprs.mn
-phenomis::filtering(sacurine.eset)
-phenomis::filtering(sacurine.eset, class.c = "gender")
-phenomis::filtering(sacurine.eset, class.c = "sampleType")
+sacurine.se <- reading(system.file("extdata/W4M00001_Sacurine-statistics", package = "phenomis"))
+assay.mn <- assay(sacurine.se)
+ropls::view(assay.mn)
+filtering(sacurine.se)
+assay.mn[assay.mn < 1e5] <- NA
+ropls::view(assay.mn)
+assay(sacurine.se) <- assay.mn
+filtering(sacurine.se)
+filtering(sacurine.se, class.c = "gender")
+filtering(sacurine.se, class.c = "sampleType")
 # MultiDataSet
-prometis.mset <- phenomis::reading(system.file("extdata/prometis", package="phenomis"))
-phenomis::filtering(prometis.mset)
+prometis.mset <- reading(system.file("extdata/prometis", package="phenomis"))
+filtering(prometis.mset)
 for (set.c in names(prometis.mset)) {
 eset <- prometis.mset[[set.c]]
 exprs.mn <- Biobase::exprs(eset)
@@ -84,5 +103,5 @@ Biobase::exprs(eset) <- exprs.mn
 prometis.mset <- MultiDataSet::add_eset(prometis.mset, eset, dataset.type = set.c,
                                         GRanges = NA, overwrite = TRUE, warnings = FALSE)
 }
-phenomis::filtering(prometis.mset)
+filtering(prometis.mset)
 }

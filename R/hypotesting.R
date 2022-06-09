@@ -1,3 +1,207 @@
+#### hypotesting (MultiAssayExperiment) ####
+
+#' @rdname hypotesting
+#' @export
+setMethod("hypotesting", signature(x = "MultiAssayExperiment"),
+          function(x,
+                   test.c = c("ttest", "limma", "wilcoxon",
+                              "anova", "kruskal",
+                              "pearson", "spearman",
+                              "limma2ways", "limma2waysInter",
+                              "anova2ways", "anova2waysInter")[2],
+                   factor_names.vc,
+                   factor_levels.ls = list(factor1.vc = "default", factor2.vc = "default"),
+                   adjust.c = c("holm", "hochberg", "hommel", "bonferroni", "BH",
+                                "BY", "fdr", "none")[5],
+                   adjust_thresh.n = 0.05,
+                   signif_maxprint.i = NA,
+                   title.c = NA,
+                   display_signif.l = FALSE,
+                   prefix.c = "",
+                   figure.c = c("none", "interactive", "interactive_plotly", "myfile.pdf")[2],
+                   report.c = c("none", "interactive", "myfile.txt")[2]) {
+            
+            if (!(report.c %in% c("none", "interactive")))
+              sink(report.c, append = TRUE)
+            
+            report_set.c <- report.c
+            if (report_set.c != "none")
+              report_set.c <- "interactive"
+            
+            if (!(figure.c %in% c("none", "interactive", "interactive_plotly"))) {
+              grDevices::pdf(figure.c)
+              figure_set.c <- "interactive"
+            } else
+              figure_set.c <- figure.c
+            
+            for (set.c in names(x)) {
+              
+              main.c <- paste0(ifelse(!is.na(title.c), paste0(title.c, ", "), ""),
+                               set.c)
+              
+              if (report.c != "none")
+                message("Hypothesis testing for the '", set.c, "' dataset:")
+              
+              x[[set.c]] <- hypotesting(x = x[[set.c]],
+                                        test.c = test.c,
+                                        factor_names.vc = factor_names.vc,
+                                        factor_levels.ls = factor_levels.ls,
+                                        adjust.c = adjust.c,
+                                        adjust_thresh.n = adjust_thresh.n,
+                                        signif_maxprint.i = signif_maxprint.i,
+                                        title.c = main.c,
+                                        display_signif.l = display_signif.l,
+                                        prefix.c = prefix.c,
+                                        figure.c = figure_set.c,
+                                        report.c = report_set.c)
+              
+            }
+            
+            if (!(figure.c %in% c("none", "interactive", "interactive_plotly")))
+              grDevices::dev.off()
+            
+            if (!(report.c %in% c("none", "interactive")))
+              sink()
+            
+            methods::validObject(x)
+            
+            return(invisible(x))
+            
+          })
+
+
+#### hypotesting (SummarizedExperiment) ####
+
+#' @rdname hypotesting
+#' @export
+setMethod("hypotesting", signature(x = "SummarizedExperiment"),
+          function(x,
+                   test.c = c("ttest", "limma", "wilcoxon",
+                              "anova", "kruskal",
+                              "pearson", "spearman",
+                              "limma2ways", "limma2waysInter",
+                              "anova2ways", "anova2waysInter")[2],
+                   factor_names.vc,
+                   factor_levels.ls = list(factor1.vc = "default", factor2.vc = "default"),
+                   adjust.c = c("holm", "hochberg", "hommel", "bonferroni", "BH",
+                                "BY", "fdr", "none")[5],
+                   adjust_thresh.n = 0.05,
+                   signif_maxprint.i = NA,
+                   title.c = NA,
+                   display_signif.l = FALSE,
+                   prefix.c = "",
+                   figure.c = c("none", "interactive", "interactive_plotly", "myfile.pdf")[2],
+                   report.c = c("none", "interactive", "myfile.txt")[2]) {
+            
+            if (!(report.c %in% c("none", "interactive")))
+              sink(report.c, append = TRUE)
+            
+            # Checks
+            
+            factorVl <- factor_names.vc %in% colnames(colData(x))
+            
+            if (sum(!factorVl))
+              stop("The following factor(s) '", paste(factor_names.vc[!factorVl], collapse = "', '"),
+                   "' was/were not found in the column names of colData(x): '",
+                   paste(colnames(colData(x)), collapse = "', '"), "'")
+            
+            testVc <- c("ttest", "limma", "wilcoxon",
+                        "anova", "kruskal",
+                        "pearson", "spearman",
+                        "limma2ways", "limma2waysInter",
+                        "anova2ways", "anova2waysInter")
+            
+            if (!test.c %in% testVc)
+              stop("'test.c = ", test.c, ": 'test.c' must be in '", paste(testVc, collapse = "', '"), "'")
+            
+            # Hypothesis testing
+            
+            if (report.c != "none")
+              message("Performing '", test.c, "'...")
+            
+            if (test.c %in% c("ttest", "limma", "wilcoxon",
+                              "pearson", "spearman")) {
+              
+              testLs <- .twoSampCorTests(data.mn = t(assay(x)),
+                                         samp.df = colData(x),
+                                         feat.df = rowData(x),
+                                         test.c = test.c,
+                                         factorNameC = factor_names.vc,
+                                         factorLevelsVc = factor_levels.ls[[1]],
+                                         adjust.c = adjust.c,
+                                         adjust_thresh.n = adjust_thresh.n,
+                                         title.c = title.c,
+                                         display_signif.l = display_signif.l,
+                                         prefix.c = prefix.c,
+                                         figure.c = figure.c)
+              
+            } else if (test.c %in% c("anova", "kruskal")) {
+              
+              testLs <- .anovas(data.mn = t(assay(x)),
+                                samp.df = colData(x),
+                                feat.df = rowData(x),
+                                test.c = test.c,
+                                factorNameC = factor_names.vc,
+                                factorLevelsVc = factor_levels.ls[[1]],
+                                adjust.c = adjust.c,
+                                adjust_thresh.n = adjust_thresh.n,
+                                title.c = title.c,
+                                prefix.c = prefix.c,
+                                figure.c = figure.c)
+              
+            } else if (test.c %in% c("limma2ways", "limma2waysInter",
+                                     "anova2ways", "anova2waysInter")) {
+              
+              testLs <- .anovas2ways(data.mn = t(assay(x)),
+                                     samp.df = colData(x),
+                                     feat.df = rowData(x),
+                                     test.c = test.c,
+                                     factor_names.vc = factor_names.vc,
+                                     factor_levels.ls = factor_levels.ls,
+                                     adjust.c = adjust.c,
+                                     adjust_thresh.n = adjust_thresh.n,
+                                     title.c = title.c,
+                                     prefix.c = prefix.c,
+                                     figure.c = figure.c)
+              
+            }
+            
+            rowData(x) <- testLs[["feat.df"]]
+            metric.mn <- testLs[["metric.mn"]]
+            
+            ## Printing significant features
+            
+            signiColVl <- grepl("_signif", colnames(metric.mn))
+            signiVl <- rowSums(metric.mn[, signiColVl, drop = FALSE], na.rm = TRUE) > 0
+            
+            if (report.c != "none") {
+              if (sum(signiVl) > 0) {
+                
+                metric.mn <- metric.mn[, !signiColVl, drop = FALSE]
+                
+                .signifPrint(metric.mn = metric.mn,
+                             signiVl = signiVl,
+                             signif_maxprint.i,
+                             adjust.c = adjust.c,
+                             adjust_thresh.n = adjust_thresh.n)
+                
+              } else
+                message("\nNo significant variable found at the selected ", adjust_thresh.n, " level.")
+              
+            }
+            
+            if (!(report.c %in% c("none", "interactive")))
+              sink()
+            
+            methods::validObject(x)
+            
+            return(invisible(x))
+            
+          })
+
+
+
+
 #### hypotesting (MultiDataSet) ####
 
 #' @rdname hypotesting
@@ -72,6 +276,8 @@ setMethod("hypotesting", signature(x = "MultiDataSet"),
             if (!(report.c %in% c("none", "interactive")))
               sink()
             
+            methods::validObject(x)
+            
             return(invisible(x))
             
           })
@@ -129,7 +335,9 @@ setMethod("hypotesting", signature(x = "ExpressionSet"),
             if (test.c %in% c("ttest", "limma", "wilcoxon",
                              "pearson", "spearman")) {
               
-              testLs <- .twoSampCorTests(x = x,
+              testLs <- .twoSampCorTests(data.mn = t(Biobase::exprs(x)),
+                                         samp.df = Biobase::pData(x),
+                                         feat.df = Biobase::fData(x),
                                          test.c = test.c,
                                          factorNameC = factor_names.vc,
                                          factorLevelsVc = factor_levels.ls[[1]],
@@ -142,7 +350,9 @@ setMethod("hypotesting", signature(x = "ExpressionSet"),
               
             } else if (test.c %in% c("anova", "kruskal")) {
               
-              testLs <- .anovas(x = x,
+              testLs <- .anovas(data.mn = t(Biobase::exprs(x)),
+                                samp.df = Biobase::pData(x),
+                                feat.df = Biobase::fData(x),
                                 test.c = test.c,
                                 factorNameC = factor_names.vc,
                                 factorLevelsVc = factor_levels.ls[[1]],
@@ -155,7 +365,9 @@ setMethod("hypotesting", signature(x = "ExpressionSet"),
             } else if (test.c %in% c("limma2ways", "limma2waysInter",
                                     "anova2ways", "anova2waysInter")) {
               
-              testLs <- .anovas2ways(x = x,
+              testLs <- .anovas2ways(data.mn = t(Biobase::exprs(x)),
+                                     samp.df = Biobase::pData(x),
+                                     feat.df = Biobase::fData(x),
                                      test.c = test.c,
                                      factor_names.vc = factor_names.vc,
                                      factor_levels.ls = factor_levels.ls,
@@ -167,7 +379,7 @@ setMethod("hypotesting", signature(x = "ExpressionSet"),
               
             }
             
-            x <- testLs[["x"]]
+            Biobase::fData(x) <- testLs[["feat.df"]]
             metric.mn <- testLs[["metric.mn"]]
             
             ## Printing significant features
@@ -191,10 +403,10 @@ setMethod("hypotesting", signature(x = "ExpressionSet"),
               
             }
             
-            methods::validObject(x)
-            
             if (!(report.c %in% c("none", "interactive")))
               sink()
+            
+            methods::validObject(x)
             
             return(invisible(x))
             
@@ -202,7 +414,9 @@ setMethod("hypotesting", signature(x = "ExpressionSet"),
 
 
 # ttest, wilcoxon, limma, pearson, spearman: test
-.twoSampCorTests <- function(x,
+.twoSampCorTests <- function(data.mn, ## data (matrix of numerics; samples x variables)
+                             samp.df, ## sample metadata (dataframe; samples x metadata)
+                             feat.df, ## feature metadata (dataframe; features x metadata)
                              test.c,
                              factorNameC,
                              factorLevelsVc,
@@ -213,7 +427,7 @@ setMethod("hypotesting", signature(x = "ExpressionSet"),
                              prefix.c,
                              figure.c) {
   
-  checkLs <- .oneFactorCheck(x = x,
+  checkLs <- .oneFactorCheck(samp.df = samp.df,
                              test.c = test.c,
                              factorNameC = factorNameC,
                              factorLevelsVc = factorLevelsVc)
@@ -222,12 +436,12 @@ setMethod("hypotesting", signature(x = "ExpressionSet"),
   factorFc <- checkLs[["factorFc"]]
   factorVn <- checkLs[["factorVn"]]
   
-  statVn <- .twoSampCorStat(x = x,
+  statVn <- .twoSampCorStat(data.mn = data.mn,
                             test.c = test.c,
                             factorFc = factorFc,
                             factorVn = factorVn)
   
-  pvalVn <- .twoSampCorPval(x = x,
+  pvalVn <- .twoSampCorPval(data.mn = data.mn,
                             test.c = test.c,
                             factorFc = factorFc,
                             factorVn = factorVn)
@@ -240,7 +454,7 @@ setMethod("hypotesting", signature(x = "ExpressionSet"),
                      pvalAdjustVn,
                      adjustSigniVn)
   
-  rownames(metric.mn) <- Biobase::featureNames(x)
+  rownames(metric.mn) <- colnames(data.mn)
   colnames(metric.mn) <- .twoSampCorNames(test.c,
                                           factorNameC,
                                           factorFc,
@@ -248,7 +462,7 @@ setMethod("hypotesting", signature(x = "ExpressionSet"),
                                           prefix.c)
   
   for (colC in colnames(metric.mn))
-    Biobase::fData(x)[, colC] <- metric.mn[, colC]
+    feat.df[, colC] <- metric.mn[, colC]
   
   metric.mn <- metric.mn[order(pvalVn), ,
                          drop = FALSE]
@@ -258,7 +472,7 @@ setMethod("hypotesting", signature(x = "ExpressionSet"),
     if (!grepl("interactive", figure.c))
       grDevices::pdf(figure.c)
     
-    .twoSampCorPlot(x = x,
+    .twoSampCorPlot(data.mn = data.mn,
                     test.c = test.c,
                     factorNameC = factorNameC,
                     factorFc = factorFc,
@@ -275,13 +489,13 @@ setMethod("hypotesting", signature(x = "ExpressionSet"),
     
   }
   
-  return(list(x = x,
+  return(list(feat.df = feat.df,
               metric.mn = metric.mn))
   
 }
 
 # ttest, wilcoxon, limma, pearson, spearman, anova, kruskal: checking factor name and levels
-.oneFactorCheck <- function(x,
+.oneFactorCheck <- function(samp.df,
                             test.c,
                             factorNameC,
                             factorLevelsVc) {
@@ -292,7 +506,7 @@ setMethod("hypotesting", signature(x = "ExpressionSet"),
   if (factorNameLengthN != 1)
     stop("'length(factorNameC) = ", factorNameLengthN, "': A single 'factorName' is required")
   
-  factorVcn <- Biobase::pData(x)[, factorNameC]
+  factorVcn <- samp.df[, factorNameC]
   # either of 'character' or 'numeric' mode at this stage
   
   if (test.c %in% c("ttest", "limma", "wilcoxon", "anova", "kruskal",
@@ -361,40 +575,40 @@ setMethod("hypotesting", signature(x = "ExpressionSet"),
   
 }
 
-.twoSampDiffMean <- function(x,
+.twoSampDiffMean <- function(data.mn,
                              factorFc) {
-  apply(Biobase::exprs(x), 1, function(y)
+  apply(data.mn, 2, function(y)
     diff(tapply(y, factorFc, function(x) mean(x, na.rm = TRUE))))
 }
 
-.twoSampDiffMedian <- function(x,
+.twoSampDiffMedian <- function(data.mn,
                                factorFc) {
-  apply(Biobase::exprs(x), 1, function(y)
+  apply(data.mn, 2, function(y)
     diff(tapply(y, factorFc, function(x) stats::median(x, na.rm = TRUE))))
 }
 
-.cor <- function(x,
+.cor <- function(data.mn,
                  factorVn,
                  methodC)
-  apply(Biobase::exprs(x), 1, function(y)
+  apply(data.mn, 2, function(y)
     stats::cor(factorVn, y, method = methodC, use = "pairwise.complete.obs"))
 
-.twoSampCorStat <- function(x,
+.twoSampCorStat <- function(data.mn,
                             test.c,
                             factorFc,
                             factorVn) {
   
   if (test.c %in% c("ttest", "limma")) {
-    return(.twoSampDiffMean(x = x, factorFc = factorFc))
+    return(.twoSampDiffMean(data.mn = data.mn, factorFc = factorFc))
   } else if (test.c == "wilcoxon") {
-    return(.twoSampDiffMedian(x = x, factorFc = factorFc))
+    return(.twoSampDiffMedian(data.mn = data.mn, factorFc = factorFc))
   } else if (test.c %in% c("pearson", "spearman")) {
-    return(.cor(x = x, factorVn = factorVn, methodC = test.c))
+    return(.cor(data.mn = data.mn, factorVn = factorVn, methodC = test.c))
   }
   
 }
 
-.twoSampCorPval <- function(x,
+.twoSampCorPval <- function(data.mn,
                             test.c,
                             factorFc,
                             factorVn) {
@@ -410,13 +624,13 @@ setMethod("hypotesting", signature(x = "ExpressionSet"),
                                               use = "pairwise.complete.obs", exact = FALSE)[["p.value"]]
     }
     
-    return(apply(Biobase::exprs(x), 1, hypotest))
+    return(apply(data.mn, 2, hypotest))
     
   } else if (test.c == "limma") {
-    designMN <- cbind(level2 = rep(1, Biobase::dims(x)["Samples", ]),
+    designMN <- cbind(level2 = rep(1, nrow(data.mn)),
                       level1.level2 = as.numeric(as.numeric(factorFc) == 1))
-    rownames(designMN) <- Biobase::sampleNames(x)
-    limmaFitLs <- limma::lmFit(x, designMN)
+    rownames(designMN) <- rownames(data.mn)
+    limmaFitLs <- limma::lmFit(t(data.mn), designMN)
     limmaBayesLs <- limma::eBayes(limmaFitLs)
     
     return(limmaBayesLs[["p.value"]][, "level1.level2"])
@@ -455,7 +669,7 @@ setMethod("hypotesting", signature(x = "ExpressionSet"),
 
 
 # ttest, wilcoxon, limma: volcano and boxplots
-.twoSampCorPlot <- function(x,
+.twoSampCorPlot <- function(data.mn,
                             test.c,
                             factorNameC,
                             factorFc,
@@ -491,17 +705,17 @@ setMethod("hypotesting", signature(x = "ExpressionSet"),
   if (sum(signiVl) > 30)
     label.vc[adjPvalVn > max(head(sort(adjPvalVn), 30))] <- ""
   
-  phenomis::gg_volcanoplot(fold_change.vn = metric.mn[, grep(paste0("_", statC), colnames(metric.mn))],
-                           adjusted_pvalue.vn = adjPvalVn,
-                           adjust_method.c = adjust.c,
-                           adjust_thresh.n = adjust_thresh.n,
-                           label.vc = label.vc,
-                           title.c = mainC,
-                           xlab.c = switch(statC,
-                                           diff = "Fold Change",
-                                           cor = "Correlation"),
-                           class_name.vc = group.vc,
-                           figure.c = figure.c)
+  gg_volcanoplot(fold_change.vn = metric.mn[, grep(paste0("_", statC), colnames(metric.mn))],
+                 adjusted_pvalue.vn = adjPvalVn,
+                 adjust_method.c = adjust.c,
+                 adjust_thresh.n = adjust_thresh.n,
+                 label.vc = label.vc,
+                 title.c = mainC,
+                 xlab.c = switch(statC,
+                                 diff = "Fold Change",
+                                 cor = "Correlation"),
+                 class_name.vc = group.vc,
+                 figure.c = figure.c)
   
   
   if (display_signif.l) {
@@ -514,7 +728,7 @@ setMethod("hypotesting", signature(x = "ExpressionSet"),
       
       if (test.c %in% c("pearson", "spearman")) {
         
-        mod <- stats::lm(Biobase::exprs(x)[varC, ] ~  factorVn)
+        mod <- stats::lm(data.mn[, varC] ~  factorVn)
         
         mainC <- paste0(varC, "\n(", statC, " = ",
                         signif(metric.mn[varI,
@@ -527,7 +741,7 @@ setMethod("hypotesting", signature(x = "ExpressionSet"),
         if (!is.na(title.c))
           mainC <- paste0(title.c, ", ", mainC)
         
-        graphics::plot(factorVn, Biobase::exprs(x)[varC, ],
+        graphics::plot(factorVn, data.mn[, varC],
                        xlab = factorNameC,
                        ylab = "",
                        pch = 18,
@@ -548,18 +762,13 @@ setMethod("hypotesting", signature(x = "ExpressionSet"),
         if (!is.na(title.c))
           mainC <- paste0(title.c, ", ", mainC)
         
-        # .boxPlot(factorFc = factorFc,
-        #          responseVn = Biobase::exprs(x)[varC, ],
-        #          mainC = mainC,
-        #          xLabC = factorNameC)
-        
-        phenomis::gg_boxplot(data.frame(factor = factorFc,
-                                        response = Biobase::exprs(x)[varC, ]),
-                             x.c = "factor",
-                             y.c = "response",
-                             color.c = "factor",
-                             title.c = mainC,
-                             xlab.c = factorNameC)
+        gg_boxplot(data.frame(factor = factorFc,
+                              response = data.mn[, varC]),
+                   x.c = "factor",
+                   y.c = "response",
+                   color.c = "factor",
+                   title.c = mainC,
+                   xlab.c = factorNameC)
         
         
       }
@@ -570,7 +779,9 @@ setMethod("hypotesting", signature(x = "ExpressionSet"),
   
 }
 
-.anovas <- function(x,
+.anovas <- function(data.mn, ## data (matrix of numerics; samples x variables)
+                    samp.df, ## sample metadata (dataframe; samples x metadata)
+                    feat.df, ## feature metadata (dataframe; features x metadata)
                     test.c,
                     factorNameC,
                     factorLevelsVc,
@@ -580,7 +791,7 @@ setMethod("hypotesting", signature(x = "ExpressionSet"),
                     prefix.c,
                     figure.c) {
   
-  checkLs <- .oneFactorCheck(x = x,
+  checkLs <- .oneFactorCheck(samp.df = samp.df,
                              test.c = test.c,
                              factorNameC = factorNameC,
                              factorLevelsVc = factorLevelsVc)
@@ -599,7 +810,7 @@ setMethod("hypotesting", signature(x = "ExpressionSet"),
   
   ## omnibus and post-hoc tests
   
-  diffPvalLs <- .anovasDiffPval(x = x,
+  diffPvalLs <- .anovasDiffPval(data.mn = data.mn,
                                 test.c = test.c,
                                 factorFc = factorFc,
                                 pairNamesVc = pairNamesVc)
@@ -626,11 +837,11 @@ setMethod("hypotesting", signature(x = "ExpressionSet"),
                       pairAdjustMN[, pairI],
                       pairSigniMI[, pairI])
   }
-  rownames(metric.mn) <- Biobase::featureNames(x)
+  rownames(metric.mn) <- colnames(data.mn)
   colnames(metric.mn) <- metricNamesVc
   
   for (colC in colnames(metric.mn))
-    Biobase::fData(x)[, colC] <- metric.mn[, colC]
+    feat.df[, colC] <- metric.mn[, colC]
   
   metric.mn <- metric.mn[order(pvalVn), , drop = FALSE]
   
@@ -641,7 +852,7 @@ setMethod("hypotesting", signature(x = "ExpressionSet"),
     if (!grepl("interactive", figure.c))
       grDevices::pdf(figure.c)
     
-    .anovasPlot(x = x,
+    .anovasPlot(data.mn = data.mn,
                 factorNameC = factorNameC,
                 factorFc = factorFc,
                 metric.mn = metric.mn,
@@ -657,19 +868,19 @@ setMethod("hypotesting", signature(x = "ExpressionSet"),
     
   }
   
-  return(list(x = x,
+  return(list(feat.df = feat.df,
               metric.mn = metric.mn))
   
 }
 
-.anovasDiffPval <- function(x,
+.anovasDiffPval <- function(data.mn,
                             test.c,
                             factorFc,
                             pairNamesVc) {
   
   if (test.c == "anova") {
     
-    aovMN <- t(apply(Biobase::exprs(x), 1,
+    aovMN <- t(apply(data.mn, 2,
                      function(varVn) {
                        
                        aovModel <- stats::aov(varVn ~ factorFc)
@@ -701,7 +912,7 @@ setMethod("hypotesting", signature(x = "ExpressionSet"),
     
   } else if (test.c == "kruskal") {
     
-    kruskalMN <- t(apply(Biobase::exprs(x), 1, function(varVn) {
+    kruskalMN <- t(apply(data.mn, 2, function(varVn) {
       
       kruskalPvalN <- stats::kruskal.test(varVn ~ factorFc)[["p.value"]]
       nemenyiPvalMN <- PMCMRplus::kwAllPairsNemenyiTest(varVn, factorFc, "Tukey")[["p.value"]]
@@ -730,7 +941,7 @@ setMethod("hypotesting", signature(x = "ExpressionSet"),
       pairVc <- unlist(strsplit(pairC, ".", fixed = TRUE))
       pairSamplesVi <- which(factorFc %in% pairVc)
       pairFactorFc <- factor(as.character(factorFc)[pairSamplesVi], levels = pairVc)
-      apply(Biobase::exprs(x)[, pairSamplesVi], 1,
+      apply(data.mn[pairSamplesVi, ], 2,
             function(varVn)
               diff(as.numeric(tapply(varVn, pairFactorFc,
                                      function(x)
@@ -778,7 +989,7 @@ setMethod("hypotesting", signature(x = "ExpressionSet"),
   
 }
 
-.anovasPlot <- function(x,
+.anovasPlot <- function(data.mn,
                         factorNameC,
                         factorFc,
                         metric.mn,
@@ -840,7 +1051,7 @@ setMethod("hypotesting", signature(x = "ExpressionSet"),
       if (!is.na(title.c))
         mainC <- paste0(title.c, ", ", mainC)
       
-      graphics::boxplot(Biobase::exprs(x)[varNameC, ] ~ factorFc,
+      graphics::boxplot(data.mn[, varNameC] ~ factorFc,
                         main = mainC,
                         xlab = factorNameC, ylab = "")
       
@@ -849,7 +1060,9 @@ setMethod("hypotesting", signature(x = "ExpressionSet"),
 }
 
 # ANOVA 2 ways without interaction (2 levels for each factor)
-.anovas2ways <- function(x,
+.anovas2ways <- function(data.mn, ## data (matrix of numerics; samples x variables)
+                         samp.df, ## sample metadata (dataframe; samples x metadata)
+                         feat.df, ## feature metadata (dataframe; features x metadata)
                          test.c,
                          factor_names.vc,
                          factor_levels.ls,
@@ -859,7 +1072,7 @@ setMethod("hypotesting", signature(x = "ExpressionSet"),
                          prefix.c,
                          figure.c) {
   
-  checkLs <- .twoFactorsCheck(x,
+  checkLs <- .twoFactorsCheck(samp.df,
                               test.c,
                               factor_names.vc,
                               factor_levels.ls,
@@ -871,7 +1084,7 @@ setMethod("hypotesting", signature(x = "ExpressionSet"),
   factor2.vc <- checkLs[["factor2.vc"]]
   factor2.fc <- checkLs[["factor2.fc"]]
   
-  diffPvalLs <- .anovas2waysDiffPval(x = x,
+  diffPvalLs <- .anovas2waysDiffPval(data.mn = data.mn,
                                      test.c = test.c,
                                      factor1.fc = factor1.fc,
                                      factor2.fc = factor2.fc)
@@ -899,7 +1112,7 @@ setMethod("hypotesting", signature(x = "ExpressionSet"),
   if (grepl("Inter$", test.c))
     metric.mn <- cbind(metric.mn, pvalAdjustMN[, 3], adjustSigniMN[, 3])
   
-  rownames(metric.mn) <- Biobase::featureNames(x)
+  rownames(metric.mn) <- colnames(data.mn)
   colnames(metric.mn) <- .anovas2waysNames(test.c = test.c,
                                            factor_names.vc = factor_names.vc,
                                            factor1.fc = factor1.fc,
@@ -908,7 +1121,7 @@ setMethod("hypotesting", signature(x = "ExpressionSet"),
                                            prefix.c = prefix.c)
   
   for (colC in colnames(metric.mn))
-    Biobase::fData(x)[, colC] <- metric.mn[, colC]
+    feat.df[, colC] <- metric.mn[, colC]
   
   metric.mn <- metric.mn[do.call("order", as.list(as.data.frame(pvalAdjustMN))), ,
                        drop = FALSE]
@@ -916,7 +1129,7 @@ setMethod("hypotesting", signature(x = "ExpressionSet"),
   ## graphic
   
   if (figure.c != "none")
-    .anovas2waysPlot(x = x,
+    .anovas2waysPlot(data.mn = data.mn,
                      test.c = test.c,
                      factor_names.vc = factor_names.vc,
                      adjust.c = adjust.c,
@@ -925,13 +1138,13 @@ setMethod("hypotesting", signature(x = "ExpressionSet"),
                      title.c = title.c,
                      figure.c = figure.c)
   
-  return(list(x = x,
+  return(list(feat.df = feat.df,
               metric.mn = metric.mn))
   
 }
 
 # anova2ways: checking factor names and levels
-.twoFactorsCheck <- function(x,
+.twoFactorsCheck <- function(samp.df,
                              test.c,
                              factor_names.vc,
                              factor_levels.ls,
@@ -948,7 +1161,7 @@ setMethod("hypotesting", signature(x = "ExpressionSet"),
   
   for (i in 1:length(factor_names.vc)) {
     
-    factorLs[[i]] <- .oneFactorCheck(x = x,
+    factorLs[[i]] <- .oneFactorCheck(samp.df = samp.df,
                                      test.c = test.c,
                                      factorNameC = factor_names.vc[i],
                                      factorLevelsVc = factor_levels.ls[[i]])
@@ -971,23 +1184,23 @@ setMethod("hypotesting", signature(x = "ExpressionSet"),
   
 }
 
-.anovas2waysDiffPval <- function(x,
+.anovas2waysDiffPval <- function(data.mn,
                                  test.c,
                                  factor1.fc,
                                  factor2.fc) {
   
   # Difference of means
   
-  anovas2waysDiffMN <- cbind(.twoSampDiffMean(x = x,
+  anovas2waysDiffMN <- cbind(.twoSampDiffMean(data.mn = data.mn,
                                               factorFc = factor1.fc),
-                             .twoSampDiffMean(x = x,
+                             .twoSampDiffMean(data.mn = data.mn,
                                               factorFc = factor2.fc))
   
   # Test statistic
   
   if (test.c == "anova2ways") {
     
-    anova2waysPvalMN <- t(apply(Biobase::exprs(x), 1,
+    anova2waysPvalMN <- t(apply(data.mn, 2,
                                 function(varVn) {
                                   aovModel <- stats::lm(varVn ~ factor1.fc + factor2.fc)
                                   stats::anova(aovModel)[c("factor1.fc",
@@ -996,7 +1209,7 @@ setMethod("hypotesting", signature(x = "ExpressionSet"),
     
   } else if (test.c == "anova2waysInter") {
     
-    anova2waysPvalMN <- t(apply(Biobase::exprs(x), 1,
+    anova2waysPvalMN <- t(apply(data.mn, 2,
                                 function(varVn) {
                                   aovModel <- stats::lm(varVn ~ factor1.fc * factor2.fc)
                                   stats::anova(aovModel)[c("factor1.fc",
@@ -1008,10 +1221,10 @@ setMethod("hypotesting", signature(x = "ExpressionSet"),
     
     # create design
     designMN <- stats::model.matrix(~ factor1.fc + factor2.fc)
-    rownames(designMN) <- Biobase::sampleNames(x)
+    rownames(designMN) <- rownames(data.mn)
     
     # apply limma test
-    limmaFitLs <- limma::lmFit(x, designMN)
+    limmaFitLs <- limma::lmFit(t(data.mn), designMN)
     limmaBayesLs <- limma::eBayes(limmaFitLs)
     
     anova2waysPvalMN <- limmaBayesLs[["p.value"]][, 2:3]
@@ -1023,10 +1236,10 @@ setMethod("hypotesting", signature(x = "ExpressionSet"),
     colnames(designMN) <- make.names(gsub("factor1.fc", "",
                                           gsub("factor2.fc", "",
                                                colnames(designMN))))
-    rownames(designMN) <- Biobase::sampleNames(x)
+    rownames(designMN) <- rownames(data.mn)
     
     # apply linear model
-    limmaFit <- limma::lmFit(x, designMN)
+    limmaFit <- limma::lmFit(t(data.mn), designMN)
     
     # create contrast matrix
     factInterVc <- colnames(designMN)
@@ -1091,7 +1304,7 @@ setMethod("hypotesting", signature(x = "ExpressionSet"),
   
 }
 
-.anovas2waysPlot <- function(x,
+.anovas2waysPlot <- function(data.mn,
                              test.c,
                              factor_names.vc,
                              adjust.c,
@@ -1112,9 +1325,7 @@ setMethod("hypotesting", signature(x = "ExpressionSet"),
       metricSigniNamesVc <- c(metricSigniNamesVc, paste(factor_names.vc, collapse = ":"))
     names(metricSigniLs) <- metricSigniNamesVc
     
-    xTitleC <- Biobase::experimentData(x)@title
-    mainC <- paste0(ifelse(xTitleC != "", paste0(xTitleC, ", "), ""),
-                    test.c)
+    mainC <- test.c
     if (!is.na(title.c))
       mainC <- paste0(title.c, "\n", mainC)
     
@@ -1123,9 +1334,9 @@ setMethod("hypotesting", signature(x = "ExpressionSet"),
     } else
       file.tiffC <- "none"
     
-    phenomis::vennplot(input.ls = metricSigniLs,
-                       title.c = mainC,
-                       figure.c = file.tiffC)
+    vennplot(input.ls = metricSigniLs,
+             title.c = mainC,
+             figure.c = file.tiffC)
     
   }
   

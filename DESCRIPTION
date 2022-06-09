@@ -1,8 +1,8 @@
 Package: phenomis
 Type: Package
 Title: Analysis of single and multiple phenomic data sets
-Version: 0.4.0
-Date: 2022-05-17
+Version: 0.4.2
+Date: 2022-06-03
 Authors@R: c(
 	   person(given = "Natacha", family = "Lenuzza",
 	   email = "n.lenuzza@gmail.com",
@@ -41,11 +41,9 @@ BiocViews:
     StatisticalMethod,
     Clustering
 Depends:
-    Biobase,
-    MultiDataSet,
-    SummarizedExperiment,
-    MultiAssayExperiment
+    SummarizedExperiment
 Imports:
+    Biobase,
     biodb,
     biodbChebi,
     biodbKegg,
@@ -61,6 +59,8 @@ Imports:
     igraph,
     limma,
     methods,
+    MultiAssayExperiment,
+    MultiDataSet,
     PMCMRplus,
     plotly,
     RColorBrewer,
@@ -82,4 +82,4 @@ License: CeCILL
 Encoding: UTF-8
 LazyData: true
 URL: https://frama.link/etienne-thevenot
-RoxygenNote: 7.1.2
+RoxygenNote: 7.2.0

@@ -1,44 +1,65 @@
 testthat::context("Testing 'filtering'")
 
-testthat::test_that("filtering-eset", {
+testthat::test_that("filtering-se", {
 
-  sacurine.eset <- phenomis::reading(system.file("extdata/W4M00001_Sacurine-statistics", package = "phenomis"))
+  sacurine.se <- reading(system.file("extdata/W4M00001_Sacurine-statistics", package = "phenomis"))
   
-  exprs.mn <- Biobase::exprs(sacurine.eset)
-  exprs.mn[exprs.mn < 1e5] <- NA
-  Biobase::exprs(sacurine.eset) <- exprs.mn
+  assay.mn <- assay(sacurine.se)
+  assay.mn[assay.mn < 1e5] <- NA
+  assay(sacurine.se) <- assay.mn
 
-  sacurine.eset <- phenomis::filtering(sacurine.eset)
+  sacurine.se <- filtering(sacurine.se)
   
-  expect_dims.mn <- matrix(c(85, 200), nrow = 2, ncol = 1,
-                           dimnames = list(c("Features", "Samples"), "exprs"))
+  expect_dims.vi <- c(85, 200)
   
-  testthat::expect_equal(Biobase::dims(sacurine.eset),
-                         expect_dims.mn)
+  testthat::expect_equal(dim(sacurine.se),
+                         expect_dims.vi)
 
 })
 
-testthat::test_that("filtering-eset-gender", {
+testthat::test_that("filtering-se-gender", {
   
-  sacurine.eset <- phenomis::reading(system.file("extdata/W4M00001_Sacurine-statistics", package = "phenomis"))
+  sacurine.se <- reading(system.file("extdata/W4M00001_Sacurine-statistics", package = "phenomis"))
   
-  exprs.mn <- Biobase::exprs(sacurine.eset)
-  exprs.mn[exprs.mn < 1e5] <- NA
-  Biobase::exprs(sacurine.eset) <- exprs.mn
+  assay.mn <- assay(sacurine.se)
+  assay.mn[assay.mn < 1e5] <- NA
+  assay(sacurine.se) <- assay.mn
   
-  sacurine.eset <- phenomis::filtering(sacurine.eset, class.c = "gender")
+  sacurine.se <- filtering(sacurine.se, class.c = "gender")
   
-  expect_dims.mn <- matrix(c(90, 196), nrow = 2, ncol = 1,
-                           dimnames = list(c("Features", "Samples"), "exprs"))
+  expect_dims.vi <- c(90, 196)
   
-  testthat::expect_equal(Biobase::dims(sacurine.eset),
+  testthat::expect_equal(dim(sacurine.se),
+                         expect_dims.vi)
+  
+})
+
+testthat::test_that("filtering-mae", {
+  
+  prometis.mae <- reading(system.file("extdata/prometis", package = "phenomis"))
+  
+  for (set.c in names(prometis.mae)) {
+    set.se <- prometis.mae[[set.c]]
+    set.mn <- assay(set.se)
+    set.mn[set.mn < quantile(c(set.mn), 0.2)] <- NA
+    assay(set.se) <- set.mn
+    prometis.mae[[set.c]] <- set.se
+  }
+  
+  prometis.mae <- filtering(prometis.mae)
+  
+  expect_dims.mn <- matrix(c(74, 24, 77, 28),
+                           nrow = 2,
+                           dimnames = list(NULL, c("metabolomics", "proteomics")))
+  
+  testthat::expect_equal(sapply(names(prometis.mae), function(set.c) dim(prometis.mae[[set.c]])),
                          expect_dims.mn)
   
 })
 
 testthat::test_that("filtering-mset", {
 
-   prometis.mset <- phenomis::reading(system.file("extdata/prometis", package = "phenomis"))
+   prometis.mset <- reading(system.file("extdata/prometis", package = "phenomis"), output.c = "set")
    
    for (set.c in names(prometis.mset)) {
      eset <- prometis.mset[[set.c]]
@@ -49,7 +70,7 @@ testthat::test_that("filtering-mset", {
                                              GRanges = NA, overwrite = TRUE, warnings = FALSE)
    }
    
-   prometis.mset <- phenomis::filtering(prometis.mset)
+   prometis.mset <- filtering(prometis.mset)
    
    expect_dims.ls <- list(metabolomics = c(Features = 74, Samples = 24),
                           proteomics = c(Features = 77, Samples = 28))
@@ -61,7 +82,7 @@ testthat::test_that("filtering-mset", {
 
 testthat::test_that("filtering-mset-gene", {
   
-  prometis.mset <- phenomis::reading(system.file("extdata/prometis", package = "phenomis"))
+  prometis.mset <- reading(system.file("extdata/prometis", package = "phenomis"), output.c = "set")
   
   for (set.c in names(prometis.mset)) {
     eset <- prometis.mset[[set.c]]
@@ -72,7 +93,7 @@ testthat::test_that("filtering-mset-gene", {
                                             GRanges = NA, overwrite = TRUE, warnings = FALSE)
   }
   
-  prometis.mset <- phenomis::filtering(prometis.mset, class.c = "gene")
+  prometis.mset <- filtering(prometis.mset, class.c = "gene")
   
   expect_dims.ls <- list(metabolomics = c(Features = 83, Samples = 23),
                          proteomics = c(Features = 79, Samples = 28))

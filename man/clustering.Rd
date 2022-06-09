@@ -2,11 +2,45 @@
 % Please edit documentation in R/allGenerics.R, R/clustering.R
 \name{clustering}
 \alias{clustering}
+\alias{clustering,MultiAssayExperiment-method}
+\alias{clustering,SummarizedExperiment-method}
 \alias{clustering,MultiDataSet-method}
 \alias{clustering,ExpressionSet-method}
 \title{clustering}
 \usage{
 clustering(
+  x,
+  dissym.c = c("euclidean", "maximum", "manhattan", "canberra", "binary", "minkowski",
+    "1-cor", "1-abs(cor)")[7],
+  correl.c = c("pearson", "kendall", "spearman")[1],
+  agglo.c = c("ward.D", "ward.D2", "single", "complete", "average", "mcquitty",
+    "median", "centroid")[2],
+  clusters.vi = c(2, 2),
+  cex.vn = c(1, 1),
+  palette.c = c("blueOrangeRed", "redBlackGreen")[1],
+  scale_plot.l = TRUE,
+  title.c = NA,
+  figure.c = c("none", "interactive", "myfile.pdf")[2],
+  report.c = c("none", "interactive", "myfile.txt")[2]
+)
+
+\S4method{clustering}{MultiAssayExperiment}(
+  x,
+  dissym.c = c("euclidean", "maximum", "manhattan", "canberra", "binary", "minkowski",
+    "1-cor", "1-abs(cor)")[7],
+  correl.c = c("pearson", "kendall", "spearman")[1],
+  agglo.c = c("ward.D", "ward.D2", "single", "complete", "average", "mcquitty",
+    "median", "centroid")[2],
+  clusters.vi = c(2, 2),
+  cex.vn = c(1, 1),
+  palette.c = c("blueOrangeRed", "redBlackGreen")[1],
+  scale_plot.l = TRUE,
+  title.c = NA,
+  figure.c = c("none", "interactive", "myfile.pdf")[2],
+  report.c = c("none", "interactive", "myfile.txt")[2]
+)
+
+\S4method{clustering}{SummarizedExperiment}(
   x,
   dissym.c = c("euclidean", "maximum", "manhattan", "canberra", "binary", "minkowski",
     "1-cor", "1-abs(cor)")[7],
@@ -55,7 +89,7 @@ clustering(
 )
 }
 \arguments{
-\item{x}{An S4 object of class \code{ExpressionSet} or \code{MultiDataSet}}
+\item{x}{An S4 object of class \code{SummarizedExperiment} or \code{MultiAssayExperiment}}
 
 \item{dissym.c}{character: [hclust]}
 
@@ -84,21 +118,21 @@ results (call to sink()'); if 'interactive' (default), messages will be
 printed on the screen; if 'none', no verbose will be generated}
 }
 \value{
-\code{ExpressionSet} or \code{MultiDataSet} including columns indicating
-the clusters in pData and fData if 'clusters.vi' has been specified
+\code{SummarizedExperiment} or \code{MultiAssayExperiment} including columns indicating
+the clusters in rowData and colData if 'clusters.vi' has been specified
 }
 \description{
 Hierarchical clustering of both samples and variables
 }
 \examples{
-sacurine.eset <- phenomis::reading(system.file("extdata/W4M00001_Sacurine-statistics", package = "phenomis"))
-sacurine.eset <- phenomis::correcting(sacurine.eset)
-sacurine.eset <- sacurine.eset[, Biobase::pData(sacurine.eset)[, "sampleType"] != "pool"]
-sacurine.eset <- phenomis::transforming(sacurine.eset)
-sacurine.eset <- sacurine.eset[, Biobase::sampleNames(sacurine.eset) != "HU_neg_096_b2"]
-sacurine.eset <- phenomis::clustering(sacurine.eset)
-utils::head(Biobase::fData(sacurine.eset))
+sacurine.se <- reading(system.file("extdata/W4M00001_Sacurine-statistics", package = "phenomis"))
+sacurine.se <- correcting(sacurine.se)
+sacurine.se <- sacurine.se[, pData(sacurine.se)[, "sampleType"] != "pool"]
+sacurine.se <- transforming(sacurine.se)
+sacurine.se <- sacurine.se[, sampleNames(sacurine.se) != "HU_neg_096_b2"]
+sacurine.se <- clustering(sacurine.se)
+utils::head(fData(sacurine.se))
 # MultiDataSet
-prometis.mset <- phenomis::reading(system.file("extdata/prometis/", package="phenomis"))
-prometis.mset <- phenomis::clustering(prometis.mset, clusters.vi = c(3, 3))
+prometis.mset <- reading(system.file("extdata/prometis/", package="phenomis"))
+prometis.mset <- clustering(prometis.mset, clusters.vi = c(3, 3))
 }

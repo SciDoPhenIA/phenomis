@@ -2,44 +2,44 @@
 #'
 #' Reading dataset(s) in the 3 tables 'dataMatrix' (or 'DM'), sampleMetadata'
 #' (or 'SM') and variableMetadata' (or 'VM') tabular format. In case of a single
-#' dataset (3 tables in the specified directory), an ExpressionSet instance is
+#' dataset (3 tables in the specified directory), a SummarizedExperiment instance is
 #' returned. In case of a multiple dataset (several subfolders containing 3
-#' tables), a MultiDataSet instance is created.
+#' tables), a MultiAssayExperiment instance is created.
 #'
-#' @param dir.c Character: directory containing the 3 tabular files (single
+#' @param dir.c character(1): directory containing the 3 tabular files (single
 #' dataset), or containing several subdirectories with 3 tabular files
 #' (multiple datasets)
-#' @param subsets.vc Vector of characters: specifying a subset of the
-#' subdirectories to be included in the MultiDataSet (by default, all
+#' @param subsets.vc character(): specifying a subset of the
+#' subdirectories to be included in the MultiAssayExperiment (by default, all
 #' subdirectories containing the 3 tables will be considered as datasets)
-#' @param files.ls List: if dir.c is set to NA, the full names of the
-#' individual files can be provided; in case of an ExpressionSet, the
+#' @param files.ls list: if dir.c is set to NA, the full names of the
+#' individual files can be provided; in case of a SummarizedExperiment, the
 #' names of the list must be 'dataMatrix', 'sampleMetadata',
 #' and 'variableMetadata' with the corresponding file full names;
-#' in case of a MultiDataSet, the list must consists of one such sublist
+#' in case of a MultiAssayExperiment, the list must consists of one such sublist
 #' per dataset
-#' @param output.c Character: Either 'exp' for SummarizedExperiment (or MultiAssayExperiment), or 'set' for ExpressionSet (or MultiDataSet) output formats
-#' @param report.c Character: File name for the printed results (call to
+#' @param output.c character(1): Either 'exp' for SummarizedExperiment (or MultiAssayExperiment), or 'set' for ExpressionSet (or MultiDataSet) output formats (the latter are deprecated)
+#' @param report.c character(1): File name for the printed results (call to
 #' 'sink()'); if NA (default), messages will be printed on the screen; if NULL,
 #' no verbose will be generated
-#' @return \code{ExpressionSet} (one dataset) or \code{MultiDataSet} (multiple
+#' @return \code{SummarizedExperiment} (one dataset) or \code{MultiAssayExperiment} (multiple
 #' datasets) instance containing the dataset(s)
 #' @examples
 #' data_dir.c <- system.file("extdata", package = "phenomis")
 #' ## 1) Single set
 #' sacurine_dir.c <- file.path(data_dir.c, "W4M00001_Sacurine-statistics")
-#' sacurine.eset <- reading(sacurine_dir.c)
+#' sacurine.se <- reading(sacurine_dir.c)
 #' # or
-#' sacurine.eset <- reading(NA,
+#' sacurine.se <- reading(NA,
 #'                   files.ls = list(dataMatrix = file.path(sacurine_dir.c, "Galaxy1_dataMatrix.tabular"),
 #'                                   sampleMetadata = file.path(sacurine_dir.c, "Galaxy2_sampleMetadata.tabular"),
 #'                                   variableMetadata = file.path(sacurine_dir.c, "Galaxy3_variableMetadata.tabular")))
 #' ## 2) Multiple sets
 #' prometis_dir.c <- file.path(data_dir.c, "prometis")
-#' prometis.mset <- reading(prometis_dir.c)
-#' metabo.mset <- reading(prometis_dir.c, subsets.vc = "metabolomics")
+#' prometis.mae <- reading(prometis_dir.c)
+#' metabo.mae <- reading(prometis_dir.c, subsets.vc = "metabolomics")
 #' # or
-#' prometis.mset <- reading(NA,
+#' prometis.mae <- reading(NA,
 #'                        files.ls = list(metabolomics = list(dataMatrix = file.path(prometis_dir.c, "metabolomics", "dataMatrix.tsv"),
 #'                                                            sampleMetadata = file.path(prometis_dir.c, "metabolomics", "sampleMetadata.tsv"),
 #'                                                            variableMetadata = file.path(prometis_dir.c, "metabolomics", "variableMetadata.tsv")),
@@ -51,7 +51,7 @@
 reading <- function(dir.c,
                     files.ls = NULL,
                     subsets.vc = NA,
-                    output.c = c("exp", "set")[2],
+                    output.c = c("exp", "set")[1],
                     report.c = c("none", "interactive", "myfile.txt")[2]) {
   
   if (!(report.c %in% c("none", "interactive")))
@@ -209,11 +209,11 @@ reading <- function(dir.c,
     
     if (!any(is.na(subsets.vc))) {
       
-      misSetVc <- subsets.vc[!(subsets.vc %in% names(files.ls))]
+      missing_sets.vc <- subsets.vc[!(subsets.vc %in% names(files.ls))]
       
-      if (length(misSetVc))
+      if (length(missing_sets.vc))
         stop("The following selected subsets were not found in the subfolder(s) or sublist(s):\n",
-             paste(misSetVc, collapse = "\n"))
+             paste(missing_sets.vc, collapse = "\n"))
       
       files.ls <- files.ls[subsets.vc]
       
@@ -230,41 +230,45 @@ reading <- function(dir.c,
                       function(set.c) {
                         if (report.c != "none")
                           message("Reading the '", set.c, "' dataset...")
-                        phenomis:::.reading(NA,
-                                            files.ls[[set.c]][["dataMatrix"]],
-                                            files.ls[[set.c]][["sampleMetadata"]],
-                                            files.ls[[set.c]][["variableMetadata"]],
-                                            output.c = "set")
+                        .reading(NA,
+                                 files.ls[[set.c]][["dataMatrix"]],
+                                 files.ls[[set.c]][["sampleMetadata"]],
+                                 files.ls[[set.c]][["variableMetadata"]],
+                                 output.c = "set")
                       })
     names(eset.ls) <- set.vc
     
     # checking the agreement between the sample metadata
     
-    disagree.mc <- matrix("",
-                          nrow = set.n,
-                          ncol = set.n,
-                          dimnames = list(set.vc, set.vc))
-    
-    for (i in seq(1, set.n - 1, by = 1)) {
-      for (j in seq(i + 1, set.n, by = 1)) {
-        sam_i.df <- Biobase::pData(eset.ls[[i]])
-        sam_j.df <- Biobase::pData(eset.ls[[j]])
-        sam_com.vc <- intersect(rownames(sam_i.df), rownames(sam_j.df))
-        sam_i.df <- sam_i.df[sam_com.vc, ]
-        sam_j.df <- sam_j.df[sam_com.vc, ]
-        sam_var.vc <- intersect(Biobase::varLabels(eset.ls[[i]]),
-                                Biobase::varLabels(eset.ls[[j]]))
-        disagree.vc <- ""
-        if (length(sam_var.vc)) {
-          for (sam_var.c in sam_var.vc) {
-            if (!identical(sam_i.df[, sam_var.c],
-                           sam_j.df[, sam_var.c])) {
-              disagree.vc <- c(disagree.vc, sam_var.c)
+    if (length(eset.ls) > 1) {
+      
+      disagree.mc <- matrix("",
+                            nrow = set.n,
+                            ncol = set.n,
+                            dimnames = list(set.vc, set.vc))
+      
+      for (i in seq(1, set.n - 1, by = 1)) {
+        for (j in seq(i + 1, set.n, by = 1)) {
+          sam_i.df <- Biobase::pData(eset.ls[[i]])
+          sam_j.df <- Biobase::pData(eset.ls[[j]])
+          sam_com.vc <- intersect(rownames(sam_i.df), rownames(sam_j.df))
+          sam_i.df <- sam_i.df[sam_com.vc, ]
+          sam_j.df <- sam_j.df[sam_com.vc, ]
+          sam_var.vc <- intersect(Biobase::varLabels(eset.ls[[i]]),
+                                  Biobase::varLabels(eset.ls[[j]]))
+          disagree.vc <- ""
+          if (length(sam_var.vc)) {
+            for (sam_var.c in sam_var.vc) {
+              if (!identical(sam_i.df[, sam_var.c],
+                             sam_j.df[, sam_var.c])) {
+                disagree.vc <- c(disagree.vc, sam_var.c)
+              }
             }
           }
+          disagree.mc[i, j] <- paste(disagree.vc, collapse = ", ")
         }
-        disagree.mc[i, j] <- paste(disagree.vc, collapse = ", ")
       }
+      
     }
     
     if (output.c == "set") { # Creating the MultiDataSet
@@ -288,29 +292,40 @@ reading <- function(dir.c,
       sam_all.vc <- sort(unique(Reduce("union", lapply(eset.ls, Biobase::sampleNames))))
       sam_var.vc <- sort(unique(Reduce("intersect", lapply(eset.ls, Biobase::varLabels))))
       
-      eset <- eset.ls[[1]]
-      sam.df <- Biobase::pData(eset)[, sam_var.vc]
+      first.eset <- eset.ls[[1]]
+      sam.df <- Biobase::pData(first.eset)[, sam_var.vc, drop = FALSE]
+      
+      # removing the common sample metadata from the individual eset
+      Biobase::pData(first.eset)[, ".id"] <- Biobase::sampleNames(first.eset)
+      Biobase::pData(first.eset) <- Biobase::pData(first.eset)[, setdiff(Biobase::varLabels(first.eset), sam_var.vc), drop = FALSE]
+      eset.ls[[1]] <- first.eset
       
       map.ls <- vector(mode = "list", length = length(files.ls))
       names(map.ls) <- names(files.ls)
-      map.ls[[1]] <- data.frame(primary = Biobase::sampleNames(eset),
-                                colname = Biobase::sampleNames(eset))
+      map.ls[[1]] <- data.frame(primary = Biobase::sampleNames(first.eset),
+                                colname = Biobase::sampleNames(first.eset))
       
-      for (set.c in 2:length(eset.ls)) {
-        
-        sam_add.df <- Biobase::pData(eset.ls[[set.c]])[, sam_var.vc]
-        
-        sam_add.vc <- setdiff(rownames(sam_add.df), rownames(sam.df))
-        
-        if (length(sam_add.vc)) {
-          sam.df <- rbind.data.frame(sam.df,
-                                     sam_add.df[sam_add.vc, , drop = FALSE])
+      if (length(eset.ls) > 1) {
+        for (set.c in names(eset.ls)[-1]) {
+          
+          set.eset <- eset.ls[[set.c]]
+          sam_add.df <- Biobase::pData(set.eset)[, sam_var.vc, drop = FALSE]
+          Biobase::pData(set.eset)[, ".id"] <- Biobase::sampleNames(set.eset)
+          Biobase::pData(set.eset) <- Biobase::pData(set.eset)[, setdiff(Biobase::varLabels(set.eset), sam_var.vc), drop = FALSE]
+          
+          sam_add.vc <- setdiff(rownames(sam_add.df), rownames(sam.df))
+          
+          if (length(sam_add.vc)) {
+            sam.df <- rbind.data.frame(sam.df,
+                                       sam_add.df[sam_add.vc, , drop = FALSE])
+          }
+          
+          map.ls[[set.c]] <- data.frame(primary = Biobase::sampleNames(set.eset),
+                                        colname = Biobase::sampleNames(set.eset))
+          
+          
+          eset.ls[[set.c]] <- set.eset
         }
-        
-        map.ls[[set.c]] <- data.frame(primary = Biobase::sampleNames(eset.ls[[set.c]]),
-                                      colname = Biobase::sampleNames(eset.ls[[set.c]]))
-        
-      
       }
       
       sam.df <- sam.df[sort(rownames(sam.df)), ]
@@ -330,8 +345,8 @@ reading <- function(dir.c,
   
   if (report.c != "none") {
     
-    if (class(x) %in% c("MultiDataSet", "MultiAssayExperiment")) {
-    cat("Discrepancies between the sampleMetadata from the datasets:\n\n")
+    if ((class(x) %in% c("MultiAssayExperiment", "MultiDataSet")) && length(x) > 1 && any(is.na(disagree.mc))) {
+    warning("Discrepancies between the sampleMetadata from the datasets:")
     print(disagree.mc)
     }
     
@@ -521,6 +536,288 @@ reading <- function(dir.c,
   
 }
 
+
+#### writing (MultiAssayExperiment) ####
+
+#' @rdname writing
+#' @export
+setMethod("writing", "MultiAssayExperiment",
+          function(x,
+                   dir.c,
+                   prefix.c = "",
+                   files.ls = NULL,
+                   overwrite.l = FALSE,
+                   report.c = c("none", "interactive", "myfile.txt")[2]) {
+            
+            if (!(report.c %in% c("none", "interactive")))
+              sink(report.c, append = TRUE)
+            
+            report_set.c <- report.c
+            if (report_set.c != "none")
+              report_set.c <- "interactive"
+            
+            sets.vc <- names(x)
+            
+            if (!is.na(dir.c)) {
+              
+              set_dir.vc <- file.path(dir.c, sets.vc)
+              names(set_dir.vc) <- sets.vc
+              
+              if (file.exists(dir.c) && file.info(dir.c)[, "isdir"]) {
+                
+                dir.vc <- dir(dir.c, full.names = TRUE)
+                
+                dir.vl <- file.info(dir.vc)[, "isdir"]
+                
+                subdir.vc <- dir.vc[dir.vl]
+                
+                subDupVc <- intersect(set_dir.vc,
+                                      subdir.vc)
+                
+                if (length(subDupVc) && !overwrite.l)
+                  stop("The following subfolder(s) were detected in your directory, please remove them or specify another parent directory to avoid overwriting:\n",
+                       paste(subDupVc, collapse = "\n"))
+                
+              } else {
+                
+                dir.create(dir.c,
+                           showWarnings = report.c != "none")
+                
+              }
+              
+              for (set.c in names(set_dir.vc)) {
+                
+                if (report.c != "none")
+                  message("Writing the '", set.c, "' dataset...")
+                
+                set_dir.c <- set_dir.vc[set.c]
+                
+                if (!(file.exists(set_dir.c) &&
+                      file.info(set_dir.c)[, "isdir"]))
+                  dir.create(set_dir.c,
+                             showWarnings = report.c != "none")
+                
+                set.se <- x[[set.c]]
+                ## including the common sample metadata in each data set
+                colData(set.se) <- as(cbind.data.frame(colData(x)[colnames(set.se), ],
+                                                       colData(set.se)),
+                                      "DataFrame")
+                colData(set.se)[, ".id"] <- NULL
+                
+                writing(set.se,
+                        set_dir.c,
+                        prefix.c = prefix.c,
+                        overwrite.l = overwrite.l,
+                        report.c = report_set.c)
+                
+              }
+              
+              if (report.c != "none")
+                message("The subfolders have been written in the directory:\n", dir.c)
+              
+            } else if (is.na(dir.c)) {
+              
+              if (is.null(files.ls))
+                stop("'files.ls' must be provided when 'dir.c' is set to NA",
+                     call. = FALSE)
+              
+              if (is.null(names(files.ls)) || any(is.na(names(files.ls))))
+                stop("All names of the sublists must be provided (they should match the names of the MultiDataSet datasets)",
+                     call. = FALSE)
+              
+              filLisVl <- sapply(files.ls, is.list)
+              
+              if (!all(filLisVl))
+                stop("The following element(s) of 'files.ls' is/are not sublist(s):\n",
+                     paste(names(filLisVl)[!filLisVl], collapse = "\n"),
+                     call. = FALSE)
+              
+              if (!identical(sets.vc, names(filLisVl)))
+                stop("The name(s) of the 'x' MultiAssayExperiment:\n",
+                     paste(sets.vc, collapse = ", "),
+                     "\ndo(es) not match the names of the sublists:\n",
+                     paste(names(filLisVl), collapse = ", "),
+                     call. = FALSE)
+              
+              for (set.c in sets.vc) {
+                
+                filLs <- files.ls[[set.c]]
+                
+                if (length(filLs) != 3 ||
+                    !identical(names(filLs), c("dataMatrix",
+                                               "sampleMetadata",
+                                               "variableMetadata")))
+                  stop("The names of the '", set.c,
+                       "' sublist of 'files.ls are not identical to 'dataMatrix', 'sampleMetadata' and 'variableMetadata'.")
+                
+                if (is.na(filLs[["dataMatrix"]]))
+                  stop("The 'dataMatrix' file name from the '", set.c,
+                       "' sublist is missing (ie set to NA).")
+                
+                for (file.c in names(filLs)) {
+                  
+                  filFulNamC <- filLs[[file.c]]
+                  
+                  if (!is.na(filFulNamC)
+                      && file.exists(filFulNamC)
+                      && !overwrite.l)
+                    stop("The following file from the '",
+                         set.c, "' sublist already exists:\n",
+                         filFulNamC,
+                         "\nPlease remove it or choose another name to avoid overwriting.")
+                  
+                }
+                
+              }
+              
+              for (set.c in sets.vc) {
+                
+                filLs <- files.ls[[set.c]]
+                
+                if (report.c != "none")
+                  message("Writing the '", set.c, "' dataset")
+                
+                set.se <- x[[set.c]]
+                colData(set.se) <- cbind.data.frame(colData(x)[rownames(set.se), ],
+                                                    colData(set.se))
+                
+                writing(set.se,
+                        NA,
+                        files.ls = list(dataMatrix = filLs[["dataMatrix"]],
+                                        sampleMetadata = filLs[["sampleMetadata"]],
+                                        variableMetadata = filLs[["variableMetadata"]]),
+                        overwrite.l = overwrite.l,
+                        report.c = report_set.c)
+                
+              }
+            }
+            
+            if (!(report.c %in% c("none", "interactive")))
+              sink()
+            
+          })
+
+
+
+#### writing (SummarizedExperiment) ####
+
+#' @rdname writing
+#' @export
+setMethod("writing", "SummarizedExperiment",
+          function(x,
+                   dir.c,
+                   prefix.c = "",
+                   files.ls = NULL,
+                   overwrite.l = FALSE,
+                   report.c = c("none", "interactive", "myfile.txt")[2]){
+            
+            if (!(report.c %in% c("none", "interactive")))
+              sink(report.c, append = TRUE)
+            
+            if (!is.na(dir.c)) {
+              
+              if (!(file.exists(dir.c) && file.info(dir.c)[, "isdir"]))
+                dir.create(dir.c,
+                           showWarnings = report.c != "none")
+              
+              if (prefix.c != "")
+                prefix.c <- paste0(prefix.c, "_")
+              
+              tab_file.vc <- c(dataMatrix = file.path(dir.c,
+                                                      paste0(prefix.c, "dataMatrix.tsv")),
+                               sampleMetadata = file.path(dir.c,
+                                                          paste0(prefix.c, "sampleMetadata.tsv")),
+                               variableMetadata = file.path(dir.c,
+                                                            paste0(prefix.c, "variableMetadata.tsv")))
+              
+            } else if (is.na(dir.c)) {
+              
+              if (is.null(files.ls))
+                stop("'files.ls' must be provided when 'dir.c' is set to NA",
+                     call. = FALSE)
+              
+              if (length(files.ls) != 3 ||
+                  !identical(names(files.ls), c("dataMatrix",
+                                                "sampleMetadata",
+                                                "variableMetadata")))
+                stop("The names of the 'files.ls' list are not identical to 'dataMatrix', 'sampleMetadata' and 'variableMetadata'.",
+                     call. = FALSE)
+              
+              if (is.na(files.ls[["dataMatrix"]]))
+                stop("The 'dataMatrix' file name from the 'files.ls' list is missing (ie set to NA).")
+              
+              tab_file.vc <- c(dataMatrix = files.ls[["dataMatrix"]],
+                               sampleMetadata = files.ls[["sampleMetadata"]],
+                               variableMetadata = files.ls[["variableMetadata"]])
+              
+            }
+            
+            for (tab.c in names(tab_file.vc)) {
+              
+              tab_file.c <- tab_file.vc[tab.c]
+              
+              if (!is.na(tab_file.c) && file.exists(tab_file.c) && !overwrite.l)
+                stop("The following file already exists:\n", tab_file.c,
+                     "\nPlease choose another file name.")
+              
+            }
+            
+            ## Writing
+            
+            tdat.mn <- SummarizedExperiment::assay(x)
+            sam.df <- SummarizedExperiment::colData(x)
+            var.df <- SummarizedExperiment::rowData(x)
+            chkLs <- .checkW4Mformat(t(tdat.mn), sam.df, var.df, infCw = report.c)
+            
+            if (!chkLs[["chkL"]]) {
+              stop("Sample and/or variable names do not match between your tables. Use the report.c = 'interactive' argument to get more feedback.")
+            } else if (chkLs[["ordL"]]) {
+              tdat.mn <- t(chkLs[["dat.mn"]])
+            }
+            
+            datDF <- cbind.data.frame(dataMatrix = rownames(tdat.mn),
+                                      as.data.frame(tdat.mn))
+            
+            utils::write.table(datDF,
+                               file = tab_file.vc['dataMatrix'],
+                               quote = FALSE,
+                               row.names = FALSE,
+                               sep = "\t")
+            
+            if (!is.na(dir.c) || !is.na(tab_file.vc["sampleMetadata"])) {
+              
+              sam.df <- cbind.data.frame(sampleMetadata = rownames(sam.df),
+                                         sam.df)
+              utils::write.table(sam.df,
+                                 file = tab_file.vc['sampleMetadata'],
+                                 quote = FALSE,
+                                 row.names = FALSE,
+                                 sep = "\t")
+              
+            }
+            
+            if (!is.na(dir.c) || !is.na(tab_file.vc["variableMetadata"])) {
+              
+              var.df <- cbind.data.frame(variableMetadata = rownames(var.df),
+                                         var.df)
+              utils::write.table(var.df,
+                                 file = tab_file.vc['variableMetadata'],
+                                 quote = FALSE,
+                                 row.names = FALSE,
+                                 sep = "\t")
+              
+            }
+            
+            if (report.c != "none")
+              message("The following file(s) have been written:\n",
+                      paste(tab_file.vc[!is.na(basename(tab_file.vc))], collapse = "\n"))
+            
+            if (!(report.c %in% c("none", "interactive")))
+              sink()
+            
+          })
+
+
 #### writing (MultiDataSet) ####
 
 #' @rdname writing
@@ -536,16 +833,16 @@ setMethod("writing", "MultiDataSet",
             if (!(report.c %in% c("none", "interactive")))
               sink(report.c, append = TRUE)
             
-            infTxtC <- report.c
-            if (infTxtC != "none")
-              infTxtC <- "interactive"
+            report_set.c <- report.c
+            if (report_set.c != "none")
+              report_set.c <- "interactive"
             
-            setVc <- names(x)
+            sets.vc <- names(x)
             
             if (!is.na(dir.c)) {
               
-              set_dir.vc <- file.path(dir.c, setVc)
-              names(set_dir.vc) <- setVc
+              set_dir.vc <- file.path(dir.c, sets.vc)
+              names(set_dir.vc) <- sets.vc
               
               if (file.exists(dir.c) && file.info(dir.c)[, "isdir"]) {
                 
@@ -585,7 +882,7 @@ setMethod("writing", "MultiDataSet",
                                   set_dir.c,
                                   prefix.c = prefix.c,
                                   overwrite.l = overwrite.l,
-                                  report.c = infTxtC)
+                                  report.c = report_set.c)
                 
               }
               
@@ -609,14 +906,14 @@ setMethod("writing", "MultiDataSet",
                      paste(names(filLisVl)[!filLisVl], collapse = "\n"),
                      call. = FALSE)
               
-              if (!identical(setVc, names(filLisVl)))
+              if (!identical(sets.vc, names(filLisVl)))
                 stop("The name(s) of the 'x' MultiDataSet:\n",
-                     paste(setVc, collapse = ", "),
+                     paste(sets.vc, collapse = ", "),
                      "\ndo(es) not match the names of the sublists:\n",
                      paste(names(filLisVl), collapse = ", "),
                      call. = FALSE)
               
-              for (set.c in setVc) {
+              for (set.c in sets.vc) {
                 
                 filLs <- files.ls[[set.c]]
                 
@@ -647,7 +944,7 @@ setMethod("writing", "MultiDataSet",
                 
               }
               
-              for (set.c in setVc) {
+              for (set.c in sets.vc) {
                 
                 filLs <- files.ls[[set.c]]
                 
@@ -660,7 +957,7 @@ setMethod("writing", "MultiDataSet",
                                                   sampleMetadata = filLs[["sampleMetadata"]],
                                                   variableMetadata = filLs[["variableMetadata"]]),
                                   overwrite.l = overwrite.l,
-                                  report.c = infTxtC)
+                                  report.c = report_set.c)
                 
               }
             }

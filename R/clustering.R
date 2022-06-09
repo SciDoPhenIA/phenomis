@@ -1,3 +1,146 @@
+#### clustering (MultiAssayExperiment) ####
+
+#' @rdname clustering
+#' @export
+setMethod("clustering", signature(x = "MultiAssayExperiment"),
+          function(x,
+                   dissym.c = c("euclidean",
+                                "maximum",
+                                "manhattan",
+                                "canberra",
+                                "binary",
+                                "minkowski",
+                                "1-cor",
+                                "1-abs(cor)")[7],
+                   correl.c = c("pearson",
+                                "kendall",
+                                "spearman")[1],
+                   agglo.c = c("ward.D",
+                               "ward.D2",
+                               "single",
+                               "complete",
+                               "average",
+                               "mcquitty",
+                               "median",
+                               "centroid")[2],
+                   clusters.vi = c(2, 2),
+                   cex.vn = c(1, 1),
+                   palette.c = c("blueOrangeRed",
+                                 "redBlackGreen")[1],
+                   scale_plot.l = TRUE,
+                   title.c = NA,
+                   figure.c = c("none", "interactive", "myfile.pdf")[2],
+                   report.c = c("none", "interactive", "myfile.txt")[2]) {
+            
+            if (!(report.c %in% c("none", "interactive")))
+              sink(report.c, append = TRUE)
+            
+            report_set.c <- report.c
+            if (report_set.c != "none")
+              report_set.c <- "interactive"
+            
+            if (!(figure.c %in% c("none", "interactive")))
+              grDevices::pdf(figure.c)
+            
+            figure_set.c <- figure.c
+            if (figure_set.c != "none")
+              figure_set.c <- "interactive"
+            
+            for (setC in names(x)) {
+              
+              if (report.c != "none")
+                message("Performing hierarchical clustering on the '", setC, "' dataset...")
+              
+              x[[setC]] <- clustering(x = x[[setC]],
+                                      dissym.c = dissym.c,
+                                      correl.c = correl.c,
+                                      agglo.c = agglo.c,
+                                      clusters.vi = clusters.vi,
+                                      cex.vn = cex.vn,
+                                      palette.c = palette.c,
+                                      scale_plot.l = scale_plot.l,
+                                      title.c = paste0("[", setC, "]"),
+                                      figure.c = figure_set.c,
+                                      report.c = report_set.c)
+              
+            }
+            
+            if (!(figure.c %in% c("none", "interactive")))
+              grDevices::dev.off()
+            
+            if (!(report.c %in% c("none", "interactive")))
+              sink()
+            
+            methods::validObject(x)
+            
+            return(invisible(x))
+            
+          })
+
+
+#### clustering (SummarizedExperiment) ####
+
+#' @rdname clustering
+#' @export
+setMethod("clustering", signature(x = "SummarizedExperiment"),
+          function(x,
+                   dissym.c = c("euclidean",
+                                "maximum",
+                                "manhattan",
+                                "canberra",
+                                "binary",
+                                "minkowski",
+                                "1-cor",
+                                "1-abs(cor)")[7],
+                   correl.c = c("pearson",
+                                "kendall",
+                                "spearman")[1],
+                   agglo.c = c("ward.D",
+                               "ward.D2",
+                               "single",
+                               "complete",
+                               "average",
+                               "mcquitty",
+                               "median",
+                               "centroid")[2],
+                   clusters.vi = c(2, 2),
+                   cex.vn = c(1, 1),
+                   palette.c = c("blueOrangeRed",
+                                 "redBlackGreen")[1],
+                   scale_plot.l = TRUE,
+                   title.c = NA,
+                   figure.c = c("none", "interactive", "myfile.pdf")[2],
+                   report.c = c("none", "interactive", "myfile.txt")[2]) {
+            
+            if (!(report.c %in% c("none", "interactive")))
+              sink(report.c, append = TRUE)
+            
+            metadata.ls <- .clustering(pro.mn = t(SummarizedExperiment::assay(x)),
+                                       sam.Df = SummarizedExperiment::colData(x),
+                                       var.Df = SummarizedExperiment::rowData(x),
+                                       dissym.c = dissym.c,
+                                       correl.c = correl.c,
+                                       agglo.c = agglo.c,
+                                       clusters.vi = clusters.vi,
+                                       cex.vn = cex.vn,
+                                       palette.c = palette.c,
+                                       scale_plot.l = scale_plot.l,
+                                       title.c = title.c,
+                                       figure.c = figure.c)
+            
+            SummarizedExperiment::colData(x) <- metadata.ls[["sam.Df"]]
+            SummarizedExperiment::rowData(x) <- metadata.ls[["var.Df"]] 
+            
+            if (!(report.c %in% c("none", "interactive")))
+              sink()
+            
+            methods::validObject(x)
+            
+            return(invisible(x))
+            
+          })
+
+
 #### clustering (MultiDataSet) ####
 
 #' @rdname clustering
@@ -35,16 +178,16 @@ setMethod("clustering", signature(x = "MultiDataSet"),
             if (!(report.c %in% c("none", "interactive")))
               sink(report.c, append = TRUE)
             
-            infTxtC <- report.c
-            if (infTxtC != "none")
-              infTxtC <- "interactive"
+            report_set.c <- report.c
+            if (report_set.c != "none")
+              report_set.c <- "interactive"
             
             if (!(figure.c %in% c("none", "interactive")))
               grDevices::pdf(figure.c)
             
-            figPdfC <- figure.c
-            if (figPdfC != "none")
-              figPdfC <- "interactive"
+            figure_set.c <- figure.c
+            if (figure_set.c != "none")
+              figure_set.c <- "interactive"
             
             for (setC in names(x)) {
               
@@ -62,8 +205,8 @@ setMethod("clustering", signature(x = "MultiDataSet"),
                                 palette.c = palette.c,
                                 scale_plot.l = scale_plot.l,
                                 title.c = paste0("[", setC, "]"),
-                                figure.c = figPdfC,
-                                report.c = infTxtC)
+                                figure.c = figure_set.c,
+                                report.c = report_set.c)
               
               x <- MultiDataSet::add_eset(x,
                                           ese,
@@ -79,6 +222,8 @@ setMethod("clustering", signature(x = "MultiDataSet"),
             
             if (!(report.c %in% c("none", "interactive")))
               sink()
+            
+            methods::validObject(x)
             
             return(invisible(x))
             
@@ -122,27 +267,34 @@ setMethod("clustering", signature(x = "ExpressionSet"),
             if (!(report.c %in% c("none", "interactive")))
               sink(report.c, append = TRUE)
             
-            x <- .clustering(eset = x,
-                             dissym.c = dissym.c,
-                             correl.c = correl.c,
-                             agglo.c = agglo.c,
-                             clusters.vi = clusters.vi,
-                             cex.vn = cex.vn,
-                             palette.c = palette.c,
-                             scale_plot.l = scale_plot.l,
-                             title.c = title.c,
-                             figure.c = figure.c)
+            metadata.ls <- .clustering(pro.mn = t(Biobase::exprs(x)),
+                                       sam.Df = Biobase::pData(x),
+                                       var.Df = Biobase::fData(x),
+                                       dissym.c = dissym.c,
+                                       correl.c = correl.c,
+                                       agglo.c = agglo.c,
+                                       clusters.vi = clusters.vi,
+                                       cex.vn = cex.vn,
+                                       palette.c = palette.c,
+                                       scale_plot.l = scale_plot.l,
+                                       title.c = title.c,
+                                       figure.c = figure.c)
             
-            methods::validObject(x)
+            Biobase::pData(x) <- metadata.ls[["sam.Df"]]
+            Biobase::fData(x) <- metadata.ls[["var.Df"]]
             
             if (!(report.c %in% c("none", "interactive")))
               sink()
+            
+            methods::validObject(x)
             
             return(invisible(x))
             
           })
 
-.clustering <- function(eset,
+.clustering <- function(pro.mn, ## profiles (matrix; samples x variables)
+                        sam.Df, ## sample metadata (data frame or DataFrame; samples x sample metadata)
+                        var.Df, ## variable metadata (data frame or DataFrame; variables x variable metadata)
                         dissym.c,    ## dissimilarity
                         correl.c, ## correlation method
                         agglo.c, ## agglomeration method
@@ -153,45 +305,43 @@ setMethod("clustering", signature(x = "ExpressionSet"),
                         title.c,
                         figure.c) {
   
-  proMN <- t(Biobase::exprs(eset))
-  
   ncaN <- 14 ## Sample and variable name truncature for display
   
   if (dissym.c %in% c("euclidean", "maximum", "manhattan", "canberra", "binary", "minkowski")) {
     
-    obsHcl <- stats::hclust(stats::dist(proMN, method = dissym.c),
+    obsHcl <- stats::hclust(stats::dist(pro.mn, method = dissym.c),
                             method = agglo.c)
     
-    feaHcl <- stats::hclust(stats::dist(t(proMN), method = dissym.c),
+    feaHcl <- stats::hclust(stats::dist(t(pro.mn), method = dissym.c),
                             method = agglo.c)
     
   } else if (dissym.c == "1-cor") {
     
-    obsHcl <- stats::hclust(stats::as.dist(1 - stats::cor(t(proMN),
+    obsHcl <- stats::hclust(stats::as.dist(1 - stats::cor(t(pro.mn),
                                                           method = correl.c,
                                                           use = "pairwise.complete.obs")),
                             method = agglo.c)
     
-    feaHcl <- stats::hclust(stats::as.dist(1 - stats::cor(proMN,
+    feaHcl <- stats::hclust(stats::as.dist(1 - stats::cor(pro.mn,
                                                           method = correl.c,
                                                           use = "pairwise.complete.obs")),
                             method = agglo.c)
     
   } else if (dissym.c == "1-abs(cor)") {
     
-    obsHcl <- stats::hclust(stats::as.dist(1 - abs(stats::cor(t(proMN),
+    obsHcl <- stats::hclust(stats::as.dist(1 - abs(stats::cor(t(pro.mn),
                                                               method = correl.c,
                                                               use = "pairwise.complete.obs"))),
                             method = agglo.c)
     
-    feaHcl <- stats::hclust(stats::as.dist(1 - abs(stats::cor(proMN,
+    feaHcl <- stats::hclust(stats::as.dist(1 - abs(stats::cor(pro.mn,
                                                               method = correl.c,
                                                               use = "pairwise.complete.obs"))),
                             method = agglo.c)
     
   }
   
-  heaMN <- proMN <- proMN[obsHcl[["order"]], feaHcl[["order"]]]
+  heaMN <- pro.mn <- pro.mn[obsHcl[["order"]], feaHcl[["order"]]]
   
   if (scale_plot.l)
     heaMN <- scale(heaMN)
@@ -373,11 +523,12 @@ setMethod("clustering", signature(x = "ExpressionSet"),
   ## Returning
   
   if (clusters.vi[1] > 1) ## number of sample clusters
-    Biobase::pData(eset)[, "hclust"] <- stats::cutree(obsHcl, k = clusters.vi[1])
+    sam.Df[, "hclust"] <- stats::cutree(obsHcl, k = clusters.vi[1])
   
   if (clusters.vi[2] > 1) ## number of variable clusters
-    Biobase::fData(eset)[, "hclust"] <- stats::cutree(feaHcl, k = clusters.vi[2])
+    var.Df[, "hclust"] <- stats::cutree(feaHcl, k = clusters.vi[2])
   
-  return(invisible(eset))
+  return(list(sam.Df = sam.Df,
+              var.Df = var.Df))
   
 }

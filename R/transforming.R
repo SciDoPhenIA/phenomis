@@ -1,31 +1,115 @@
+#### transforming (MultiAssayExperiment) ####
+
+#' @rdname transforming
+#' @export
+setMethod("transforming", signature(x = "MultiAssayExperiment"),
+          function(x,
+                   method.vc = c("log2", "log10", "sqrt")[1],
+                   report.c = c("none", "interactive", "myfile.txt")[2]) {
+            
+            if (!(length(method.vc) %in% c(1, length(x)))) {
+              stop("'The length of 'method.vc' should either be 1 or equal to the number of datasets")
+            } else if (length(method.vc) == 1) {
+              method.vc <- rep(method.vc, length(x))
+            }
+            names(method.vc) <- names(x)
+            
+            if (!(report.c %in% c("none", "interactive")))
+              sink(report.c, append = TRUE)
+            
+            report_set.c <- report.c
+            if (report_set.c != "none")
+              report_set.c <- "interactive"
+            
+            for (set.c in names(x)) {
+              
+              if (report.c != "none")
+                message("Transforming the '", set.c, "' dataset...")
+              
+              x[[set.c]] <- transforming(x = x[[set.c]],
+                                         method.vc = method.vc[set.c],
+                                         report.c = report_set.c)
+              
+            }
+            
+            if (!(report.c %in% c("none", "interactive")))
+              sink()
+            
+            methods::validObject(x)
+            
+            return(invisible(x))
+            
+          })
+
+
+#### transforming (SummarizedExperiment) ####
+
+#' @rdname transforming
+#' @export
+setMethod("transforming", signature(x = "SummarizedExperiment"),
+          function(x,
+                   method.vc = c("log2", "log10", "sqrt")[1],
+                   report.c = c("none", "interactive", "myfile.txt")[2]) {
+            
+            if (length(method.vc) > 1) {
+              stop("Only one method should be provided for a 'SummarizedExperiment' object")
+            } else {
+              method.c <- method.vc
+            }
+            
+            if (!(report.c %in% c("none", "interactive")))
+              sink(report.c, append = TRUE)
+            
+            transf.mn <- .transforming(t(SummarizedExperiment::assay(x)),
+                                       method.c = method.c,
+                                       report.c != "none")
+            
+            SummarizedExperiment::assay(x) <- t(transf.mn)
+            
+            if (!(report.c %in% c("none", "interactive")))
+              sink()
+            
+            methods::validObject(x)
+            
+            return(invisible(x))
+            
+          })
+
 #### transforming (MultiDataSet) ####
 
 #' @rdname transforming
 #' @export
 setMethod("transforming", signature(x = "MultiDataSet"),
           function(x,
-                   method.c = c("log2", "log10", "sqrt")[1],
+                   method.vc = c("log2", "log10", "sqrt")[1],
                    report.c = c("none", "interactive", "myfile.txt")[2]) {
+            
+            if (!(length(method.vc) %in% c(1, length(x)))) {
+              stop("'The length of 'method.vc' should either be 1 or equal to the number of datasets")
+            } else if (length(method.vc) == 1) {
+              method.vc <- rep(method.vc, length(x))
+            }
+            names(method.vc) <- names(x)
             
             if (!(report.c %in% c("none", "interactive")))
               sink(report.c, append = TRUE)
             
-            infTxtC <- report.c
-            if (infTxtC != "none")
-              infTxtC <- "interactive"
+            report_set.c <- report.c
+            if (report_set.c != "none")
+              report_set.c <- "interactive"
             
-            for (setC in names(x)) {
+            for (set.c in names(x)) {
               
               if (report.c != "none")
-                message("Transforming the '", setC, "' dataset...")
+                message("Transforming the '", set.c, "' dataset...")
               
-              ese <- phenomis::transforming(x = x[[setC]],
-                                            method.c = method.c,
-                                            report.c = infTxtC)
+              ese <- transforming(x = x[[set.c]],
+                                  method.vc = method.vc[set.c],
+                                  report.c = report_set.c)
               
               x <- MultiDataSet::add_eset(x,
                                           ese,
-                                          dataset.type = setC,
+                                          dataset.type = set.c,
                                           GRanges = NA,
                                           overwrite = TRUE,
                                           warnings = FALSE)
@@ -34,6 +118,8 @@ setMethod("transforming", signature(x = "MultiDataSet"),
             
             if (!(report.c %in% c("none", "interactive")))
               sink()
+            
+            methods::validObject(x)
             
             return(invisible(x))
             
@@ -46,8 +132,14 @@ setMethod("transforming", signature(x = "MultiDataSet"),
 #' @export
 setMethod("transforming", signature(x = "ExpressionSet"),
           function(x,
-                   method.c = c("log2", "log10", "sqrt")[1],
+                   method.vc = c("log2", "log10", "sqrt")[1],
                    report.c = c("none", "interactive", "myfile.txt")[2]) {
+            
+            if (length(method.vc) > 1) {
+              stop("Only one method should be provided for a 'ExpressionSet' object")
+            } else {
+              method.c <- method.vc
+            }
             
             if (!(report.c %in% c("none", "interactive")))
               sink(report.c, append = TRUE)
@@ -58,23 +150,26 @@ setMethod("transforming", signature(x = "ExpressionSet"),
             
             Biobase::exprs(x) <- t(transf.mn)
             
-            methods::validObject(x)
-            
             if (!(report.c %in% c("none", "interactive")))
               sink()
+            
+            methods::validObject(x)
             
             return(invisible(x))
             
           })
 
-.transforming <- function(data.mn,
+.transforming <- function(data.mn, ## data (matrix of numerics; samples x variables)
                           method.c = c("log2", "log10", "sqrt")[1],
                           verbose.l = TRUE) {
   
   ## checking
   
   if (length(which(data.mn < 0)))
-    stop("The 'dataMatrix' contains negative values", call. = FALSE)
+    stop("The 'dataMatrix' contains negative values")
+  
+  if (!(method.c %in% c("log2", "log10", "sqrt")))
+    stop("The transforming method should be either 'log2', 'log10', or 'sqrt'")
   
   ## Number of missing values
   data_na.ml <- is.na(data.mn)
@@ -120,7 +215,7 @@ setMethod("transforming", signature(x = "ExpressionSet"),
            data.mn <- sqrt(data.mn)
            
          })
- 
+  
   return(data.mn)
   
 }

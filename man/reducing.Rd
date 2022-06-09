@@ -2,11 +2,37 @@
 % Please edit documentation in R/allGenerics.R, R/reducing.R
 \name{reducing}
 \alias{reducing}
+\alias{reducing,MultiAssayExperiment-method}
+\alias{reducing,SummarizedExperiment-method}
 \alias{reducing,MultiDataSet-method}
 \alias{reducing,ExpressionSet-method}
 \title{Grouping chemically redundant MS1 features}
 \usage{
 reducing(
+  x,
+  cor_method.c = "pearson",
+  cor_threshold.n = 0.9,
+  rt_tol.n = 6,
+  rt_colname.c = "rt",
+  mzdiff_tol.n = 0.005,
+  mz_colname.c = "mz",
+  return_adjacency.l = FALSE,
+  report.c = c("none", "interactive", "myfile.txt")[2]
+)
+
+\S4method{reducing}{MultiAssayExperiment}(
+  x,
+  cor_method.c = "pearson",
+  cor_threshold.n = 0.9,
+  rt_tol.n = 6,
+  rt_colname.c = "rt",
+  mzdiff_tol.n = 0.005,
+  mz_colname.c = "mz",
+  return_adjacency.l = FALSE,
+  report.c = c("none", "interactive", "myfile.txt")[2]
+)
+
+\S4method{reducing}{SummarizedExperiment}(
   x,
   cor_method.c = "pearson",
   cor_threshold.n = 0.9,
@@ -43,7 +69,7 @@ reducing(
 )
 }
 \arguments{
-\item{x}{An S4 object of class \code{ExpressionSet} or \code{MultiDataSet}:
+\item{x}{An S4 object of class \code{SummarizedExperiment} or \code{MultiAssayExperiment}:
 the dataset(s) must contain the dataMatrix and the variableMetadata (with the
 'mz' and 'rt' columns)}
 
@@ -69,8 +95,8 @@ results (call to sink()'); if 'interactive' (default), messages will be
 printed on the screen; if 'none', no verbose will be generated}
 }
 \value{
-updated \code{ExpressionSet} or \code{MultiDataSet}: the ExpressionSet(s)
-now include(s) 5 new columns in the fData: 'redund_samp_mean', 'redund_is',
+updated \code{SummarizedExperiment} or \code{MultiAssayExperiment}: the summarized experiment(s)
+now include(s) 5 new columns in the rowData: 'redund_samp_mean', 'redund_is',
 'redund_group', redund_iso_add_frag', 'redund_repres' and 'redund_relative'
 containing, respectively, the redundant features (coded by 1; i.e. features with
 a relative annotation distinct from '' and 'M'), the connected components,
@@ -95,10 +121,10 @@ Note: the algorithm relies on the 'mzdiff_db.tsv' file referencing the known add
 isotopes, and fragments.
 }
 \examples{
-sac.eset <- phenomis::reading(system.file("extdata/W4M00002_Sacurine-comprehensive",
+sacurine.se <- reading(system.file("extdata/W4M00002_Sacurine-comprehensive",
                                           package = "phenomis"),
-                              report.c = "none")
-sac.eset <- phenomis::reducing(sac.eset,
-                               rt_tol.n = 6)
-table(Biobase::fData(sac.eset)[, "redund_group"])
+                      report.c = "none")
+sacurine.se <- reducing(sacurine.se,
+                        rt_tol.n = 6)
+table(rowData(sacurine.se)[, "redund_group"])
 }

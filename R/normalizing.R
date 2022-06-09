@@ -1,31 +1,127 @@
+#### normalizing (MultiAssayExperiment) ####
+
+#' @rdname normalizing
+#' @export
+setMethod("normalizing", signature(x = "MultiAssayExperiment"),
+          function(x,
+                   method.vc = "pqn",
+                   report.c = c("none", "interactive", "myfile.txt")[2]) {
+            
+            if (!(length(method.vc) %in% c(1, length(x)))) {
+              stop("'The length of 'method.vc' should either be 1 or equal to the number of datasets")
+            } else if (length(method.vc) == 1) {
+              method.vc <- rep(method.vc, length(x))
+            }
+            names(method.vc) <- names(x)
+            
+            if (!(report.c %in% c("none", "interactive")))
+              sink(report.c, append = TRUE)
+            
+            report_set.c <- report.c
+            if (report_set.c != "none")
+              report_set.c <- "interactive"
+            
+            for (set.c in names(x)) {
+              
+              if (report.c != "none")
+                message("normalizing the '", set.c, "' dataset...")
+              
+              x[[set.c]] <- normalizing(x = x[[set.c]],
+                                        method.vc = method.vc[[set.c]],
+                                        report.c = report_set.c)
+
+            }
+            
+            if (!(report.c %in% c("none", "interactive")))
+              sink()
+            
+            methods::validObject(x)
+            
+            return(invisible(x))
+            
+          })
+
+
+#### normalizing (SummarizedExperiment) ####
+
+#' @rdname normalizing
+#' @export
+setMethod("normalizing", signature(x = "SummarizedExperiment"),
+          function(x,
+                   method.vc = "pqn",
+                   report.c = c("none", "interactive", "myfile.txt")[2]) {
+            
+            if (length(method.vc) != 1) {
+              stop("'method.vc' should be of length 1 for an 'SummarizedExperiment'")
+            } else
+              method.c <- method.vc
+            
+            if (!(report.c %in% c("none", "interactive")))
+              sink(report.c, append = TRUE)
+            
+            if (method.c == "pqn") {
+              if ("sampleType" %in% colnames(SummarizedExperiment::colData(x)) &&
+                  "pool" %in% SummarizedExperiment::colData(x)[, "sampleType"]) {
+                reference.vl <- SummarizedExperiment::colData(x)[, "sampleType"] == "pool"
+                message("PQN normalization on pools")
+              } else {
+                reference.vl <- rep(TRUE, ncol(x))
+                message("PQN normalization on all samples")
+              }
+            } else
+              reference.vl <- FALSE
+            
+            norm.mn <- .normalizing(t(SummarizedExperiment::assay(x)),
+                                    method.c = method.c,
+                                    reference.vl = reference.vl)
+            
+            SummarizedExperiment::assay(x) <- t(norm.mn)
+
+            if (!(report.c %in% c("none", "interactive")))
+              sink()
+            
+            methods::validObject(x)
+            
+            return(invisible(x))
+            
+          })
+
+
 #### normalizing (MultiDataSet) ####
 
 #' @rdname normalizing
 #' @export
 setMethod("normalizing", signature(x = "MultiDataSet"),
           function(x,
-                   method.c = "pqn",
+                   method.vc = "pqn",
                    report.c = c("none", "interactive", "myfile.txt")[2]) {
+            
+            if (!(length(method.vc) %in% c(1, length(x)))) {
+              stop("'The length of 'method.vc' should either be 1 or equal to the number of datasets")
+            } else if (length(method.vc) == 1) {
+              method.vc <- rep(method.vc, length(x))
+            }
+            names(method.vc) <- names(x)
             
             if (!(report.c %in% c("none", "interactive")))
               sink(report.c, append = TRUE)
             
-            inf_txt.c <- report.c
-            if (inf_txt.c != "none")
-              inf_txt.c <- "interactive"
+            report_set.c <- report.c
+            if (report_set.c != "none")
+              report_set.c <- "interactive"
             
-            for (setC in names(x)) {
+            for (set.c in names(x)) {
               
               if (report.c != "none")
-                message("normalizing the '", setC, "' dataset...")
+                message("normalizing the '", set.c, "' dataset...")
               
-              ese <- phenomis::normalizing(x = x[[setC]],
-                                           method.c = method.c,
-                                           report.c = inf_txt.c)
+              ese <- normalizing(x = x[[set.c]],
+                                 method.vc = method.vc[[set.c]],
+                                 report.c = report_set.c)
               
               x <- MultiDataSet::add_eset(x,
                                           ese,
-                                          dataset.type = setC,
+                                          dataset.type = set.c,
                                           GRanges = NA,
                                           overwrite = TRUE,
                                           warnings = FALSE)
@@ -34,6 +130,8 @@ setMethod("normalizing", signature(x = "MultiDataSet"),
             
             if (!(report.c %in% c("none", "interactive")))
               sink()
+            
+            methods::validObject(x)
             
             return(invisible(x))
             
@@ -46,8 +144,13 @@ setMethod("normalizing", signature(x = "MultiDataSet"),
 #' @export
 setMethod("normalizing", signature(x = "ExpressionSet"),
           function(x,
-                   method.c = "pqn",
+                   method.vc = "pqn",
                    report.c = c("none", "interactive", "myfile.txt")[2]) {
+            
+            if (length(method.vc) != 1) {
+              stop("'method.vc' should be of length 1 for an 'SummarizedExperiment'")
+            } else
+              method.c <- method.vc
             
             if (!(report.c %in% c("none", "interactive")))
               sink(report.c, append = TRUE)
@@ -69,18 +172,18 @@ setMethod("normalizing", signature(x = "ExpressionSet"),
                                     reference.vl = reference.vl)
             
             Biobase::exprs(x) <- t(norm.mn)
-            
-            methods::validObject(x)
-            
+ 
             if (!(report.c %in% c("none", "interactive")))
               sink()
+            
+            methods::validObject(x)
             
             return(invisible(x))
             
           })
 
 
-.normalizing <- function(data.mn,
+.normalizing <- function(data.mn, ## data (matrix of numerics; samples x variables)
                          method.c = "pqn",
                          reference.vl) {
   

@@ -2,11 +2,47 @@
 % Please edit documentation in R/allGenerics.R, R/annotating.R
 \name{annotating}
 \alias{annotating}
+\alias{annotating,MultiAssayExperiment-method}
+\alias{annotating,SummarizedExperiment-method}
+\alias{annotating,MultiDataSet-method}
 \alias{annotating,ExpressionSet-method}
 \alias{annotating_parameters}
 \title{MS annotation}
 \usage{
 annotating(
+  x,
+  database.c = c("chebi", "local.ms")[1],
+  param.ls = list(query.type = c("mz", "chebi.id", "kegg.id")[1], query.col = "mz",
+    ms.mode = "pos", mz.tol = 10, mz.tol.unit = "ppm", fields = c("chebi.id", "name",
+    "formula", "molecular.mass", "monoisotopic.mass"), fieldsLimit = 1, max.results = 3,
+    local.ms.db = data.frame(), organism = "hsa", prefix = paste0(database.c, "."), sep =
+    "|"),
+  report.c = c("none", "interactive", "myfile.txt")[2]
+)
+
+\S4method{annotating}{MultiAssayExperiment}(
+  x,
+  database.c = c("chebi", "local.ms")[1],
+  param.ls = list(query.type = c("mz", "chebi.id", "kegg.id")[1], query.col = "mz",
+    ms.mode = "pos", mz.tol = 10, mz.tol.unit = "ppm", fields = c("chebi.id", "name",
+    "formula", "molecular.mass", "monoisotopic.mass"), fieldsLimit = 1, max.results = 3,
+    local.ms.db = data.frame(), organism = "hsa", prefix = paste0(database.c, "."), sep =
+    "|"),
+  report.c = c("none", "interactive", "myfile.txt")[2]
+)
+
+\S4method{annotating}{SummarizedExperiment}(
+  x,
+  database.c = c("chebi", "local.ms")[1],
+  param.ls = list(query.type = c("mz", "chebi.id", "kegg.id")[1], query.col = "mz",
+    ms.mode = "pos", mz.tol = 10, mz.tol.unit = "ppm", fields = c("chebi.id", "name",
+    "formula", "molecular.mass", "monoisotopic.mass"), fieldsLimit = 1, max.results = 3,
+    local.ms.db = data.frame(), organism = "hsa", prefix = paste0(database.c, "."), sep =
+    "|"),
+  report.c = c("none", "interactive", "myfile.txt")[2]
+)
+
+\S4method{annotating}{MultiDataSet}(
   x,
   database.c = c("chebi", "local.ms")[1],
   param.ls = list(query.type = c("mz", "chebi.id", "kegg.id")[1], query.col = "mz",
@@ -31,7 +67,7 @@ annotating(
 annotating_parameters(database.c = c("chebi", "local.ms", "kegg")[1])
 }
 \arguments{
-\item{x}{An S4 object of class \code{ExpressionSet} or \code{MultiDataSet}}
+\item{x}{An S4 object of class \code{SummarizedExperiment} or \code{MultiAssayExperiment}}
 
 \item{database.c}{character: database to be used for annotation}
 
@@ -43,7 +79,7 @@ results (call to sink()'); if 'interactive' (default), messages will be
 printed on the screen; if 'none', no verbose will be generated}
 }
 \value{
-\code{ExpressionSet} or \code{MultiDataSet} including the appended fData
+\code{SummarizedExperiment} or \code{MultiAssayExperiment} including the appended rowData
 data frame(s)
 }
 \description{
@@ -52,22 +88,23 @@ Annotation with chemical and biological databases
 The parameters and their default values are printed for the selected database
 }
 \examples{
-sacurine.eset <- phenomis::reading(system.file("extdata/W4M00001_Sacurine-statistics", package = "phenomis"))
+sacurine.se <- reading(system.file("extdata/W4M00001_Sacurine-statistics", package = "phenomis"))
 # see the (default) parameters (e.g. for ChEBI query)
-phenomis::annotating_parameters("chebi")
+annotating_parameters("chebi")
 # mz annotation with ChEBI
-sacurine.eset <- phenomis::annotating(sacurine.eset, database.c = "chebi", param.ls = list(query.type = "mz", query.col = "mass_to_charge", ms.mode = "neg", prefix = "chebiMZ."))
+sacurine.se <- annotating(sacurine.se, database.c = "chebi", param.ls = list(query.type = "mz", query.col = "mass_to_charge", ms.mode = "neg", prefix = "chebiMZ."))
 # mz annotation with local database
 msdbDF <- read.table(system.file("extdata/local_ms_db.tsv", package = "phenomis"),
 header = TRUE, sep = "\t", stringsAsFactors = FALSE)
-sacurine.eset <- phenomis::annotating(sacurine.eset, database.c = "local.ms",
+sacurine.se <- annotating(sacurine.se, database.c = "local.ms",
 param.ls = list(query.type = "mz", query.col = "mass_to_charge", ms.mode = "neg",
 mz.tol = 5, mz.tol.unit = "ppm", local.ms.db = msdbDF, prefix = "localMS."))
-Biobase::fData(sacurine.eset)[!is.na(Biobase::fData(sacurine.eset)[, "localMS.accession"]), ]
+rowData(sacurine.se)[!is.na(rowData(sacurine.se)[, "localMS.accession"]), ]
 # annotation from ChEBI identifiers
-sacurine.eset <- phenomis::annotating(sacurine.eset, database.c = "chebi",
+sacurine.se <- annotating(sacurine.se, database.c = "chebi",
 param.ls = list(query.type = "chebi.id", query.col = "database_identifier",
 prefix = "chebiID."))
+head(rowData(sacurine.se))
 phenomis::annotating_parameters()
 phenomis::annotating_parameters("chebi")
 }
